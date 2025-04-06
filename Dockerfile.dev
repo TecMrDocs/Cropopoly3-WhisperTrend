@@ -1,0 +1,30 @@
+FROM nixos/nix:latest AS builder
+
+WORKDIR /build
+
+# Copy the Nix configuration files
+COPY flake.nix .
+COPY flake.lock .
+
+# Install dependencies and compile the application using Nix
+RUN nix --extra-experimental-features "nix-command flakes" \
+    --option filter-syscalls false \
+    build
+
+FROM debian:latest
+
+# Create source directory
+RUN mkdir /source
+COPY --from=builder /nix /nix
+COPY --from=builder /build/result /source
+
+ENV PATH="/source/bin:${PATH}"
+
+# Copy .zshrc and fix line endings
+COPY .devcontainer/.zshrc /root/.zshrc
+RUN dos2unix /root/.zshrc
+
+# Copy starship config
+RUN mkdir -p /root/.config/starship
+COPY .devcontainer/starship.toml /root/.config/starship.toml
+RUN dos2unix /root/.config/starship.toml

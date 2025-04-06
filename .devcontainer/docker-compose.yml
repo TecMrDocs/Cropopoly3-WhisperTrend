@@ -1,0 +1,13 @@
+services:
+  development:
+    build:
+      context: ..
+      dockerfile: Dockerfile.dev
+    command: sleep infinity
+    volumes:
+      - cargo-cache:/usr/local/cargo
+      - ..:/workspace:cached
+
+volumes:
+  database-data:
+  cargo-cache:

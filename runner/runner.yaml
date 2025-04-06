@@ -1,0 +1,17 @@
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: RunnerDeployment
+metadata:
+  annotations:
+      karpenter.sh/do-not-evict: "true"
+  name: k8s-runner
+  namespace: actions-runner-system
+spec:
+  replicas: 4
+  template:
+    spec:
+      labels:
+        - "self-hosted"
+      repository: "zam-cv/development_environment"
+      image: zamcv/actions:v11
+      ephemeral: true
+      imagePullPolicy: IfNotPresent

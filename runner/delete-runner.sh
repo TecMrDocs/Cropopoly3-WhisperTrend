@@ -1,0 +1,1 @@
+kubectl delete runnerdeployment k8s-runner -n actions-runner-system

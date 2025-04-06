@@ -1,0 +1,56 @@
+FROM nixos/nix:latest AS builder
+
+WORKDIR /build
+
+# Copy the Nix configuration files
+COPY flake.nix .
+COPY flake.lock .
+
+# Install dependencies and compile the application using Nix
+RUN nix --extra-experimental-features "nix-command flakes" \
+    --option filter-syscalls false \
+    build
+
+FROM debian:latest AS compiler
+
+RUN apt-get update && apt-get install -y ca-certificates
+
+# Create source directory
+RUN mkdir /source
+COPY --from=builder /nix /nix
+COPY --from=builder /build/result /source
+
+ENV PATH="/source/bin:${PATH}"
+
+COPY . /project
+
+# Build the application
+RUN cargo build --manifest-path /project/core/server/Cargo.toml --release
+
+FROM debian:latest AS runner
+
+# Install dependencies
+RUN apt-get update && apt-get install -y ca-certificates patchelf certbot nginx cron curl
+
+# Copy the compiled application
+COPY --from=compiler /project/core/server/target/release/server /usr/local/bin/app
+
+# Set the interpreter for the application
+RUN patchelf --set-interpreter /lib/ld-linux-*.so.1 /usr/local/bin/app
+
+# Install Certbot
+RUN echo "0 0,12 * * * certbot renew --nginx --quiet" | crontab -
+
+# Create SSL directory
+RUN mkdir -p /etc/nginx/ssl
+
+# Copy the entrypoint script
+COPY entrypoint.sh /usr/src/app/entrypoint.sh
+
+# Make the entrypoint script executable
+RUN chmod +x /usr/src/app/entrypoint.sh
+
+# Expose the ports
+EXPOSE 80 443
+
+ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

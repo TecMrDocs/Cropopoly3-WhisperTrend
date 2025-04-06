@@ -1,0 +1,12 @@
+target
+Cargo.lock
+poetry.lock
+__pycache__
+.pytest_cache
+.DS_Store
+terraform.tfvars
+oci_instance.pub
+.terraform.lock.hcl
+.terraform
+terraform.tfstate.backup
+terraform.tfstate

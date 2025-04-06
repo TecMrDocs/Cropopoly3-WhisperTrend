@@ -1,0 +1,15 @@
+{
+  "rust-analyzer.linkedProjects": [
+    "./core/collector/Cargo.toml",
+    "./core/processor/Cargo.toml",
+    "./core/saver/Cargo.toml",
+    "./core/server/Cargo.toml",
+  ],
+  "rust-analyzer.showUnlinkedFileNotification": false,
+  "git.openRepositoryInParentFolders": "always",
+  "cmake.ignoreCMakeListsMissing": true,
+  "files.associations": {
+    "atomic": "c"
+  },
+  "python.analysis.extraPaths": ["./core/models/src"]
+}
