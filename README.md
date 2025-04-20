@@ -24,7 +24,7 @@ A system developed for NDS that correlates stock market fluctuations with online
 2. Clone the repository
 
 ```bash
-git clone https://github.com/rn0x7f/keysPROtting
+git clone https://github.com/TecMrDocs/Cropopoly3-WhisperTrend
 ```
 
 3. Change to the project directory
