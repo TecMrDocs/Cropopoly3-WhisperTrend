@@ -10,3 +10,6 @@ oci_instance.pub
 .terraform
 terraform.tfstate.backup
 terraform.tfstate
+libscraper.a
+bindings.rs
+rules.json

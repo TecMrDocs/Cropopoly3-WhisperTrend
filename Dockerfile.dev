@@ -13,6 +13,8 @@ RUN nix --extra-experimental-features "nix-command flakes" \
 
 FROM debian:latest
 
+RUN apt-get update && apt-get install -y ca-certificates
+
 # Create source directory
 RUN mkdir /source
 COPY --from=builder /nix /nix

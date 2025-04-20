@@ -1,14 +1,13 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
-
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+        let scraper = scraper::Scraper::new();
+        let title = scraper.execute(|ctx| {
+            ctx.navigate(String::from("https://www.example.com/"));
+            ctx.evaluate(String::from("document.title"))
+        });
+
+        assert_eq!(title, "Example Domain");
     }
 }

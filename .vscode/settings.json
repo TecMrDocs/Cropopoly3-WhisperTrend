@@ -1,9 +1,11 @@
 {
   "rust-analyzer.linkedProjects": [
-    "./core/collector/Cargo.toml",
+    "./core/scraper/Cargo.toml",
     "./core/processor/Cargo.toml",
     "./core/saver/Cargo.toml",
     "./core/server/Cargo.toml",
+    "./core/common/Cargo.toml",
+    "./core/collector/Cargo.toml"
   ],
   "rust-analyzer.showUnlinkedFileNotification": false,
   "git.openRepositoryInParentFolders": "always",
