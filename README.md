@@ -61,3 +61,15 @@ cargo run
 cd core/web
 npm run dev
 ```
+
+# Backend
+.env file variables example
+```bash
+DATABASE_URL=postgres://user:password@ip:port/db_name
+ADMIN_DEFAULT_EMAIL=admin@test.com
+ADMIN_SECRET_KEY=Edsfsdg/fI08g/AbvzbsdfsTOPYmE8+qYLeDRHG2+934c=
+USER_SECRET_KEY=2dfdfNLRtsfsdfsdfsfszQQUDooq3v58ygnL7rog/xerw=
+
+RUST_LOG=info
+```
+You can generate *_SECRET_KEY using `openssl rand -base64 32`
