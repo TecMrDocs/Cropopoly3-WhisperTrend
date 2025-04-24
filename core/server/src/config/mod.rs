@@ -4,7 +4,7 @@ pub struct Config {
     pub database_url: String,
     pub admin_default_email: String,
     pub admin_secret_key: String,
-    pub inspector_secret_key: String,
+    pub user_secret_key: String,
 }
 
 lazy_static! {
