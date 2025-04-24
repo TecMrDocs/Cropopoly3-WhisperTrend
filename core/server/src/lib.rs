@@ -1,10 +1,16 @@
 mod api;
+mod database;
+mod config;
+mod models;
+mod schema;
+mod middleware;
+mod utils;
 
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, web};
 
 pub async fn api_run() -> std::io::Result<()> {
-    // let database = database::DataBase::new();
+    let database = database::DataBase::new();
 
     HttpServer::new(move || {
         let cors = Cors::permissive()
@@ -15,7 +21,7 @@ pub async fn api_run() -> std::io::Result<()> {
 
         App::new()
             .wrap(cors)
-            // .app_data(web::Data::new(database.clone()))
+            .app_data(web::Data::new(database.clone()))
             .configure(api::init_routes)
     })
     .bind(("0.0.0.0", 8080))?
