@@ -61,24 +61,6 @@ impl DataBase {
     /////////////////////////////////////////////////////
     /////////////// User related methods ////////////////
     /////////////////////////////////////////////////////
-    // pub fn create_user(
-    //     &self,
-    //     new_user: models::NewUser,
-    // ) -> anyhow::Result<models::User> {
-    //     self.query_wrapper(|conn| {
-    //         diesel::insert_into(schema::user::table)
-    //             .values(&new_user)
-    //             .get_result(conn)
-    //     })
-    // }
-    
-    // pub fn get_users(&self) -> anyhow::Result<Vec<models::User>> {
-    //     self.query_wrapper(|conn| {
-    //         schema::user::table
-    //             .load::<models::User>(conn)
-    //             .map_err(|e| anyhow::anyhow!(e))
-    //     })
-    // }
     pub async fn get_users(&self) -> anyhow::Result<Vec<models::user::User>> {
         self.query_wrapper(move |conn| {
             schema::user::table.load::<models::user::User>(conn)

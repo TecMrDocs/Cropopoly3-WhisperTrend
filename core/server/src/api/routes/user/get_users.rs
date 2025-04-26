@@ -9,17 +9,17 @@ pub async fn get_users(
     let conn_info = req.connection_info();
     let ip = conn_info.realip_remote_addr().unwrap_or("IP desconocida");
     match db.get_users().await {
-        Ok(inspectors) => {
-            // log::info!(
-            //     "GET - /inspector/ | Req from IP: {} by {} - {} ({})",
-            //     ip,
-            //     identity.id,
-            //     identity.name,
-            //     identity.email
-            // );
+        Ok(collected_users) => {
+            log::info!(
+                "GET - /user/ | Req from IP: {} by {} - {} ({})",
+                ip,
+                identity.id,
+                identity.name,
+                identity.email
+            );
 
             let users: Vec<User> =
-                inspectors.into_iter().map(Into::into).collect();
+                collected_users.into_iter().map(Into::into).collect();
             HttpResponse::Ok().json(users)
         }
         Err(e) => {
