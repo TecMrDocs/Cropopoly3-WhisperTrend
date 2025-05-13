@@ -17,7 +17,7 @@ const datos = [
 ];
 
 
-function logBase10Tabla(tabla) {
+function logBase10Tabla(tabla: (string | number)[][]): (string | number)[][] {
   return tabla.map((fila, filaIdx) => {
     if (filaIdx === 0) return fila;
     return fila.map((valor, colIdx) => {
@@ -48,7 +48,11 @@ function obtenerMinimosYMaximos(tabla: (string | number)[][]): { min: number[], 
   return { min, max };
 }
 
-function normalizarTabla(tabla, min, max) {
+function normalizarTabla(
+  tabla: (string | number)[][],
+  min: number[],
+  max: number[]
+): (string | number)[][] {
   return tabla.map((fila, filaIdx) => {
     if (filaIdx === 0) return fila;
     return fila.map((valor, colIdx) => {
@@ -62,6 +66,7 @@ function normalizarTabla(tabla, min, max) {
   });
 }
 
+
 const logTabla = logBase10Tabla(datos);
 const { min, max } = obtenerMinimosYMaximos(logTabla);
 const normalizada = normalizarTabla(logTabla, min, max);
@@ -70,7 +75,7 @@ const fechas = datos[0].slice(1);
 const metricas = datos.slice(1);
 
 const dataOriginal = fechas.map((fecha, i) => {
-  const punto = { fecha };
+  const punto: { [key: string]: string | number } = { fecha };
   for (const [nombreMetrica, ...valores] of metricas) {
     punto[nombreMetrica] = valores[i];
   }
@@ -78,10 +83,12 @@ const dataOriginal = fechas.map((fecha, i) => {
 });
 
 const dataNormalizada = fechas.map((fecha, i) => {
-  const punto = { fecha };
+  const punto: { [key: string]: string | number } = { fecha };
   for (let j = 1; j < normalizada.length; j++) {
     const nombreMetrica = normalizada[j][0];
-    punto[nombreMetrica] = normalizada[j][i + 1];
+    if (typeof nombreMetrica === "string") {
+      punto[nombreMetrica] = normalizada[j][i + 1];
+    }
   }
   return punto;
 });
