@@ -3,6 +3,6 @@ import './styles/BackButton.css';
 
 export default function BackButton(props:any){
   return(
-    <button className="back-button">{props.text}</button>    
+    <button className="back-button ">{props.text}</button>    
   );
 }
