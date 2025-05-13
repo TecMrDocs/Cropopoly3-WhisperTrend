@@ -9,3 +9,21 @@
   background: linear-gradient(90deg, #2563eb 0%, #34d399 100%);
   color: white;
 }
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar-styles img {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+}
+
+.logo-container p {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
