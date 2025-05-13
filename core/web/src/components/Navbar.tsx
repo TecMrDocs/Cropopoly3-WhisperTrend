@@ -6,10 +6,10 @@ export default function Navbar() {
       <div className="flex items-center gap-2.5">
         <img 
           src={logo} 
-          alt="Whisper Trend Logo" 
+          alt="WhisperTrend Logo" 
           className="h-[50px] w-auto object-contain"
         />
-        <p className="m-0 text-2xl font-bold">Whisper Trend</p>
+        <p className="m-0 text-2xl font-bold">WhisperTrend</p>
       </div>
     </div>
   );
