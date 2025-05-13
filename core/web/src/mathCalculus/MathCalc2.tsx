@@ -1,0 +1,170 @@
+import React, { useState } from 'react';
+import './MathCalc2.css';
+
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
+  CartesianGrid, ReferenceLine
+} from 'recharts';
+
+const datos = [
+  ["", "01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
+  ["Tasa Interacción X", 10.99, 1.88, 1.91, 25.52],
+  ["Tasa Viralidad X", 1.75, 1.92, 0.69, 83.53],
+  ["Tasa Interacción Instagram", 9.579002606, 346.0624043, 6.09294629, 4.261592452],
+  ["Tasa Viralidad Instagram", 141.99, 213.98, 78.32, 5.35],
+  ["Tasa interacción Reddit", 0.2474374817, 1.366677887, 0.1016653724, 0.2087342069],
+  ["Tasa viralidad reddit", 0.2980078249, 0.2502433548, 0.224227941, 0.3087851555]
+];
+
+
+function logBase10Tabla(tabla) {
+  return tabla.map((fila, filaIdx) => {
+    if (filaIdx === 0) return fila;
+    return fila.map((valor, colIdx) => {
+      if (colIdx === 0) return valor;
+      const num = typeof valor === "number" ? valor : parseFloat(valor);
+      return num > 0 ? Math.log10(num) : NaN;
+    });
+  });
+}
+
+function obtenerMinimosYMaximos(tabla: (string | number)[][]): { min: number[], max: number[] } {
+  const numCols = tabla[0].length;
+  const min: number[] = [];
+  const max: number[] = [];
+  
+  for (let col = 1; col < numCols; col++) {
+    const valores: number[] = [];
+    for (let fila = 1; fila < tabla.length; fila++) {
+      const valor = tabla[fila][col];
+      if (typeof valor === "number" && !isNaN(valor)) {
+        valores.push(valor);
+      }
+    }
+    min[col] = valores.length ? Math.min(...valores) : NaN;
+    max[col] = valores.length ? Math.max(...valores) : NaN;
+  }
+
+  return { min, max };
+}
+
+function normalizarTabla(tabla, min, max) {
+  return tabla.map((fila, filaIdx) => {
+    if (filaIdx === 0) return fila;
+    return fila.map((valor, colIdx) => {
+      if (colIdx === 0) return fila[0];
+      if (typeof valor !== "number" || isNaN(valor)) return NaN;
+      const minVal = min[colIdx];
+      const maxVal = max[colIdx];
+      if (isNaN(minVal) || isNaN(maxVal) || maxVal === minVal) return NaN;
+      return ((valor - minVal) / (maxVal - minVal)) * 100;
+    });
+  });
+}
+
+const logTabla = logBase10Tabla(datos);
+const { min, max } = obtenerMinimosYMaximos(logTabla);
+const normalizada = normalizarTabla(logTabla, min, max);
+
+const fechas = datos[0].slice(1);
+const metricas = datos.slice(1);
+
+const dataOriginal = fechas.map((fecha, i) => {
+  const punto = { fecha };
+  for (const [nombreMetrica, ...valores] of metricas) {
+    punto[nombreMetrica] = valores[i];
+  }
+  return punto;
+});
+
+const dataNormalizada = fechas.map((fecha, i) => {
+  const punto = { fecha };
+  for (let j = 1; j < normalizada.length; j++) {
+    const nombreMetrica = normalizada[j][0];
+    punto[nombreMetrica] = normalizada[j][i + 1];
+  }
+  return punto;
+});
+
+const colores = [
+  "#8884d8", "#82ca9d", "#ffc658", "#ff6384", "#00c49f", "#ff8042"
+];
+
+const GraficoDatosNormalizados = () => {
+  const [modoVisualizacion, setModoVisualizacion] = useState('original');
+  
+return (
+  <div className="grafico-container">
+    <div className="botones-container">
+      <button 
+        className={`boton ${modoVisualizacion === 'original' ? 'activo' : 'inactivo'}`}
+        onClick={() => setModoVisualizacion('original')}
+      >
+        Datos Originales
+      </button>
+      <button 
+        className={`boton ${modoVisualizacion === 'logaritmo' ? 'activo' : 'inactivo'}`}
+        onClick={() => setModoVisualizacion('logaritmo')}
+      >
+        Escala Logarítmica
+      </button>
+      <button 
+        className={`boton ${modoVisualizacion === 'normalizado' ? 'activo' : 'inactivo'}`}
+        onClick={() => setModoVisualizacion('normalizado')}
+      >
+        Datos Normalizados (0-100)
+      </button>
+    </div>
+    
+    <h2 className="titulo">
+      {modoVisualizacion === 'original' && 'Métricas en Escala Original'}
+      {modoVisualizacion === 'logaritmo' && 'Métricas en Escala Logarítmica (log10)'}
+      {modoVisualizacion === 'normalizado' && 'Métricas Normalizadas (0-100)'}
+    </h2>
+    
+    <ResponsiveContainer width="100%" height={500}>
+      <LineChart 
+        data={modoVisualizacion === 'normalizado' ? dataNormalizada : dataOriginal} 
+        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="fecha" />
+        <YAxis 
+          scale={modoVisualizacion === 'logaritmo' ? 'log' : 'auto'} 
+          domain={modoVisualizacion === 'normalizado' ? [0, 100] : ['auto', 'auto']}
+        />
+        <Tooltip />
+        <Legend />
+        {modoVisualizacion === 'normalizado' && <ReferenceLine y={50} stroke="gray" strokeDasharray="3 3" />}
+        
+        {metricas.map(([nombreMetrica], index) => (
+          <Line
+            key={nombreMetrica}
+            type="monotone"
+            dataKey={nombreMetrica}
+            stroke={colores[index % colores.length]}
+            dot={{ r: 4 }}
+            activeDot={{ r: 6 }}
+          />
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
+    
+    {modoVisualizacion === 'normalizado' && (
+      <div className="explicacion-container">
+        <h3 className="explicacion-titulo">Explicación de la Normalización</h3>
+        <p>
+          Los datos han sido transformados mediante los siguientes pasos:
+        </p>
+        <ol className="explicacion-lista">
+          <li>Aplicación de logaritmo base 10 a los valores originales</li>
+          <li>Cálculo de mínimos y máximos para cada columna</li>
+          <li>Normalización en escala 0-100 utilizando la fórmula: ((valor - min) / (max - min)) * 100</li>
+        </ol>
+      </div>
+    )}
+  </div>
+);
+};
+
+export default GraficoDatosNormalizados;
