@@ -1,5 +1,6 @@
 import AcceptButton from "../components/AcceptButton";
 import BackButton from "../components/BackButton";
+import TextField from "../components/TextField";
 
 export default function MainPage() {
   return(
@@ -7,6 +8,7 @@ export default function MainPage() {
       <h1>Main Page</h1>
       <AcceptButton text="Accept" />
       <BackButton text="Back" />
+      <TextField />
     </div>
   );
 }

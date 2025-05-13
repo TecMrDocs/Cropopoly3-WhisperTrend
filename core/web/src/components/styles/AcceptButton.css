@@ -1,13 +1,12 @@
 .accept-button {
   color: white;
   background: linear-gradient(90deg, #2563eb 0%, #34d399 100%);
-  border-radius: 10px;
+  border-radius: 15px;
   border-color: transparent;
   padding: 8px 10px;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   cursor: pointer;
-  border-radius: 15px;
   width: 8%;
 }
 
