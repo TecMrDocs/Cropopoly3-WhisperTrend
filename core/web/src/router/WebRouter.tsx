@@ -39,7 +39,7 @@ export default function WebRouter(){
       <Route path="/" element={loadLayout(LandingLayout, Home)} />
       <Route path="/main" element={loadLayout(MainLayout, MainPage)} />
       <Route path="/acercaDe" element={loadLayout(ProfileLayout, AcercaDe)} />
-      <Route path="/dashboard" element={loadLayout(MainLayout, Dashboard)} />
+      <Route path="/dashboard" element={loadLayout(ProfileLayout, Dashboard)} />
       <Route path="/editarProducto" element={loadLayout(MainLayout, EditarProducto)} />
       <Route path="/empresa" element={loadLayout(ProfileLayout, Empresa)} />
       <Route path="/perfil" element={loadLayout(ProfileLayout, Perfil)} />

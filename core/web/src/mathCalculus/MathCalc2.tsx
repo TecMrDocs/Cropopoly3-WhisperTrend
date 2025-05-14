@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './MathCalc2.css';
+//import './MathCalc2.css';
 
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
