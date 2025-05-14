@@ -1,13 +1,11 @@
 import React from "react";
 import Navbar from "../components/Navbar";
-import './styles/launchLayout.css';
-
 
 export default function MainLayout(props:any) {
   return(
-    <div className="launch-layout">
+    <div className="min-h-screen min-w-screen w-full h-full bg-white flex flex-col">
       <Navbar />
-      <div className="launch-content">
+      <div className="flex-1 w-full py-6">
         {props.children}
       </div>
     </div>
