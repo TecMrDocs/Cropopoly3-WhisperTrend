@@ -8,6 +8,7 @@ type Step = {
   icon: ReactElement;
   text: string;
   color: string;
+  tooltip?: string;
 };
 
 type ProgressBarProps = {
@@ -18,22 +19,26 @@ const steps: Step[] = [
   {
     icon: <LiaIndustrySolid />,
     text: "¡Cuéntanos de tu empresa!",
-    color: "bg-blue-600"
+    color: "bg-blue-600",
+    tooltip: "Queremos conocerte mejor para brindarte contenido relevante y alineado a tu industria. La información que compartas nos permitirá identificarte de forma individual y segura, garantizando una experiencia personalizada."
   },
   {
     icon: <GiCardboardBox />,
     text: "¡Háblanos de tus productos y servicios!",
-    color: "bg-sky-600"
+    color: "bg-sky-600",
+    tooltip: "En esta sección, queremos conocer mejor los productos y/o servicios que ofrece tu empresa. Esta información nos ayudará a personalizar la búsqueda de tendencias y hacerla más relevante para tu negocio."
   },
   {
     icon: <LuChartNoAxesCombined />,
     text: "¡Cuéntanos sobre tus ventas!",
-    color: "bg-cyan-500"
+    color: "bg-cyan-500",
+    tooltip: "Comparte con nosotros cómo van tus ventas. Con esa información podremos cruzarla con datos de redes sociales y mostrarte tendencias que te ayuden a ver hacia dónde va tu negocio."
   },
   {
     icon: <MdOutlineTravelExplore />,
     text: "¡Exploremos tu mercado!",
-    color: "bg-emerald-400"
+    color: "bg-emerald-400",
+    tooltip: "Reunimos datos de redes y noticias, los conectamos y te mostramos las tendencias en gráficas claras. Personaliza tu tablero y elige las variables que quieres ver."
   }
 ];
 
@@ -48,15 +53,20 @@ export default function ProgressBar({ activeStep }: ProgressBarProps) {
           <div className="absolute top-1/2 left-0 right-0 h-3 bg-gray-300 z-0 transform -translate-y-1/2" />
 
           {steps.map((step, index) => (
-            <div key={index} className="w-24 flex justify-center z-10">
-              <div
-                className={`w-20 h-20 rounded-full ${
-                  index <= activeStep ? step.color : "bg-gray-500"
-                } text-white flex items-center justify-center text-5xl ring-10 ring-gray-300`}
-              >
-                {step.icon}
-              </div>
+            <div key={index} className="relative group w-24 flex justify-center z-10">
+            {/* Tooltip */}
+            <div className={`absolute bottom-full mb-2 px-3 py-2 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition whitespace-normal w-64 text-left z-20 shadow-lg ${index <= activeStep ? step.color : "bg-gray-500"}`}>              {step.tooltip}
             </div>
+          
+            {/* Círculo */}
+            <div
+              className={`w-20 h-20 rounded-full ${
+                index <= activeStep ? step.color : "bg-gray-500"
+              } text-white flex items-center justify-center text-5xl ring-10 ring-gray-300`}
+            >
+              {step.icon}
+            </div>
+          </div>
           ))}
         </div>
 
