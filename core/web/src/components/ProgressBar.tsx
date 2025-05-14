@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react';
+import { ReactElement } from 'react';
 import { LiaIndustrySolid } from "react-icons/lia";
 import { GiCardboardBox } from "react-icons/gi";
 import { LuChartNoAxesCombined } from "react-icons/lu";
