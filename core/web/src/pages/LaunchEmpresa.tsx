@@ -1,8 +1,9 @@
 import ProgressBar from "../components/ProgressBar";
 import TextFieldWHolder from "../components/TextFieldWHolder";
-import BackButton from "../components/BackButton";
-import AcceptButton from "../components/AcceptButton";
 import SelectField from "../components/SelectField";
+import TextAreaField from "../components/TextAreaField";
+import WhiteButton from "../components/WhiteButton";
+import BlueButton from "../components/BlueButton";
 
 export default function LaunchEmpresa() {
   const industrias: string[] = ["Manufactura", "Moda", "Alimentos", "Tecnología", "Salud"];
@@ -10,7 +11,7 @@ export default function LaunchEmpresa() {
     "Entre 11 y 50", 
     "Entre 51 y 250", 
     "Más de 250"];
-    const alcances: string[] = ["Internacional", "Nacional", "Local"];
+  const alcances: string[] = ["Internacional", "Nacional", "Local"];
 
   return(
     <div className="flex flex-col items-center h-screen bg-white">
@@ -33,15 +34,16 @@ export default function LaunchEmpresa() {
         <SelectField options={alcances} width="300px" placeholder="Selecciona tu alcance" />
       </div>
       <p className="text-xl mt-10 text-center">¿En qué país y ciudades desarrollas tus operaciones?</p>
-      <p className="text-xl mt-10 text-center">¿Cuántas sucursales o establecimientos tienes?</p>
+      <div className="mt-3">
+        <TextAreaField placeholder="Escribe el país y las ciudades" maxLength={200} width="600px" />
+      </div>
+      <p className="text-xl mt-3 text-center">¿Cuántas sucursales o establecimientos tienes?</p>
       <div className="mt-3">
         <TextFieldWHolder placeholder="Escribe tu número de sucursales" width="260px" />
       </div>
-      <div className="w-300">
-        <BackButton text="Regresar" />
-      </div>
-      <div className="w-300">
-        <AcceptButton text="Continuar" />
+      <div className="flex justify-between items-center w-[80%] mt-10 pb-10">
+        <WhiteButton text="Regresar" width="200px" />
+        <BlueButton text="Continuar" width="200px" />
       </div>
     </div>
   );
