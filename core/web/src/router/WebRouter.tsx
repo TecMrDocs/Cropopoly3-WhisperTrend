@@ -20,6 +20,7 @@ import LaunchRegistroVentas from "../pages/LaunchRegistroVentas";
 import LaunchVentas from "../pages/LaunchVentas";
 import Loading from "../pages/Loading";
 import Login from "../pages/Login";
+import Resumen from "../pages/Resumen";
 
 
 export default function WebRouter(){
@@ -51,6 +52,7 @@ export default function WebRouter(){
       <Route path="/launchVentas" element={loadLayout(LaunchLayout, LaunchVentas)} />
       <Route path="/loading" element={loadLayout(LaunchLayout, Loading)} />
       <Route path="/login" element={loadLayout(MainLayout, Login)} />
+      <Route path="/resumen" element={loadLayout(MainLayout, Resumen)} />
     </Routes>
   );
 }
