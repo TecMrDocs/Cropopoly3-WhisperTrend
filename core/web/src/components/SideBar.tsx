@@ -11,7 +11,7 @@ const SideBar: FC = () => {
 
   return (
     <div 
-      className={`h-[40vh] text-white p-1.5 rounded-2xl m-5 transition-all duration-300 ease-in-out ${
+      className={`h-[38vh] text-white p-2 rounded-2xl m-5 transition-all duration-300 ease-in-out ${
         isExpanded ? 'w-48' : 'w-20'
       }`}
       style={{
@@ -23,31 +23,31 @@ const SideBar: FC = () => {
       <nav>
         <ul className="space-y-2">
           <li>
-            <Link to="/" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
+            <Link to="/perfil" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
               <CiUser className="w-10 h-10"/>
               {isExpanded && <span className="ml-2">Perfil</span>}
             </Link>
           </li>
           <li>
-            <Link to="/analytics" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
+            <Link to="/empresa" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
               <FaRegBuilding className="w-10 h-10"/>
-              {isExpanded && <span className="ml-2">Analíticas</span>}
+              {isExpanded && <span className="ml-2">Empresa</span>}
             </Link>
           </li>
           <li>
-            <Link to="/settings" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
-              <CiBoxes className="w-10 h-10"/>
-              {isExpanded && <span className="ml-2">Configuración</span>}
+            <Link to="/productos" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
+              <CiBoxes className="w-11 h-11"/>
+              {isExpanded && <span className="ml-2">Productos</span>}
             </Link>
           </li>
           <li>
-            <Link to="/settings" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
+            <Link to="/acercaDe" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
               <GoQuestion className="w-10 h-10"/>
-              {isExpanded && <span className="ml-2">Ayuda</span>}
+              {isExpanded && <span className="ml-2">Acerca de</span>}
             </Link>
           </li> 
           <li>
-            <Link to="/settings" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
+            <Link to="/" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
               <TbLogout className="w-10 h-10"/>
               {isExpanded && <span className="ml-2">Cerrar Sesión</span>}
             </Link>

@@ -38,12 +38,12 @@ export default function WebRouter(){
     <Routes>
       <Route path="/" element={loadLayout(LandingLayout, Home)} />
       <Route path="/main" element={loadLayout(MainLayout, MainPage)} />
-      <Route path="/acercaDe" element={loadLayout(MainLayout, AcercaDe)} />
+      <Route path="/acercaDe" element={loadLayout(ProfileLayout, AcercaDe)} />
       <Route path="/dashboard" element={loadLayout(MainLayout, Dashboard)} />
       <Route path="/editarProducto" element={loadLayout(MainLayout, EditarProducto)} />
-      <Route path="/empresa" element={loadLayout(MainLayout, Empresa)} />
+      <Route path="/empresa" element={loadLayout(ProfileLayout, Empresa)} />
       <Route path="/perfil" element={loadLayout(ProfileLayout, Perfil)} />
-      <Route path="/productos" element={loadLayout(MainLayout, Productos)} />
+      <Route path="/productos" element={loadLayout(ProfileLayout, Productos)} />
       <Route path="/launchConfirmacion" element={loadLayout(LaunchLayout, LaunchConfirmacion)} />
       <Route path="/launchEmpresa" element={loadLayout(LaunchLayout, LaunchEmpresa)} />
       <Route path="/launchPeriodo" element={loadLayout(LaunchLayout, LaunchPeriodo)} />
