@@ -19,6 +19,7 @@ import LaunchProducto from "../pages/LaunchProducto";
 import LaunchRegistroVentas from "../pages/LaunchRegistroVentas";
 import LaunchVentas from "../pages/LaunchVentas";
 import Loading from "../pages/Loading";
+import Login from "../pages/Login";
 
 
 export default function WebRouter(){
@@ -49,6 +50,7 @@ export default function WebRouter(){
       <Route path="/launchRegistroVentas" element={loadLayout(LaunchLayout, LaunchRegistroVentas)} />
       <Route path="/launchVentas" element={loadLayout(LaunchLayout, LaunchVentas)} />
       <Route path="/loading" element={loadLayout(LaunchLayout, Loading)} />
+      <Route path="/login" element={loadLayout(MainLayout, Login)} />
     </Routes>
   );
 }
