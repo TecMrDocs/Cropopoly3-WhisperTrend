@@ -21,6 +21,7 @@ import LaunchVentas from "../pages/LaunchVentas";
 import Loading from "../pages/Loading";
 import Login from "../pages/Login";
 import Resumen from "../pages/Resumen";
+import ProfileLayout from "../layouts/profileLayout";
 
 
 export default function WebRouter(){
@@ -41,7 +42,7 @@ export default function WebRouter(){
       <Route path="/dashboard" element={loadLayout(MainLayout, Dashboard)} />
       <Route path="/editarProducto" element={loadLayout(MainLayout, EditarProducto)} />
       <Route path="/empresa" element={loadLayout(MainLayout, Empresa)} />
-      <Route path="/perfil" element={loadLayout(MainLayout, Perfil)} />
+      <Route path="/perfil" element={loadLayout(ProfileLayout, Perfil)} />
       <Route path="/productos" element={loadLayout(MainLayout, Productos)} />
       <Route path="/launchConfirmacion" element={loadLayout(LaunchLayout, LaunchConfirmacion)} />
       <Route path="/launchEmpresa" element={loadLayout(LaunchLayout, LaunchEmpresa)} />
