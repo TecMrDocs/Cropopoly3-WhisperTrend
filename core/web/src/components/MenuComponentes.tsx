@@ -1,74 +1,73 @@
 import React from 'react';
+import { ModoVisualizacion } from '../mathCalculus/MathCalc2';
 
-const MenuComponentes = () => {
+interface MenuComponentesProps {
+  modoVisualizacion: ModoVisualizacion;
+  setModoVisualizacion: React.Dispatch<React.SetStateAction<ModoVisualizacion>>;
+  setHashtagSeleccionado: React.Dispatch<React.SetStateAction<string>>;
+}
+
+const MenuComponentes: React.FC<MenuComponentesProps> = ({
+  modoVisualizacion,
+  setModoVisualizacion,
+  setHashtagSeleccionado
+}) => {
+  const hashtags = ['#EcoFriendly', '#MadeinMexico', '#Handmade', '#Artesanal'];
+
   return (
-    <div className="w-full max-w-lg mx-auto rounded-3xl overflow-hidden border border-gray-200 bg-white">
-      <div className="p-6 bg-white">
-        <h2 className="text-xl font-bold text-navy-900">Ventas</h2>
-        
-        <div className="mt-3 flex items-center">
-          <div className="w-6 h-6 bg-blue-600 rounded-full mr-3"></div>
-          <span className="text-gray-800 font-medium">Ventas de Bolso Marianne</span>
+    <div>
+      <h3 className="text-2xl font-bold mb-4">Opciones de Visualización</h3>
+      
+      {/* Selector de Modo de Visualización */}
+      <div className="mb-6">
+        <h4 className="text-lg font-semibold mb-2">Escala de Visualización</h4>
+        <div className="flex flex-wrap gap-2">
+          <button
+            className={`px-4 py-2 rounded-md ${
+              modoVisualizacion === 'original' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-200 hover:bg-gray-300'
+            }`}
+            onClick={() => setModoVisualizacion('original')}
+          >
+            Original
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md ${
+              modoVisualizacion === 'logaritmo' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-200 hover:bg-gray-300'
+            }`}
+            onClick={() => setModoVisualizacion('logaritmo')}
+          >
+            Logarítmica
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md ${
+              modoVisualizacion === 'normalizado' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-200 hover:bg-gray-300'
+            }`}
+            onClick={() => setModoVisualizacion('normalizado')}
+          >
+            Normalizada
+          </button>
         </div>
       </div>
       
-      <div className="p-6 border-t border-gray-200">
-        <h2 className="text-xl font-bold text-navy-900">Hashtags</h2>
-        
-        <div className="mt-3 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-6 h-6 bg-green-500 rounded-full mr-3"></div>
-              <span className="text-gray-800 font-medium">#EcoFriendly - Correlación: 91%</span>
-            </div>
-            <button className="px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">Ver más</button>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-6 h-6 bg-blue-200 rounded-full border-2 border-blue-300 mr-3"></div>
-              <span className="text-gray-800 font-medium">#SustainableFashion - Correlación: 82%</span>
-            </div>
-            <button className="px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">Ver más</button>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-6 h-6 bg-white rounded-full border-2 border-gray-300 mr-3"></div>
-              <span className="text-gray-800 font-medium">#NuevosMateriales - Correlación: 70%</span>
-            </div>
-            <button className="px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">Ver más</button>
-          </div>
-        </div>
-      </div>
-      
-      <div className="p-6 border-t border-gray-200">
-        <h2 className="text-xl font-bold text-navy-900">Noticias</h2>
-        
-        <div className="mt-3 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-6 h-6 bg-white rounded-full border-2 border-gray-300 mr-3"></div>
-              <span className="text-gray-800 font-medium">A la alza pieles sintéticas en Milán - Correlación: 76%</span>
-            </div>
-            <button className="px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">Ver más</button>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-6 h-6 bg-white rounded-full border-2 border-gray-300 mr-3"></div>
-              <span className="text-gray-800 font-medium">Mujeres piden bolsos más grandes - Correlación: 68%</span>
-            </div>
-            <button className="px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">Ver más</button>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-6 h-6 bg-white rounded-full border-2 border-gray-300 mr-3"></div>
-              <span className="text-gray-800 font-medium">Los materiales más durables en la alta moda - Correlación: 52%</span>
-            </div>
-            <button className="px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">Ver más</button>
-          </div>
+      {/* Selector de Hashtags */}
+      <div>
+        <h4 className="text-lg font-semibold mb-2">Hashtags Relacionados</h4>
+        <div className="flex flex-wrap gap-2">
+          {hashtags.map(hashtag => (
+            <button
+              key={hashtag}
+              className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300"
+              onClick={() => setHashtagSeleccionado(hashtag)}
+            >
+              {hashtag}
+            </button>
+          ))}
         </div>
       </div>
     </div>
