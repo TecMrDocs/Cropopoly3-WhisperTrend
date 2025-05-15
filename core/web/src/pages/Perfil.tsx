@@ -1,4 +1,5 @@
-import GenericButton from "../components/GenericButton";
+import WhiteButton from "../components/WhiteButton";
+import BlueButton from "../components/BlueButton";
 import TextField from "../components/TextField";
 
 export default function Perfil() {
@@ -20,6 +21,13 @@ export default function Perfil() {
         <TextField label="Puesto o cargo en la empresa" width="600px" />
         <TextField label="Contraseña" width="600px" />
         <TextField label="Confirma tu contraseña" width="600px" />
+      </div>
+      <br></br>
+
+      <div className="flex flex-row justify-center gap-10">
+        <WhiteButton text="Cancelar" width="300px" />
+        <BlueButton text="Guardar" width="300px" />
+
       </div>
       
     </div>
