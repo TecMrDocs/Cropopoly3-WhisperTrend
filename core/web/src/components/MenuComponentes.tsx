@@ -1,59 +1,73 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { ModoVisualizacion } from '../mathCalculus/MathCalc2';
 
-const MenuComponentes = () => {
-  const [modoVisualizacion, setModoVisualizacion] = useState<'original' | 'logaritmo' | 'normalizado'>('original');
+interface MenuComponentesProps {
+  modoVisualizacion: ModoVisualizacion;
+  setModoVisualizacion: React.Dispatch<React.SetStateAction<ModoVisualizacion>>;
+  setHashtagSeleccionado: React.Dispatch<React.SetStateAction<string>>;
+}
 
-  const handleClick = (hashtag: string) => {
-    if (modoVisualizacion === 'logaritmo') {
-      console.log(`Logarítmico: Acción para ${hashtag}`);
-      // Llama a la función específica para datos logarítmicos
-    } else if (modoVisualizacion === 'original') {
-      console.log(`Original: Acción para ${hashtag}`);
-      // Llama a la función específica para datos originales
-    } else if (modoVisualizacion === 'normalizado') {
-      console.log(`Normalizado: Acción para ${hashtag}`);
-      // Llama a la función específica para datos normalizados
-    }
-  };
+const MenuComponentes: React.FC<MenuComponentesProps> = ({
+  modoVisualizacion,
+  setModoVisualizacion,
+  setHashtagSeleccionado
+}) => {
+  const hashtags = ['#EcoFriendly', '#MadeinMexico', '#Handmade', '#Artesanal'];
 
   return (
-    <div className="w-full h-full mx-auto rounded-3xl overflow-hidden border border-gray-200 bg-white">
-      <div className="p-6 bg-white">
-        <h2 className="text-xl font-bold text-navy-900">Hashtags</h2>
-
-        <div className="mt-3 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div
-                className="w-6 h-6 bg-green-500 rounded-full mr-3 cursor-pointer"
-                onClick={() => handleClick('#EcoFriendly')}
-              ></div>
-              <span className="text-gray-800 font-medium">#EcoFriendly - Correlación: 91%</span>
-            </div>
-            <button className="px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">Ver más</button>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div
-                className="w-6 h-6 bg-blue-200 rounded-full border-2 border-blue-300 mr-3 cursor-pointer"
-                onClick={() => handleClick('#SustainableFashion')}
-              ></div>
-              <span className="text-gray-800 font-medium">#SustainableFashion - Correlación: 82%</span>
-            </div>
-            <button className="px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">Ver más</button>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div
-                className="w-6 h-6 bg-white rounded-full border-2 border-gray-300 mr-3 cursor-pointer"
-                onClick={() => handleClick('#NuevosMateriales')}
-              ></div>
-              <span className="text-gray-800 font-medium">#NuevosMateriales - Correlación: 70%</span>
-            </div>
-            <button className="px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">Ver más</button>
-          </div>
+    <div>
+      <h3 className="text-2xl font-bold mb-4">Opciones de Visualización</h3>
+      
+      {/* Selector de Modo de Visualización */}
+      <div className="mb-6">
+        <h4 className="text-lg font-semibold mb-2">Escala de Visualización</h4>
+        <div className="flex flex-wrap gap-2">
+          <button
+            className={`px-4 py-2 rounded-md ${
+              modoVisualizacion === 'original' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-200 hover:bg-gray-300'
+            }`}
+            onClick={() => setModoVisualizacion('original')}
+          >
+            Original
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md ${
+              modoVisualizacion === 'logaritmo' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-200 hover:bg-gray-300'
+            }`}
+            onClick={() => setModoVisualizacion('logaritmo')}
+          >
+            Logarítmica
+          </button>
+          <button
+            className={`px-4 py-2 rounded-md ${
+              modoVisualizacion === 'normalizado' 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-200 hover:bg-gray-300'
+            }`}
+            onClick={() => setModoVisualizacion('normalizado')}
+          >
+            Normalizada
+          </button>
+        </div>
+      </div>
+      
+      {/* Selector de Hashtags */}
+      <div>
+        <h4 className="text-lg font-semibold mb-2">Hashtags Relacionados</h4>
+        <div className="flex flex-wrap gap-2">
+          {hashtags.map(hashtag => (
+            <button
+              key={hashtag}
+              className="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300"
+              onClick={() => setHashtagSeleccionado(hashtag)}
+            >
+              {hashtag}
+            </button>
+          ))}
         </div>
       </div>
     </div>
