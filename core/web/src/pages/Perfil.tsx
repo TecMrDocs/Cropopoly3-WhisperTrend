@@ -1,3 +1,4 @@
+import GenericButton from "../components/GenericButton";
 import TextField from "../components/TextField";
 
 export default function Perfil() {
@@ -19,8 +20,8 @@ export default function Perfil() {
         <TextField label="Puesto o cargo en la empresa" width="600px" />
         <TextField label="Contraseña" width="600px" />
         <TextField label="Confirma tu contraseña" width="600px" />
-
       </div>
+      
     </div>
   );
 }
