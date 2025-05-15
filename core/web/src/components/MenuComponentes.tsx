@@ -1,17 +1,27 @@
 import React from 'react';
+
 type MenuComponentesProps = {
   modoVisualizacion: 'original' | 'logaritmo' | 'normalizado';
   setModoVisualizacion: React.Dispatch<React.SetStateAction<'original' | 'logaritmo' | 'normalizado'>>;
   setHashtagSeleccionado: React.Dispatch<React.SetStateAction<string>>;
+  onEcoFriendlyClick: () => void; // Nueva prop para manejar el clic en #EcoFriendly
 };
 
-const MenuComponentes: React.FC<MenuComponentesProps> = ({ modoVisualizacion, setModoVisualizacion, setHashtagSeleccionado }) => {
+const MenuComponentes: React.FC<MenuComponentesProps> = ({ 
+  modoVisualizacion, 
+  setModoVisualizacion, 
+  setHashtagSeleccionado,
+  onEcoFriendlyClick 
+}) => {
   const handleHashtagClick = (hashtag: string) => {
     setHashtagSeleccionado(hashtag);
-    // Definir el modo de visualización según el hashtag seleccionado
+    
+    // Si es #EcoFriendly, llamamos a la función especial
     if (hashtag === '#EcoFriendly') {
-      setModoVisualizacion('original');
-    } else if (hashtag === '#SustainableFashion') {
+      onEcoFriendlyClick();
+    } 
+    // Para los otros hashtags, mantenemos el comportamiento original
+    else if (hashtag === '#SustainableFashion') {
       setModoVisualizacion('logaritmo');
     } else if (hashtag === '#NuevosMateriales') {
       setModoVisualizacion('normalizado');
@@ -63,9 +73,9 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({ modoVisualizacion, se
             </div>
             <button
               className="px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
-              onClick={() => handleModoChange('original')}
+              onClick={() => handleHashtagClick('#EcoFriendly')}
             >
-              Ver más
+              Ver tendencia
             </button>
           </div>
           <div className="flex items-center justify-between">

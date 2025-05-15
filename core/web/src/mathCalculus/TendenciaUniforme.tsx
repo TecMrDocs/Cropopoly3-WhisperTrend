@@ -1,5 +1,5 @@
 import React from 'react';
-import { 
+import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
   CartesianGrid, ReferenceLine
 } from 'recharts';
@@ -19,9 +19,9 @@ const datosNormalizados = [
 ];
 
 const periodos = [
-  "01/01/25 - 31/01/25", 
-  "01/02/25 - 28/02/25", 
-  "01/03/25 - 31/03/25", 
+  "01/01/25 - 31/01/25",
+  "01/02/25 - 28/02/25",
+  "01/03/25 - 31/03/25",
   "01/04/25 - 19/04/25"
 ];
 
@@ -32,13 +32,13 @@ const calcularPromedioGeneral = (): PromedioPorPeriodo[] => {
     const valoresPeriodo = datosNormalizados.map(fila => Number(fila[colIndex]));
     const suma = valoresPeriodo.reduce((acc, curr) => acc + curr, 0);
     const promedio = suma / valoresPeriodo.length;
-
+    
     promediosPorPeriodo.push({
       periodo: periodos[colIndex - 1],
       promedio
     });
   }
-
+  
   return promediosPorPeriodo;
 };
 
@@ -51,12 +51,12 @@ const TendenciaUniforme = () => {
       <ResponsiveContainer width="100%" height={500}>
         <LineChart data={datosPromedio} margin={{ top: 20, right: 30, left: 20, bottom: 80 }}>
           <CartesianGrid strokeDasharray="3 3" />
-<XAxis 
-  dataKey="periodo"
-  height={60}
-/>
+          <XAxis
+            dataKey="periodo"
+            height={60}
+          />
           <YAxis domain={[0, 100]} />
-          <Tooltip 
+          <Tooltip
             formatter={(valor) => {
               if (typeof valor === 'number') {
                 return [valor.toFixed(2), "Promedio General"];
@@ -67,13 +67,13 @@ const TendenciaUniforme = () => {
           />
           <Legend />
           <ReferenceLine y={50} stroke="gray" strokeDasharray="3 3" />
-          <Line 
-            type="monotone" 
-            dataKey="promedio" 
-            stroke="#8884d8" 
+          <Line
+            type="monotone"
+            dataKey="promedio"
+            stroke="#8884d8"
             strokeWidth={3}
             name="Promedio General de Métricas"
-            dot={{ r: 6 }} 
+            dot={{ r: 6 }}
             activeDot={{ r: 8 }}
           />
         </LineChart>
