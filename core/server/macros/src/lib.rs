@@ -61,7 +61,6 @@ fn extract_table_name(attrs: &[Attribute]) -> String {
                 let tokens = meta_list.tokens.clone();
                 let token_str = tokens.to_string();
                 
-                // Enfoque simple: buscar table_name = "XXXX" en la cadena de tokens
                 if token_str.contains("table_name") {
                     let parts: Vec<&str> = token_str.split('=').collect();
                     if parts.len() > 1 {
@@ -88,18 +87,15 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
         gets: Vec::new(),
     };
 
-    // Limpiar la cadena de entrada
     let clean_attr = attr_str.replace(" ", "");
     
-    // Buscar operaciones entre paréntesis
     let mut current_pos = 0;
     while current_pos < clean_attr.len() {
         if clean_attr[current_pos..].starts_with("create") {
             ops.create = true;
-            current_pos += 6; // longitud de "create"
+            current_pos += 6;
         } else if clean_attr[current_pos..].starts_with("update(") {
-            // Encontrar el paréntesis de cierre correspondiente
-            let start_pos = current_pos + 7; // después de "update("
+            let start_pos = current_pos + 7;
             let mut nested = 0;
             let mut end_pos = start_pos;
             
@@ -116,8 +112,7 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
             }
             
             let update_content = &clean_attr[start_pos..end_pos];
-            
-            // Dividir por comas, pero respetando las llaves
+
             let mut update_parts = Vec::new();
             let mut part_start = 0;
             let mut brace_count = 0;
@@ -132,8 +127,7 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
                     part_start = i + 1;
                 }
             }
-            
-            // Añadir la última parte
+
             if part_start < update_content.len() {
                 update_parts.push(&update_content[part_start..]);
             }
@@ -163,7 +157,7 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
             
             current_pos = end_pos + 1;
         } else if clean_attr[current_pos..].starts_with("delete(") {
-            let start_pos = current_pos + 7; // después de "delete("
+            let start_pos = current_pos + 7;
             let end_pos = clean_attr[start_pos..].find(')').map_or(clean_attr.len(), |pos| start_pos + pos);
             
             let delete_content = &clean_attr[start_pos..end_pos];
@@ -171,7 +165,7 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
             
             current_pos = end_pos + 1;
         } else if clean_attr[current_pos..].starts_with("get(") {
-            let start_pos = current_pos + 4; // después de "get("
+            let start_pos = current_pos + 4;
             let end_pos = clean_attr[start_pos..].find(')').map_or(clean_attr.len(), |pos| start_pos + pos);
             
             let get_content = &clean_attr[start_pos..end_pos];
@@ -179,7 +173,6 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
             
             current_pos = end_pos + 1;
         } else {
-            // Avanzar hasta encontrar algo reconocible o terminar
             current_pos += 1;
         }
     }
