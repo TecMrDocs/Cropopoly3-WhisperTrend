@@ -45,9 +45,6 @@ code keysPROtting
 ```bash
 cd core/web
 bun install
-
-cd ../core/app
-flutter pub get
 ```
 
 6. Start the project
