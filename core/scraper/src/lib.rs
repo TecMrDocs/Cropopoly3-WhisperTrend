@@ -119,11 +119,10 @@ mod tests {
     fn test_execute() {
         let scraper = Scraper::new();
         let title = scraper.execute(|ctx| {
-            ctx.navigate("https://www.reddit.com");
-            return ctx.evaluate("document.head.title.innerText || 'No content'");
+            ctx.navigate("https://www.example.com");
+            return ctx.evaluate("document.title || 'No content'");
         });
 
-        println!("Title: {}", title);
-        // assert_eq!(title, "Example Domain");
+        assert_eq!(title, "Example Domain");
     }
 }
