@@ -1,4 +1,6 @@
+import BlueButton from "../components/BlueButton";
 import TextField from "../components/TextField";
+import WhiteButton from "../components/WhiteButton";
 
 
 export default function Empresa() {
@@ -15,6 +17,13 @@ export default function Empresa() {
         <TextField label="Alcance geográfico" width="500px" />
         <TextField label="País y ciudades donde desarrollas tus operaciones" width="700px" />
         <TextField label="Número de sucursales" width="500px" />
+      </div>
+      <br></br>
+
+      <div className="flex flex-row justify-center gap-10">
+        <WhiteButton text="Cancelar" width="300px" />
+        <BlueButton text="Guardar" width="300px" />
+          
       </div>
     </div>
   );
