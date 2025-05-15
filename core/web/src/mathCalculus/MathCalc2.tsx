@@ -14,6 +14,7 @@ type ChartDataPoint = { [key: string]: DataValue };
 interface MathCalc2Props {
   modoVisualizacion: 'original' | 'logaritmo' | 'normalizado';
 }
+const colores = ["#8884d8", "#82ca9d", "#ffc658", "#ff6384", "#00c49f", "#ff8042"];
 
 // Datos originales
 const datos: DataTable = [
@@ -82,7 +83,6 @@ const dataLogaritmica = transformarDatos(logTabla);
 const dataNormalizada = transformarDatos(normalizada);
 
 // Colores para líneas
-const colores = ["#8884d8", "#82ca9d", "#ffc658", "#ff6384", "#00c49f", "#ff8042"];
 
 const MathCalc2: React.FC<MathCalc2Props> = ({ modoVisualizacion }) => {
   const getDatos = (): ChartDataPoint[] => {

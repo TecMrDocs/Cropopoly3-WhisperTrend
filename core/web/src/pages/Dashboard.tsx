@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import MathCalc2, { ModoVisualizacion } from '../mathCalculus/MathCalc2';
+import MathCalc2 from '../mathCalculus/MathCalc2';
 import MenuComponentes from '../components/MenuComponentes';
 import InterpretacionDashboard from '../components/InterpretacionDashboard';
+import TendenciaUniforme from '../mathCalculus/TendenciaUniforme';
 
 export default function Dashboard() {
   const nombreProducto = "Bolso Mariana :D";
-  const [modoVisualizacion, setModoVisualizacion] = useState<ModoVisualizacion>('original');
+
+  const [modoVisualizacion, setModoVisualizacion] = useState<'original' | 'logaritmo' | 'normalizado'>('original');
   const [hashtagSeleccionado, setHashtagSeleccionado] = useState<string>('#EcoFriendly');
 
   return (
@@ -29,18 +31,24 @@ export default function Dashboard() {
         
         {/* Sección derecha: MenuComponentes */}
         <div className="bg-white shadow-md rounded-lg p-6">
-          <MenuComponentes
+          <MenuComponentes 
             modoVisualizacion={modoVisualizacion}
             setModoVisualizacion={setModoVisualizacion}
             setHashtagSeleccionado={setHashtagSeleccionado}
           />
         </div>
-        
-        {/* Sección inferior: Interpretación (ocupa todo el ancho) */}
+
         <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
           <h3 className="text-2xl font-bold mb-4">Interpretación del Análisis</h3>
           <InterpretacionDashboard />
         </div>
+
+        <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
+          <h3 className="text-2xl font-bold mb-4">Interpretación del Análisis</h3>
+          <TendenciaUniforme />
+        </div>
+
+
       </div>
     </div>
   );
