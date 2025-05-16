@@ -13,7 +13,7 @@ mod schema;
 struct AppServer;
 
 impl Application for AppServer {
-    fn setup(&self, config: &Config) -> anyhow::Result<()> {
+    async fn setup(&self, config: &Config) -> anyhow::Result<()> {
         Database::init(config.max_pool_size, config.with_migrations)
     }
 
