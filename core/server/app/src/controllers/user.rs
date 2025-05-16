@@ -1,5 +1,5 @@
-use actix_web::{Responder, post, web};
 use crate::models::User;
+use actix_web::{Responder, post, web};
 
 #[post("/register")]
 pub async fn register(user: web::Json<User>) -> impl Responder {

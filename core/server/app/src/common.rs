@@ -63,7 +63,7 @@ pub trait Application {
         self.initialize_logging(config)
     }
 
-    async fn setup(&self, _config: &Config) -> anyhow::Result<()>;
+    async fn setup(&self, config: &Config) -> anyhow::Result<()>;
 
     async fn create_server(&self, config: &Config) -> anyhow::Result<()>;
 

@@ -8,8 +8,11 @@ actix-cors = "0.7.1"
 actix-web = "4.10.2"
 diesel = { version = "2.2.1", features = ["postgres", "r2d2", "chrono", "uuid", "numeric"] }
 diesel_migrations = "2.2.0"
-serde = { workspace = true }
+validator = { version = "0.20.0", features = ["derive"] }
 macros = { workspace = true }
+auth = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 anyhow = { workspace = true }
 dotenv = { workspace = true }
 tracing = { workspace = true }

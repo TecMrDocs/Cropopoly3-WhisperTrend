@@ -3,30 +3,28 @@ use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, deco
 use rand::Rng;
 use serde::{Serialize, de::DeserializeOwned};
 
-pub struct Auth<Claims> {
-    _phantom: std::marker::PhantomData<Claims>,
-}
+pub struct PasswordHasher;
 
-impl<Claims: Serialize + DeserializeOwned> Auth<Claims> {
-    pub fn new() -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-
-    pub fn hash_password(password: &str) -> anyhow::Result<String> {
+impl PasswordHasher {
+    pub fn hash(password: &str) -> anyhow::Result<String> {
         let salt = rand::rng().random::<[u8; 32]>();
         let config = Config::default();
         argon2::hash_encoded(password.as_bytes(), &salt, &config)
             .map_err(|_| anyhow::anyhow!("Failed to hash the password"))
     }
 
-    pub fn verify_password(password: &str, hash: &str) -> anyhow::Result<bool> {
+    pub fn verify(password: &str, hash: &str) -> anyhow::Result<bool> {
         argon2::verify_encoded(hash, password.as_bytes())
             .map_err(|_| anyhow::anyhow!("Failed to verify the password"))
     }
+}
 
-    pub fn create_token(secret_key: &String, my_claims: Claims) -> anyhow::Result<String> {
+pub struct TokenService<C> {
+    _phantom: std::marker::PhantomData<C>,
+}
+
+impl<C: Serialize + DeserializeOwned> TokenService<C> {
+    pub fn create(secret_key: &str, my_claims: C) -> anyhow::Result<String> {
         Ok(encode(
             &Header::default(),
             &my_claims,
@@ -34,8 +32,8 @@ impl<Claims: Serialize + DeserializeOwned> Auth<Claims> {
         )?)
     }
 
-    pub fn decode_token(secret_key: &String, token: &str) -> anyhow::Result<Claims> {
-        let token_data = decode::<Claims>(
+    pub fn decode(secret_key: &String, token: &str) -> anyhow::Result<C> {
+        let token_data = decode::<C>(
             token,
             &DecodingKey::from_secret(secret_key.as_ref()),
             &Validation::new(Algorithm::HS256),
@@ -59,15 +57,15 @@ mod tests {
     #[test]
     fn test_hash_password() {
         let password = "password";
-        let hash = Auth::<Claims>::hash_password(password).unwrap();
+        let hash = PasswordHasher::hash(password).unwrap();
         assert_ne!(password, hash);
     }
 
     #[test]
     fn test_verify_password() {
         let password = "password";
-        let hash = Auth::<Claims>::hash_password(password).unwrap();
-        let is_valid = Auth::<Claims>::verify_password(password, &hash).unwrap();
+        let hash = PasswordHasher::hash(password).unwrap();
+        let is_valid = PasswordHasher::verify(password, &hash).unwrap();
         assert!(is_valid);
     }
 
@@ -82,7 +80,7 @@ mod tests {
             exp: token_expiration_time + chrono::Utc::now().timestamp() as usize,
         };
 
-        let token = Auth::<Claims>::create_token(&secret_key.to_string(), claims).unwrap();
+        let token = TokenService::<Claims>::create(&secret_key.to_string(), claims).unwrap();
         assert!(!token.is_empty());
     }
 
@@ -97,8 +95,8 @@ mod tests {
             exp: token_expiration_time + chrono::Utc::now().timestamp() as usize,
         };
 
-        let token = Auth::<Claims>::create_token(&secret_key.to_string(), claims).unwrap();
-        let decoded_token = Auth::<Claims>::decode_token(&secret_key.to_string(), &token).unwrap();
+        let token = TokenService::<Claims>::create(&secret_key.to_string(), claims).unwrap();
+        let decoded_token = TokenService::<Claims>::decode(&secret_key.to_string(), &token).unwrap();
         assert_eq!(decoded_token.id, id);
     }
 }

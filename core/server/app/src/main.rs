@@ -14,7 +14,11 @@ struct AppServer;
 
 impl Application for AppServer {
     async fn setup(&self, config: &Config) -> anyhow::Result<()> {
-        Database::init(config.max_pool_size, config.with_migrations)
+        info!("Initializing the database...");
+        Database::init(config.max_pool_size, config.with_migrations)?;
+        info!("Migrations applied successfully");
+
+        Ok(())
     }
 
     async fn create_server(&self, config: &Config) -> anyhow::Result<()> {

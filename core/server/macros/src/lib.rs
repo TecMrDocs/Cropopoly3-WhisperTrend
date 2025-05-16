@@ -55,12 +55,12 @@ fn extract_table_name(attrs: &[Attribute]) -> String {
         if !attr.path().is_ident("diesel") {
             continue;
         }
-        
+
         match &attr.meta {
             Meta::List(meta_list) => {
                 let tokens = meta_list.tokens.clone();
                 let token_str = tokens.to_string();
-                
+
                 if token_str.contains("table_name") {
                     let parts: Vec<&str> = token_str.split('=').collect();
                     if parts.len() > 1 {
@@ -88,7 +88,7 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
     };
 
     let clean_attr = attr_str.replace(" ", "");
-    
+
     let mut current_pos = 0;
     while current_pos < clean_attr.len() {
         if clean_attr[current_pos..].starts_with("create") {
@@ -98,7 +98,7 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
             let start_pos = current_pos + 7;
             let mut nested = 0;
             let mut end_pos = start_pos;
-            
+
             for (i, c) in clean_attr[start_pos..].chars().enumerate() {
                 if c == '(' || c == '{' {
                     nested += 1;
@@ -110,13 +110,13 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
                     nested -= 1;
                 }
             }
-            
+
             let update_content = &clean_attr[start_pos..end_pos];
 
             let mut update_parts = Vec::new();
             let mut part_start = 0;
             let mut brace_count = 0;
-            
+
             for (i, c) in update_content.chars().enumerate() {
                 if c == '{' {
                     brace_count += 1;
@@ -131,18 +131,15 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
             if part_start < update_content.len() {
                 update_parts.push(&update_content[part_start..]);
             }
-            
+
             for up in update_parts {
                 if up.contains('{') {
                     let filter_end = up.find('{').unwrap();
                     let filter_by = up[..filter_end].to_string();
-                    
+
                     let fields_part = &up[filter_end + 1..up.len() - 1];
-                    let update_fields = fields_part
-                        .split(',')
-                        .map(|s| s.to_string())
-                        .collect();
-                    
+                    let update_fields = fields_part.split(',').map(|s| s.to_string()).collect();
+
                     ops.updates.push(UpdateOperation {
                         filter_by,
                         update_fields,
@@ -154,23 +151,27 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
                     });
                 }
             }
-            
+
             current_pos = end_pos + 1;
         } else if clean_attr[current_pos..].starts_with("delete(") {
             let start_pos = current_pos + 7;
-            let end_pos = clean_attr[start_pos..].find(')').map_or(clean_attr.len(), |pos| start_pos + pos);
-            
+            let end_pos = clean_attr[start_pos..]
+                .find(')')
+                .map_or(clean_attr.len(), |pos| start_pos + pos);
+
             let delete_content = &clean_attr[start_pos..end_pos];
             ops.deletes = delete_content.split(',').map(|s| s.to_string()).collect();
-            
+
             current_pos = end_pos + 1;
         } else if clean_attr[current_pos..].starts_with("get(") {
             let start_pos = current_pos + 4;
-            let end_pos = clean_attr[start_pos..].find(')').map_or(clean_attr.len(), |pos| start_pos + pos);
-            
+            let end_pos = clean_attr[start_pos..]
+                .find(')')
+                .map_or(clean_attr.len(), |pos| start_pos + pos);
+
             let get_content = &clean_attr[start_pos..end_pos];
             ops.gets = get_content.split(',').map(|s| s.to_string()).collect();
-            
+
             current_pos = end_pos + 1;
         } else {
             current_pos += 1;
@@ -186,11 +187,9 @@ fn generate_methods(
     ops: &DatabaseOperations,
 ) -> proc_macro2::TokenStream {
     let mut methods = proc_macro2::TokenStream::new();
-    
-    // Parsear el table_name para manejar correctamente los ::
-    let table_path = syn::parse_str::<syn::Path>(table_name).unwrap_or_else(|_| {
-        syn::parse_str::<syn::Path>("schema::users").unwrap()
-    });
+
+    let table_path = syn::parse_str::<syn::Path>(table_name)
+        .unwrap_or_else(|_| syn::parse_str::<syn::Path>("schema::users").unwrap());
 
     if ops.create {
         let create_method = quote! {
@@ -213,17 +212,18 @@ fn generate_methods(
 
         let get_method = if get_field == "id" {
             quote! {
-                pub async fn #method_name(id: i32) -> anyhow::Result<#struct_name> {
-                    Database::query_wrapper(move |conn| #table_path::table.find(id).first(conn)).await
+                pub async fn #method_name(id: i32) -> anyhow::Result<Option<#struct_name>> {
+                    Database::query_wrapper(move |conn| #table_path::table.find(id).first(conn).optional()).await
                 }
             }
         } else {
             quote! {
-                pub async fn #method_name(#field_ident: String) -> anyhow::Result<#struct_name> {
+                pub async fn #method_name(#field_ident: String) -> anyhow::Result<Option<#struct_name>> {
                     Database::query_wrapper(move |conn| {
                         #table_path::table
                             .filter(#table_path::#field_ident.eq(#field_ident))
                             .first(conn)
+                            .optional()
                     })
                     .await
                 }

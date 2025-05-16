@@ -21,6 +21,22 @@ pub struct Database {
 
 static INSTANCE: OnceCell<Database> = OnceCell::new();
 
+pub trait DbResponder<T> {
+    fn to_web(self) -> actix_web::Result<T, actix_web::Error>;
+}
+
+impl<T: serde::Serialize> DbResponder<T> for anyhow::Result<T> {
+    fn to_web(self) -> actix_web::Result<T, actix_web::Error> {
+        match self {
+            Ok(data) => Ok(data),
+            Err(e) => {
+                error!("Database error: {:?}", e);
+                Err(actix_web::error::ErrorBadRequest("Failed"))
+            }
+        }
+    }
+}
+
 impl Database {
     pub fn init(max_pool_size: u32, with_migrations: bool) -> anyhow::Result<()> {
         let manager = ConnectionManager::<PgConnection>::new(
