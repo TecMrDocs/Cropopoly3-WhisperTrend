@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ProgressBar from "../components/ProgressBar";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import SelectField from "../components/SelectField";
@@ -20,6 +21,11 @@ export default function LaunchEmpresa() {
   const [alcance, setAlcance] = useState("");
   const [operaciones, setOperaciones] = useState("");
   const [sucursales, setSucursales] = useState("");
+  const navigate = useNavigate();
+
+  const handleReturn = () => {
+    navigate("/launchProcess");
+  };
 
   const handleSubmit = () => {
     const data = {
@@ -31,6 +37,7 @@ export default function LaunchEmpresa() {
       sucursales,
     };
     console.log("Formulario:", data);
+    navigate("/launchProducto");
   };
 
   return(
@@ -67,7 +74,7 @@ export default function LaunchEmpresa() {
         <TextFieldWHolder placeholder="Escribe tu número de sucursales" width="260px" value={sucursales} onChange={(e) => setSucursales(e.target.value)} />
       </div>
       <div className="flex justify-between items-center w-[80%] mt-10 pb-10">
-        <WhiteButton text="Regresar" width="200px" />
+        <WhiteButton text="Regresar" width="200px" onClick={handleReturn} />
         <BlueButton text="Continuar" width="200px" onClick={handleSubmit} />
       </div>
     </div>

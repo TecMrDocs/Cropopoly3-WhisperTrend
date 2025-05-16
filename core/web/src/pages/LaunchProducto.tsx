@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ProgressBar from "../components/ProgressBar";
 import SelectField from "../components/SelectField";
 import TextFieldWHolder from "../components/TextFieldWHolder";
@@ -14,14 +15,29 @@ export default function LaunchProducto() {
   const [pors, setPors] = useState("");
   const [nombreProducto, setNombreProducto] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [palabrasAsociadas, setPalabrasAsociadas] = useState<string[]>([]);
+  const navigate = useNavigate();
 
-  const palabrasAsociadas: string[] = ["Palabra 1", "Otra más", "lol", "Palabrotototota", "Lucio"];
+  const handleReturn = () => {
+    navigate("/launchEmpresa");
+  };
+
+  const handleNext = () => {
+    navigate("/launchProducto");
+  };
   
+  const handleAddPalabra = (nuevaPalabra: string) => {
+    if (nuevaPalabra.trim() !== "" && palabrasAsociadas.length < 10) {
+      setPalabrasAsociadas(prev => [...prev, nuevaPalabra]);
+    }
+  };
+
   const handleSubmit = () => {
     const data = {
       pors,
       nombreProducto,
       descripcion,
+      palabrasAsociadas,
     };
     console.log("Formulario:", data);
   };
@@ -45,14 +61,13 @@ export default function LaunchProducto() {
         <TextAreaField placeholder="Explica en qué consiste tu producto o servicio" maxLength={300} width="600px" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
       </div>
       
-      <p className="text-xl mt-3 text-center">Indica palabras asociadas con tu producto o servicio</p>
-      <div>
-        <WordAdder />
+      <p className="text-xl mt-3 text-center">Indica palabras asociadas con tu producto o servicio (máximo 10)</p>
+      <div className="mt-3">
+        <WordAdder onAdd={handleAddPalabra} />
       </div>
 
-      {/* Muestra las palabras asociadas en un formato de "enclosed" */}
       {palabrasAsociadas.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-3">
+        <div className="flex flex-wrap gap-2 mt-3 w-xl">
           {palabrasAsociadas.map((palabra, index) => (
             <EnclosedWord key={index} word={palabra} />
           ))}
@@ -60,7 +75,7 @@ export default function LaunchProducto() {
       )}
 
       <div className="flex justify-between items-center w-[80%] mt-10 pb-10">
-        <WhiteButton text="Regresar" width="200px" />
+        <WhiteButton text="Regresar" width="200px" onClick={handleReturn} />
         <BlueButton text="Continuar" width="200px" onClick={handleSubmit} />
       </div>
     </div>
