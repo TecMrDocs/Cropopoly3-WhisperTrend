@@ -33,7 +33,7 @@ export default function ChangePassword() {
           <div className="text-center mt-35 text-sm">
             <p>
               ¿Ya tienes cuenta?{" "}
-              <a href="#" className="text-[#141652] underline">
+              <a href="/Login" className="text-[#141652] underline">
                 Inicia sesión
               </a>
             </p>

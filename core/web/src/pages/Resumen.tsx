@@ -1,8 +1,7 @@
 import ProgressBar from "../components/ProgressBar";
-// import AcceptButton from "../components/AcceptButton";
-import BackButton from "../components/BackButton";
 import BlueButton from "../components/BlueButton";
 import WhiteButton from "../components/WhiteButton";
+
 export default function Resumen() {
   return(
     <div>
