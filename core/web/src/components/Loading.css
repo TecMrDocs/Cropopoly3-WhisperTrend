@@ -1,0 +1,64 @@
+body {
+  background: #202628;
+}
+
+.loader-square-50 {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.loader-square-50 > div {
+  background: #00bcd4;
+  display: block;
+  height: 60px;
+  width: 60px;
+  margin-left: 20px;
+  margin-right: 20px;
+  position: relative;
+}
+
+.loader-square-50 > div:nth-child(1) {
+  animation: anm-SL-50-shuffle 1s infinite;
+}
+.loader-square-50 > div:nth-child(2),
+.loader-square-50 > div:nth-child(3) {
+  animation: anm-SL-50-move 1s infinite;
+}
+
+@keyframes anm-SL-50-shuffle {
+  50% {
+    opacity: 0.25;
+    transform: scale(0.9);
+  }
+  75% {
+    opacity: 0.25;
+    transform: scale(0.9) translateX(60px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(60px);
+  }
+}
+
+@keyframes anm-SL-50-move {
+  100% {
+    transform: translateX(-100px);
+  }
+}
+
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation-name: fade-in-up;
+}
