@@ -1,5 +1,6 @@
 import BlueButton from "../components/BlueButton";
 import TextField from "../components/TextField";
+import TextFieldWHolder from "../components/TextFieldWHolder";
 import WhiteButton from "../components/WhiteButton";
 
 
@@ -11,12 +12,12 @@ export default function Empresa() {
       </div>
       <br></br>
       <div className="flex flex-col gap-6 justify-center items-center">
-        <TextField label="Nombre de la empresa" width="600px" />
-        <TextField label="Industria" width="500px" />
-        <TextField label="Número de trabajadores" width="500px" />
-        <TextField label="Alcance geográfico" width="500px" />
-        <TextField label="País y ciudades donde desarrollas tus operaciones" width="700px" />
-        <TextField label="Número de sucursales" width="500px" />
+        <TextFieldWHolder label="Nombre de la empresa" width="600px" placeholder="Artículos de piel..." />
+        <TextFieldWHolder label="Industria" width="500px" placeholder="Textile, etc." />
+        <TextFieldWHolder label="Número de trabajadores" width="500px" placeholder="100" />
+        <TextFieldWHolder label="Alcance geográfico" width="500px" placeholder="México, EEUU, etc." />
+        <TextFieldWHolder label="País y ciudades donde desarrollas tus operaciones" width="700px" placeholder="México, Ciudad de México, Guadalajara, etc." />
+        <TextFieldWHolder label="Número de sucursales" width="500px" placeholder="10" />
       </div>
       <br></br>
 

@@ -1,6 +1,5 @@
 import WhiteButton from "../components/WhiteButton";
 import BlueButton from "../components/BlueButton";
-import TextField from "../components/TextField";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 
 export default function Perfil() {
