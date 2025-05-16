@@ -22,6 +22,7 @@ import Loading from "../pages/Loading";
 import Login from "../pages/Login";
 import Resumen from "../pages/Resumen";
 import ProfileLayout from "../layouts/profileLayout";
+import ChangePassword from "../pages/ChangePassword";
 
 
 export default function WebRouter(){
@@ -54,6 +55,7 @@ export default function WebRouter(){
       <Route path="/loading" element={loadLayout(LaunchLayout, Loading)} />
       <Route path="/login" element={loadLayout(MainLayout, Login)} />
       <Route path="/resumen" element={loadLayout(MainLayout, Resumen)} />
+      <Route path="/changePassword" element={loadLayout(MainLayout, ChangePassword)} />
     </Routes>
   );
 }
