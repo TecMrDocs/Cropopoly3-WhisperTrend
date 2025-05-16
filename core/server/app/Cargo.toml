@@ -8,7 +8,7 @@ actix-cors = "0.7.1"
 actix-web = "4.10.2"
 diesel = { version = "2.2.1", features = ["postgres", "r2d2", "chrono", "uuid", "numeric"] }
 diesel_migrations = "2.2.0"
-serde = { version = "1.0.219", features = ["derive"] }
+serde = { workspace = true }
 macros = { workspace = true }
 anyhow = { workspace = true }
 dotenv = { workspace = true }

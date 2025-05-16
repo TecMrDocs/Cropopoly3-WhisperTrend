@@ -120,7 +120,7 @@ mod tests {
         let scraper = Scraper::new();
         let title = scraper.execute(|ctx| {
             ctx.navigate("https://www.example.com");
-            return ctx.evaluate("document.title || 'No content'");
+            return ctx.evaluate("document.querySelector('h1').textContent");
         });
 
         assert_eq!(title, "Example Domain");

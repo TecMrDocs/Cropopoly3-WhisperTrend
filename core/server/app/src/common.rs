@@ -63,7 +63,7 @@ pub trait Application {
         self.initialize_logging(config)
     }
 
-    fn connect(&self, _config: &Config) -> anyhow::Result<()> {
+    fn setup(&self, _config: &Config) -> anyhow::Result<()> {
         Ok(())
     }
 
@@ -72,7 +72,7 @@ pub trait Application {
     async fn start(&self, config: &mut Config) -> anyhow::Result<()> {
         self.load_env(config)?;
         self.initialize(config)?;
-        self.connect(config)?;
+        self.setup(config)?;
         self.create_server(config).await
     }
 }

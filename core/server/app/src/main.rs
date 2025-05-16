@@ -13,7 +13,7 @@ mod schema;
 struct AppServer;
 
 impl Application for AppServer {
-    fn connect(&self, config: &Config) -> anyhow::Result<()> {
+    fn setup(&self, config: &Config) -> anyhow::Result<()> {
         Database::init(config)
     }
 
