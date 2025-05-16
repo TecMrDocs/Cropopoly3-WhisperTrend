@@ -1,4 +1,3 @@
-use crate::common::Config;
 use actix_web::web;
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager, PooledConnection};
@@ -23,18 +22,18 @@ pub struct Database {
 static INSTANCE: OnceCell<Database> = OnceCell::new();
 
 impl Database {
-    pub fn init(config: &Config) -> anyhow::Result<()> {
+    pub fn init(max_pool_size: u32, with_migrations: bool) -> anyhow::Result<()> {
         let manager = ConnectionManager::<PgConnection>::new(
             env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
         );
 
         let pool = r2d2::Pool::builder()
             // Set the maximum number of connections to the database
-            .max_size(config.max_pool_size)
+            .max_size(max_pool_size)
             .build(manager)
             .expect("Failed to create pool.");
 
-        if config.with_migrations {
+        if with_migrations {
             let mut connection = pool.get().expect("Failed to get connection.");
             setup_database(&mut connection);
         }
