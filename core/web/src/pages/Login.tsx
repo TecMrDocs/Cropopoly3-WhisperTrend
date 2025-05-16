@@ -26,7 +26,7 @@ export default function Login() {
           <GenericButton type="submit" text="Iniciar sesión" />
 
           <div className="text-center mt-12 text-sm">
-            <p>No tienes cuenta? <a href="#" className="text-[#141652] underline">Regístrate</a></p>
+            <p>No tienes cuenta? <a href="/RegistroU" className="text-[#141652] underline">Regístrate</a></p>
             <p><a href="/ChangePassword" className="text-[#141652] underline">Olvidé mi contraseña</a></p>
             <p><a href="#" className="text-[#141652] underline">Aviso de privacidad</a></p>
           </div>
