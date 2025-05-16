@@ -23,6 +23,8 @@ import ProfileLayout from "../layouts/profileLayout";
 import ChangePassword from "../pages/ChangePassword";
 import confirmaCorreo from "../pages/ConfirmaCorreo";
 import Registro from "../pages/Registro";
+import PrivacyNotice from "../pages/PrivacyNotice";
+import EmailConfirmation from "../pages/EmailConfirmation";
 
 
 export default function WebRouter(){
@@ -38,9 +40,10 @@ export default function WebRouter(){
   return(
     <Routes>
       <Route path="/" element={loadLayout(LandingLayout, Home)} />
-   
       <Route path="/acercaDe" element={loadLayout(ProfileLayout, AcercaDe)} />
       <Route path="/dashboard" element={loadLayout(ProfileLayout, Dashboard)} />
+      <Route path="/avisoPrivacidad" element={loadLayout(MainLayout, PrivacyNotice)} />
+      <Route path="/confirmacionCorreo" element={loadLayout(MainLayout, EmailConfirmation)} />
       <Route path="/editarProducto" element={loadLayout(MainLayout, EditarProducto)} />
       <Route path="/empresa" element={loadLayout(ProfileLayout, Empresa)} />
       <Route path="/perfil" element={loadLayout(ProfileLayout, Perfil)} />
