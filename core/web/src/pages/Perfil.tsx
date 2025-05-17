@@ -2,7 +2,7 @@ import WhiteButton from "../components/WhiteButton";
 import BlueButton from "../components/BlueButton";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import { useState } from "react";
-
+import SaveAlert from "../components/saveAlert";
 type PerfilData = {
   name: string;
   lastName: string;
@@ -22,6 +22,8 @@ export default function Perfil() {
     job: "",
   });
 
+  const [showAlert, setShowAlert] = useState(false);
+
   const handleInputChange = (field: keyof PerfilData, value: string) => {
     setUserFormData(prev => ({
       ...prev,
@@ -32,8 +34,15 @@ export default function Perfil() {
 
 
 
-  
-  
+
+  const handleSave = () => {
+    setShowAlert(true);
+    console.log(userFormData);
+    setTimeout(() => {
+      setShowAlert(false);
+    }, 3000);
+  }
+
   return(
     <div>
       <div className='flex items-center justify-center'>
@@ -66,8 +75,7 @@ export default function Perfil() {
         <TextFieldWHolder 
             label="Confirma tu correo" 
             width="600px" 
-            onChange={(e) => handleInputChange("email", e.target.value)}
-            value={userFormData.email}
+            
             />
         <TextFieldWHolder 
             label="Número telefónico" 
@@ -94,10 +102,10 @@ export default function Perfil() {
 
       <div className="flex flex-row justify-center gap-10">
         <WhiteButton text="Cancelar" width="300px" />
-        <BlueButton text="Guardar" width="300px" />
+        <BlueButton text="Guardar" width="300px" onClick={handleSave}/>
 
       </div>
-      
+      {showAlert && <SaveAlert />}
     </div>
   );
 }
