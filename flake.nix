@@ -25,6 +25,12 @@
           pkgs.zsh-fast-syntax-highlighting
           pkgs.zsh-autosuggestions
 
+          # Backend
+          pkgs.diesel-cli
+          pkgs.postgresql_13
+          pkgs.postgresql_13.lib
+          pkgs.pkg-config
+
           # Python and related tools
           pkgs.python311
           pkgs.poetry

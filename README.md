@@ -60,12 +60,20 @@ npm run dev
 ```
 
 # Backend
+
+- Create a `.env` file inside the app folder and add the following environment variables:
+
 ```bash
 # core/server/app/.env
 MODE=dev
 RUST_LOG=debug
 HOST=0.0.0.0
 PORT=8080
-DATABASE_URL=postgres://admin:awdrqwer12@localhost:5432/ksp
+
 SECRET_KEY=secret
+
+DATABASE_URL=postgres://admin:awdrqwer12@database-server:5432/ksp
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=awdrqwer12
+POSTGRES_DB=ksp
 ```

@@ -10,3 +10,6 @@ done
 for plugin in /nix/store/*-zsh-autosuggestions*/share/zsh-autosuggestions/zsh-autosuggestions.zsh; do
   [ -f "$plugin" ] && source "$plugin"
 done
+
+export PQ_LIB_DIR="/nix/store/*postgresql-13.*-lib*/lib"
+export LD_LIBRARY_PATH="/nix/store/*postgresql-13.*-lib*/lib:$LD_LIBRARY_PATH"
