@@ -32,7 +32,7 @@ impl<C: Serialize + DeserializeOwned> TokenService<C> {
         )?)
     }
 
-    pub fn decode(secret_key: &String, token: &str) -> anyhow::Result<C> {
+    pub fn decode(secret_key: &str, token: &str) -> anyhow::Result<C> {
         let token_data = decode::<C>(
             token,
             &DecodingKey::from_secret(secret_key.as_ref()),

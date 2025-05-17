@@ -11,6 +11,7 @@ mod controllers;
 mod database;
 mod models;
 mod schema;
+mod middlewares;
 
 struct AppServer;
 
@@ -29,7 +30,10 @@ impl Application for AppServer {
             App::new()
                 .wrap(Cors::permissive().supports_credentials())
                 .wrap(Logger::default())
-                .service(web::scope("/api/v1").service(controllers::user::routes()))
+                .service(
+                    web::scope("/api/v1")
+                        .service(controllers::auth::routes())
+                )
         });
 
         info!("Listening on http://{}", Config::get_addrs());

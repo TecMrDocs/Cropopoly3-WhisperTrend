@@ -12,7 +12,7 @@ pub struct Credentials {
 #[macros::diesel_default]
 #[derive(Validate, Clone)]
 #[diesel(primary_key(id))]
-#[macros::database(create, update(id), delete(id), get(email))]
+#[macros::database(create, update(id), delete(id), get(email, id))]
 #[diesel(table_name = schema::users)]
 pub struct User {
     #[serde(skip_deserializing)]
@@ -23,5 +23,6 @@ pub struct User {
     #[validate(length(min = 1, max = 255))]
     pub email: String,
     #[validate(length(min = 1, max = 150))]
+    #[serde(skip_serializing)]
     pub password: String,
 }

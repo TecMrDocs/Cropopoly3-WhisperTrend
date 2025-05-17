@@ -1,8 +1,24 @@
 use crate::common::ApplicationConfig;
 use derive_builder::Builder;
 use lazy_static::lazy_static;
+use serde::{Deserialize, Serialize};
 use std::env;
 use tracing::{Level, warn};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Claims {
+    pub id: i32,
+    pub exp: usize,
+}
+
+impl Claims {
+    pub fn new(id: i32) -> Self {
+        Self {
+            id,
+            exp: (chrono::Utc::now().timestamp() as usize) + Config::get_token_expiration(),
+        }
+    }
+}
 
 lazy_static! {
     pub static ref CONFIG: Config = {
@@ -51,6 +67,8 @@ pub struct Config {
     pub with_migrations: bool,
     #[builder(default = "String::from(\"secret\")")]
     pub secret_key: String,
+    #[builder(default = "1296000")] // 15 days
+    pub token_expiration: usize,
 }
 
 impl ApplicationConfig for Config {
@@ -86,5 +104,9 @@ impl ApplicationConfig for Config {
 impl Config {
     pub fn get_secret_key() -> &'static str {
         &CONFIG.secret_key
+    }
+
+    fn get_token_expiration() -> usize {
+        CONFIG.token_expiration
     }
 }
