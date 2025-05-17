@@ -1,36 +1,30 @@
-use derive_builder::Builder;
-use std::env;
-use tracing::{Level, warn};
+use crate::config::Config;
+use tracing::Level;
 use tracing_subscriber;
 
-#[derive(Builder, Debug)]
-pub struct Config {
-    #[builder(default = "Level::DEBUG")]
-    pub max_level_log: Level,
-    #[builder(default = "String::from(\"dev\")")]
-    pub mode: String,
-    #[builder(default = "String::from(\"8080\")")]
-    pub port: String,
-    #[builder(default = "String::from(\"0.0.0.0\")")]
-    pub host: String,
-    #[builder(default = "8")]
-    pub max_pool_size: u32,
-    #[builder(default = "true")]
-    pub with_migrations: bool,
-}
+#[allow(dead_code)]
+pub trait ApplicationConfig {
+    fn get_addrs() -> String;
 
-impl Config {
-    pub fn get_addrs(&self) -> String {
-        format!("{}:{}", self.host, self.port)
-    }
+    fn get_max_level_log() -> Level;
+
+    fn get_mode() -> &'static str;
+
+    fn get_port() -> &'static str;
+
+    fn get_host() -> &'static str;
+
+    fn get_max_pool_size() -> u32;
+
+    fn get_with_migrations() -> bool;
 }
 
 pub trait Application {
-    fn initialize_logging(&self, config: &Config) -> anyhow::Result<()> {
+    fn initialize_logging(&self) -> anyhow::Result<()> {
         env_logger::init();
 
         let subscriber = tracing_subscriber::fmt()
-            .with_max_level(config.max_level_log)
+            .with_max_level(Config::get_max_level_log())
             .with_span_events(tracing_subscriber::fmt::format::FmtSpan::CLOSE)
             .finish();
 
@@ -38,39 +32,18 @@ pub trait Application {
         Ok(())
     }
 
-    fn load_env(&self, config: &mut Config) -> anyhow::Result<()> {
+    fn initialize(&self) -> anyhow::Result<()> {
+        self.initialize_logging()
+    }
+
+    async fn setup(&self) -> anyhow::Result<()>;
+
+    async fn create_server(&self) -> anyhow::Result<()>;
+
+    async fn start(&self) -> anyhow::Result<()> {
         dotenv::dotenv().ok();
-
-        config.mode = env::var("MODE").unwrap_or_else(|_| {
-            warn!("MODE is not set, using default value: {}", config.mode);
-            config.mode.clone()
-        });
-
-        config.port = env::var("PORT").unwrap_or_else(|_| {
-            warn!("PORT is not set, using default value: {}", config.port);
-            config.port.clone()
-        });
-
-        config.host = env::var("HOST").unwrap_or_else(|_| {
-            warn!("HOST is not set, using default value: {}", config.host);
-            config.host.clone()
-        });
-
-        Ok(())
-    }
-
-    fn initialize(&self, config: &Config) -> anyhow::Result<()> {
-        self.initialize_logging(config)
-    }
-
-    async fn setup(&self, config: &Config) -> anyhow::Result<()>;
-
-    async fn create_server(&self, config: &Config) -> anyhow::Result<()>;
-
-    async fn start(&self, config: &mut Config) -> anyhow::Result<()> {
-        self.load_env(config)?;
-        self.initialize(config)?;
-        self.setup(config).await?;
-        self.create_server(config).await
+        self.initialize()?;
+        self.setup().await?;
+        self.create_server().await
     }
 }
