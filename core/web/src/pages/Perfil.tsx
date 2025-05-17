@@ -6,7 +6,7 @@ export default function Perfil() {
   return(
     <div>
       <div className='flex items-center justify-center'>
-        <h1 className="text-2xl font-w700">Edita tus datos personales</h1>
+        <h1 className="text-3xl font-bold">Edita tus datos personales</h1>
       </div>
       <br></br>
       <div className='flex flex-row gap-6 justify-center'>

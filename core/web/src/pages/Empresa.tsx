@@ -7,7 +7,7 @@ export default function Empresa() {
   return(
     <div>
       <div className="flex items-center justify-center">
-        <h1 className="text-2xl font-w700">Edita la información de tu empresa</h1>
+        <h1 className="text-3xl font-bold">Edita la información de tu empresa</h1>
       </div>
       <br></br>
       <div className="flex flex-col gap-6 justify-center items-center">
