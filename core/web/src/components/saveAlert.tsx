@@ -1,7 +1,7 @@
 export default function SaveAlert() {
   return (
     <div className="fixed inset-0 bg-transparent  flex items-center justify-center z-50">
-      <div className="bg-gray-300 rounded-2xl p-6 shadow-xl max-w-md w-full mx-4 transform transition-all">
+      <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-md w-full mx-4 transform transition-all">
         <div className="flex items-center justify-center mb-4">
           <div className="bg-gradient-to-r from-blue-600 to-emerald-400 rounded-full p-2">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
