@@ -21,10 +21,6 @@ export default function LaunchProducto() {
   const handleReturn = () => {
     navigate("/launchEmpresa");
   };
-
-  const handleNext = () => {
-    navigate("/launchProducto");
-  };
   
   const handleAddPalabra = (nuevaPalabra: string) => {
     if (nuevaPalabra.trim() !== "" && palabrasAsociadas.length < 10) {
@@ -40,6 +36,7 @@ export default function LaunchProducto() {
       palabrasAsociadas,
     };
     console.log("Formulario:", data);
+    navigate("/launchVentas");
   };
 
   return(
