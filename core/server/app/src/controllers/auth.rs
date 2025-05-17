@@ -38,14 +38,11 @@ pub async fn register(mut user: web::Json<User>) -> Result<impl Responder> {
 #[post("/signin")]
 pub async fn signin(profile: web::Json<Credentials>) -> impl Responder {
     if let Ok(Some(user)) = User::get_by_email(profile.email.clone()).await {
-        tracing::info!("User found: {:?}", user);
         if let Ok(true) = PasswordHasher::verify(&profile.password, &user.password) {
-            tracing::info!("Password is correct");
             if let Some(id) = user.id {
                 if let Ok(token) =
                     TokenService::<Claims>::create(&Config::get_secret_key(), Claims::new(id))
                 {
-                    tracing::info!("Token created: {:?}", token);
                     return HttpResponse::Ok().json(json!({ "token": token }));
                 }
             }
