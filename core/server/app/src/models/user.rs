@@ -9,11 +9,10 @@ pub struct Credentials {
     pub password: String,
 }
 
-#[macros::diesel_default]
 #[derive(Validate, Clone)]
-#[diesel(primary_key(id))]
 #[macros::database(create, update(id), delete(id), get(email, id))]
-#[diesel(table_name = schema::users)]
+#[macros::diesel_default(schema::users)]
+#[diesel(primary_key(id))]
 pub struct User {
     #[serde(skip_deserializing)]
     #[diesel(deserialize_as = i32)]

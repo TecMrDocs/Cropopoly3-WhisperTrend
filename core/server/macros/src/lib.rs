@@ -3,13 +3,31 @@ use quote::{format_ident, quote};
 use syn::{Attribute, DeriveInput, Meta, parse_macro_input};
 
 #[proc_macro_attribute]
-pub fn diesel_default(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn diesel_default(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as DeriveInput);
+    
+    let table_name = if attr.is_empty() {
+        None
+    } else {
+        let attr_str = attr.to_string();
+        Some(syn::parse_str::<syn::Path>(&attr_str).unwrap())
+    };
+    
+    let table_attr = if let Some(table) = table_name {
+        quote! {
+            #[diesel(check_for_backend(diesel::pg::Pg))]
+            #[diesel(table_name = #table)]
+        }
+    } else {
+        quote! {
+            #[diesel(check_for_backend(diesel::pg::Pg))]
+        }
+    };
 
     let expanded = quote! {
         #[derive(serde::Deserialize, serde::Serialize, Debug)]
         #[derive(diesel::Queryable, diesel::Selectable, diesel::Identifiable, diesel::Insertable, diesel::AsChangeset)]
-        #[diesel(check_for_backend(diesel::pg::Pg))]
+        #table_attr
         #input
     };
 
