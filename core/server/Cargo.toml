@@ -17,3 +17,4 @@ chrono = { version = "0.4.41", features = ["serde"] }
 lazy_static = "1.5.0"
 macros = { path = "macros" }
 auth = { path = "auth" }
+scrap = { path = "../scrap" }

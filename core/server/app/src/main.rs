@@ -12,6 +12,7 @@ mod database;
 mod models;
 mod schema;
 mod middlewares;
+mod scraping;
 
 struct AppServer;
 
@@ -33,6 +34,7 @@ impl Application for AppServer {
                 .service(
                     web::scope("/api/v1")
                         .service(controllers::auth::routes())
+                        .service(controllers::web::routes())
                 )
         });
 

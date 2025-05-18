@@ -9,8 +9,13 @@ actix-web = "4.10.2"
 diesel = { version = "2.2.1", features = ["postgres", "r2d2", "chrono", "uuid", "numeric"] }
 diesel_migrations = "2.2.0"
 validator = { version = "0.20.0", features = ["derive"] }
+scraper = "0.23.1"
+regex = "1.11.1"
+
 macros = { workspace = true }
 auth = { workspace = true }
+scrap = { workspace = true }
+
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }

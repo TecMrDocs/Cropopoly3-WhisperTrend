@@ -69,6 +69,18 @@ impl Context {
             }
         }
     }
+
+    pub fn get_html(&self) -> String {
+        let mut err = 0;
+        unsafe {
+            let result: *mut i8 = GetHTML(self.id, &mut err);
+
+            match err {
+                0 => CStr::from_ptr(result).to_string_lossy().to_string(),
+                _ => panic!("Failed to get HTML"),
+            }
+        }
+    }
 }
 
 impl Drop for Context {
