@@ -11,6 +11,7 @@ use std::{
     ffi::{CStr, CString},
     sync::atomic::{AtomicI64, Ordering},
 };
+use tracing::error;
 
 include!(concat!(env!("CARGO_MANIFEST_DIR"), "/bindings.rs"));
 
@@ -65,7 +66,10 @@ impl Context {
 
             match err {
                 0 => CStr::from_ptr(result).to_string_lossy().to_string(),
-                _ => panic!("Failed to evaluate expression"),
+                _ => {
+                    error!("Failed to evaluate expression");
+                    String::new()
+                },
             }
         }
     }
@@ -77,7 +81,10 @@ impl Context {
 
             match err {
                 0 => CStr::from_ptr(result).to_string_lossy().to_string(),
-                _ => panic!("Failed to get HTML"),
+                _ => {
+                    error!("Failed to get HTML");
+                    String::new()
+                },
             }
         }
     }
@@ -109,7 +116,10 @@ impl Scraper {
 
             match err {
                 0 => CStr::from_ptr(result).to_string_lossy().to_string(),
-                _ => panic!("Failed to execute task"),
+                _ => {
+                    error!("Failed to execute task");
+                    String::new()
+                },
             }
         }
     }
