@@ -4,7 +4,7 @@ type MenuComponentesProps = {
   modoVisualizacion: 'original' | 'logaritmo' | 'normalizado';
   setModoVisualizacion: React.Dispatch<React.SetStateAction<'original' | 'logaritmo' | 'normalizado'>>;
   setHashtagSeleccionado: React.Dispatch<React.SetStateAction<string>>;
-  onEcoFriendlyClick: () => void; // Nueva prop para manejar el clic en #EcoFriendly
+  onEcoFriendlyClick: () => void;
   hashtagSeleccionado: string;
 };
 
@@ -15,29 +15,17 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
   onEcoFriendlyClick,
   hashtagSeleccionado
 }) => {
-  const handleHashtagClick = (hashtag: string) => {
+  // Función unificada para manejar todos los clicks
+  const handleItemClick = (hashtag: string, nuevoModo: 'original' | 'logaritmo' | 'normalizado') => {
     setHashtagSeleccionado(hashtag);
     
     // Si es #EcoFriendly, llamamos a la función especial
     if (hashtag === '#EcoFriendly') {
       onEcoFriendlyClick();
-    } 
-    // Para los otros hashtags, mantenemos el comportamiento original
-    else if (hashtag === '#SustainableFashion') {
-      setModoVisualizacion('logaritmo');
-    } else if (hashtag === '#NuevosMateriales') {
-      setModoVisualizacion('normalizado');
+    } else {
+      // Para el resto, actualizamos el modo de visualización
+      setModoVisualizacion(nuevoModo);
     }
-  };
-
-  const handleModoChange = (nuevoModo: 'original' | 'logaritmo' | 'normalizado', hashtag: string) => {
-    setModoVisualizacion(nuevoModo);
-    setHashtagSeleccionado(hashtag);
-  };
-
-  const handleVentasClick = () => {
-    setHashtagSeleccionado('Ventas');
-    setModoVisualizacion('original');
   };
 
   // Función para determinar si un elemento está activo
@@ -56,7 +44,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
   const getCircleStyle = (hashtag: string) => {
     const baseStyle = "w-6 h-6 rounded-full mr-3 cursor-pointer";
 
-    // Estilos personalizados por hashtag
+    // Estilos personalizados por opción
     if (hashtag === '#EcoFriendly') {
       return `${baseStyle} ${isActive(hashtag) ? 'bg-green-600 ring-2 ring-offset-2 ring-green-500' : 'bg-green-500'}`;
     } else if (hashtag === '#SustainableFashion') {
@@ -65,6 +53,12 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
       return `${baseStyle} ${isActive(hashtag) ? 'bg-gray-100 ring-2 ring-offset-2 ring-gray-400' : 'bg-white border-2 border-gray-300'}`;
     } else if (hashtag === 'Ventas') {
       return `${baseStyle} ${isActive(hashtag) ? 'bg-blue-700 ring-2 ring-offset-2 ring-blue-600' : 'bg-blue-600'}`;
+    } else if (hashtag === 'Noticia1') {
+      return `${baseStyle} ${isActive(hashtag) ? 'bg-purple-600 ring-2 ring-offset-2 ring-purple-500' : 'bg-purple-500'}`;
+    } else if (hashtag === 'Noticia2') {
+      return `${baseStyle} ${isActive(hashtag) ? 'bg-amber-600 ring-2 ring-offset-2 ring-amber-500' : 'bg-amber-500'}`;
+    } else if (hashtag === 'Noticia3') {
+      return `${baseStyle} ${isActive(hashtag) ? 'bg-teal-600 ring-2 ring-offset-2 ring-teal-500' : 'bg-teal-500'}`;
     }
 
     return baseStyle;
@@ -80,7 +74,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
             <div className="flex items-center">
               <div
                 className={getCircleStyle('Ventas')}
-                onClick={() => handleVentasClick()}
+                onClick={() => handleItemClick('Ventas', 'original')}
               ></div>
               <span className={`text-gray-800 font-medium ${isActive('Ventas') ? 'font-bold' : ''}`}>
                 Ventas de Bolso Marianne
@@ -88,7 +82,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
             </div>
             <button
               className={getButtonStyle('Ventas')}
-              onClick={() => handleModoChange('original', 'Ventas')}
+              onClick={() => handleItemClick('Ventas', 'original')}
             >
               Ver más
             </button>
@@ -102,7 +96,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
             <div className="flex items-center">
               <div
                 className={getCircleStyle('#EcoFriendly')}
-                onClick={() => handleHashtagClick('#EcoFriendly')}
+                onClick={() => handleItemClick('#EcoFriendly', 'original')}
               ></div>
               <span className={`text-gray-800 ${isActive('#EcoFriendly') ? 'font-bold' : 'font-medium'}`}>
                 #EcoFriendly - Correlación: 91%
@@ -110,7 +104,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
             </div>
             <button
               className={getButtonStyle('#EcoFriendly')}
-              onClick={() => handleHashtagClick('#EcoFriendly')}
+              onClick={() => handleItemClick('#EcoFriendly', 'original')}
             >
               Ver tendencia
             </button>
@@ -119,7 +113,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
             <div className="flex items-center">
               <div
                 className={getCircleStyle('#SustainableFashion')}
-                onClick={() => handleHashtagClick('#SustainableFashion')}
+                onClick={() => handleItemClick('#SustainableFashion', 'logaritmo')}
               ></div>
               <span className={`text-gray-800 ${isActive('#SustainableFashion') ? 'font-bold' : 'font-medium'}`}>
                 #SustainableFashion - Correlación: 82%
@@ -127,7 +121,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
             </div>
             <button
               className={getButtonStyle('#SustainableFashion')}
-              onClick={() => handleModoChange('logaritmo', '#SustainableFashion')}
+              onClick={() => handleItemClick('#SustainableFashion', 'logaritmo')}
             >
               Ver más
             </button>
@@ -137,7 +131,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
             <div className="flex items-center">
               <div
                 className={getCircleStyle('#NuevosMateriales')}
-                onClick={() => handleHashtagClick('#NuevosMateriales')}
+                onClick={() => handleItemClick('#NuevosMateriales', 'normalizado')}
               ></div>
               <span className={`text-gray-800 ${isActive('#NuevosMateriales') ? 'font-bold' : 'font-medium'}`}>
                 #NuevosMateriales - Correlación: 70%
@@ -145,7 +139,63 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
             </div>
             <button
               className={getButtonStyle('#NuevosMateriales')}
-              onClick={() => handleModoChange('normalizado', '#NuevosMateriales')}
+              onClick={() => handleItemClick('#NuevosMateriales', 'normalizado')}
+            >
+              Ver más
+            </button>
+          </div>
+        </div>
+
+        {/* Sección de Noticias */}
+        <h2 className="text-xl font-bold text-navy-900">Noticias</h2>
+        <div className="mt-3 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div
+                className={getCircleStyle('Noticia1')}
+                onClick={() => handleItemClick('Noticia1', 'original')}
+              ></div>
+              <span className={`text-gray-800 ${isActive('Noticia1') ? 'font-bold' : 'font-medium'}`}>
+                Moda sostenible en auge
+              </span>
+            </div>
+            <button
+              className={getButtonStyle('Noticia1')}
+              onClick={() => handleItemClick('Noticia1', 'original')}
+            >
+              Ver más
+            </button>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div
+                className={getCircleStyle('Noticia2')}
+                onClick={() => handleItemClick('Noticia2', 'logaritmo')}
+              ></div>
+              <span className={`text-gray-800 ${isActive('Noticia2') ? 'font-bold' : 'font-medium'}`}>
+                Materiales reciclados en bolsos
+              </span>
+            </div>
+            <button
+              className={getButtonStyle('Noticia2')}
+              onClick={() => handleItemClick('Noticia2', 'logaritmo')}
+            >
+              Ver más
+            </button>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div
+                className={getCircleStyle('Noticia3')}
+                onClick={() => handleItemClick('Noticia3', 'normalizado')}
+              ></div>
+              <span className={`text-gray-800 ${isActive('Noticia3') ? 'font-bold' : 'font-medium'}`}>
+                Tendencias eco para 2025
+              </span>
+            </div>
+            <button
+              className={getButtonStyle('Noticia3')}
+              onClick={() => handleItemClick('Noticia3', 'normalizado')}
             >
               Ver más
             </button>
@@ -155,5 +205,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
     </div>
   );
 };
+
 
 export default MenuComponentes;
