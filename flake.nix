@@ -37,10 +37,13 @@
 
           # Rust and tools
           rustWithMirror
+          pkgs.libclang
+          pkgs.llvmPackages.libclang
 
           # Go and tools
           pkgs.go
           pkgs.gopls
+          pkgs.chromium
 
           # Bun
           pkgs.nodejs
@@ -79,6 +82,12 @@
 
           shellHook = ''
             export STARSHIP_CONFIG="/dev/null"
+
+            export PQ_LIB_DIR="${pkgs.postgresql_13.lib}/lib"
+            export LD_LIBRARY_PATH="${pkgs.postgresql_13.lib}/lib:$LD_LIBRARY_PATH"
+
+            export LIBCLANG_PATH="${pkgs.libclang}/lib"
+            export BINDGEN_EXTRA_CLANG_ARGS="-I${pkgs.clang}/resource-root/include -I${pkgs.glibc.dev}/include"
 
             if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
               source ~/.nix-profile/etc/profile.d/nix.sh

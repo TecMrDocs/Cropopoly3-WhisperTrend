@@ -11,5 +11,14 @@ for plugin in /nix/store/*-zsh-autosuggestions*/share/zsh-autosuggestions/zsh-au
   [ -f "$plugin" ] && source "$plugin"
 done
 
-export PQ_LIB_DIR="/nix/store/*postgresql-13.*-lib*/lib"
-export LD_LIBRARY_PATH="/nix/store/*postgresql-13.*-lib*/lib:$LD_LIBRARY_PATH"
+PQ_LIB_PATH=$(ls -d /nix/store/*-postgresql-13.*-lib/lib | head -1)
+export PQ_LIB_DIR="$PQ_LIB_PATH"
+export LD_LIBRARY_PATH="$PQ_LIB_PATH:$LD_LIBRARY_PATH"
+
+LIBCLANG_PATH=$(ls -d /nix/store/*-clang-*-lib/lib | head -1)
+export LIBCLANG_PATH="$LIBCLANG_PATH"
+
+CLANG_INCLUDE=$(find $LIBCLANG_PATH/clang -name include -type d | head -1)
+GLIBC_INCLUDE=$(find /nix/store -name include -path "*glibc*dev*" -type d | head -1)
+
+export BINDGEN_EXTRA_CLANG_ARGS="-I$CLANG_INCLUDE -I$LIBCLANG_PATH/include -I$GLIBC_INCLUDE"

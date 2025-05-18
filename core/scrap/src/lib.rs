@@ -10,6 +10,7 @@ use lazy_static::lazy_static;
 use std::{
     ffi::{CStr, CString},
     sync::atomic::{AtomicI64, Ordering},
+    os::raw::c_char,
 };
 use tracing::error;
 
@@ -22,7 +23,7 @@ lazy_static! {
     static ref CALLBACKS: DashMap<i64, Callback> = DashMap::new();
 }
 
-unsafe extern "C" fn callback_trampoline(context_id: i64) -> *mut i8 {
+unsafe extern "C" fn callback_trampoline(context_id: i64) -> *mut c_char {
     if let Some(cb) = CALLBACKS.get(&context_id) {
         let result = cb(context_id);
         CString::new(result).unwrap_or_default().into_raw()
@@ -54,7 +55,7 @@ impl Context {
     pub fn navigate<T: AsRef<str>>(&self, url: T) {
         let c_url = CString::new(url.as_ref()).unwrap_or_default();
         unsafe {
-            Navigate(self.id, c_url.as_ptr() as *mut i8);
+            Navigate(self.id, c_url.as_ptr() as *mut c_char);
         }
     }
 
@@ -62,7 +63,7 @@ impl Context {
         let c_expr = CString::new(expr.as_ref()).unwrap_or_default();
         unsafe {
             let mut err = 0;
-            let result: *mut i8 = Evaluate(self.id, c_expr.as_ptr() as *mut i8, &mut err);
+            let result = Evaluate(self.id, c_expr.as_ptr() as *mut c_char, &mut err);
 
             match err {
                 0 => CStr::from_ptr(result).to_string_lossy().to_string(),
@@ -77,7 +78,7 @@ impl Context {
     pub fn get_html(&self) -> String {
         let mut err = 0;
         unsafe {
-            let result: *mut i8 = GetHTML(self.id, &mut err);
+            let result = GetHTML(self.id, &mut err);
 
             match err {
                 0 => CStr::from_ptr(result).to_string_lossy().to_string(),

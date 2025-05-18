@@ -7,7 +7,7 @@ package main
 #include <string.h>
 #include "../../common/common.h"
 
-char *callTask(Task task, int64_t contextID) {
+static char *callTask(Task task, int64_t contextID) {
     return task(contextID);
 }
 */

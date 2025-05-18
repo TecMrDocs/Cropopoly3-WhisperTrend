@@ -192,9 +192,10 @@ fn generate_bindings_if_needed(src_go: &PathBuf, current_dir: &PathBuf) {
             .layout_tests(false)
             .derive_debug(false);
 
-        if cfg!(target_os = "windows") {
+        if cfg!(target_os = "linux") {
             if let Ok(llvm_path) = env::var("LIBCLANG_PATH") {
                 builder = builder.clang_arg(format!("-I{}", llvm_path));
+                println!("cargo:warning=Using LIBCLANG_PATH: {}", llvm_path);
             } else {
                 println!("cargo:warning=LIBCLANG_PATH not defined, using default path");
             }

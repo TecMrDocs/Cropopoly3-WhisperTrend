@@ -27,7 +27,7 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 #include <string.h>
 #include "../../common/common.h"
 
-char *callTask(Task task, int64_t contextID) {
+static char *callTask(Task task, int64_t contextID) {
     return task(contextID);
 }
 

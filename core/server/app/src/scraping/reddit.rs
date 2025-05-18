@@ -78,9 +78,12 @@ impl RedditScraper {
     }
 
     pub fn get_posts() -> Vec<Post> {
+        tracing::info!("Getting posts from Reddit");
         let content = SCRAPER.execute(|context| {
+            tracing::info!("Getting posts from Reddit");
             context.navigate("https://www.reddit.com/");
             std::thread::sleep(std::time::Duration::from_secs(3));
+            tracing::info!("Getting posts from Reddit");
             context.get_html()
         });
 
