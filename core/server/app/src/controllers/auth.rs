@@ -49,7 +49,7 @@ pub async fn signin(profile: web::Json<Credentials>) -> impl Responder {
         }
     }
 
-    HttpResponse::Unauthorized().body("Username or password is incorrect")
+    HttpResponse::Unauthorized().body("Email or password is incorrect")
 }
 
 #[get("")]
