@@ -35,6 +35,7 @@ impl Application for AppServer {
                     web::scope("/api/v1")
                         .service(controllers::auth::routes())
                         .service(controllers::web::routes())
+                        .service(controllers::chat::routes())
                 )
         });
 

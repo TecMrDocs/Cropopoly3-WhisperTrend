@@ -76,4 +76,6 @@ DATABASE_URL=postgres://admin:awdrqwer12@database-server:5432/ksp
 POSTGRES_USER=admin
 POSTGRES_PASSWORD=awdrqwer12
 POSTGRES_DB=ksp
+
+GROQ_API_KEY=gsk_...
 ```
