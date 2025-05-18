@@ -16,42 +16,39 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
   onEcoFriendlyClick,
   hashtagSeleccionado
 }) => {
-  // Función unificada para manejar todos los clicks
+  // Función unificada para manejar clicks en círculos
+  const handleItemClick_1 = (hashtag: string, nuevoModo: 'original' | 'logaritmo' | 'normalizado') => {
+    setHashtagSeleccionado(hashtag);
+    
+    if (hashtag === '#EcoFriendly') {
+      onEcoFriendlyClick();
+    } else {
+      setModoVisualizacion(nuevoModo);
+    }
+  };
+
+  // Función unificada para manejar clicks en botones "Ver más"
   const handleItemClick_2 = (itemId: string) => {
     setHashtagSeleccionado(itemId);
     onSeleccionItem(itemId);
   };
 
-  // Función unificada para manejar todos los clicks
-  const handleItemClick_1 = (hashtag: string, nuevoModo: 'original' | 'logaritmo' | 'normalizado') => {
-    setHashtagSeleccionado(hashtag);
-    
-    // Si es #EcoFriendly, llamamos a la función especial
-    if (hashtag === '#EcoFriendly') {
-      onEcoFriendlyClick();
-    } else {
-      // Para el resto, actualizamos el modo de visualización
-      setModoVisualizacion(nuevoModo);
-    }
-  };
-
-  // Función para determinar si un elemento está activo
+  // Verifica si un hashtag está activo (seleccionado)
   const isActive = (value: string) => {
     return value === hashtagSeleccionado;
   };
 
-  // Función para determinar el estilo del botón según esté activo o no
+  // Estilo para los botones
   const getButtonStyle = (value: string) => {
     return isActive(value)
       ? "px-4 py-1 bg-blue-700 text-white rounded-full shadow-md font-semibold"
       : "px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition";
   };
 
-  // Función para determinar el estilo del círculo según esté activo o no
+  // Estilo para los círculos
   const getCircleStyle = (hashtag: string) => {
     const baseStyle = "w-6 h-6 rounded-full mr-3 cursor-pointer";
 
-    // Estilos personalizados por opción
     if (hashtag === '#EcoFriendly') {
       return `${baseStyle} ${isActive(hashtag) ? 'bg-green-600 ring-2 ring-offset-2 ring-green-500' : 'bg-green-500'}`;
     } else if (hashtag === '#SustainableFashion') {
@@ -212,6 +209,5 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
     </div>
   );
 };
-
 
 export default MenuComponentes;

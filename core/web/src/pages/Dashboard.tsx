@@ -2,7 +2,8 @@ import { useState } from 'react';
 import MathCalc2 from '../mathCalculus/MathCalc2';
 import MenuComponentes from '../components/MenuComponentes';
 import InterpretacionDashboard from '../components/InterpretacionDashboard';
-import TendenciaUniforme from '../mathCalculus/TendenciaUniforme';
+import TendenciaUniforme from '../mathCalculus/TendenciaUniforme'
+import InstaCalc from '../mathCalculus/InstaCalc';
 
 // Mapeo de ID de selección a tipo de visualización
 const mapeoTipos = {
@@ -87,6 +88,12 @@ export default function Dashboard() {
           <h3 className="text-2xl font-bold mb-4">Interpretación del Análisis</h3>
           <InterpretacionDashboard />
         </div>
+
+        <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
+          <h3 className="text-2xl font-bold mb-4">Insta</h3>
+          <InstaCalc />
+        </div>
+        
       </div>
     </div>
   );
