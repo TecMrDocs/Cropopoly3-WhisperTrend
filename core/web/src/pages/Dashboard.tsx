@@ -56,6 +56,7 @@ export default function Dashboard() {
             setModoVisualizacion={setModoVisualizacion}
             setHashtagSeleccionado={setHashtagSeleccionado}
             onEcoFriendlyClick={handleEcoFriendlyClick}
+            hashtagSeleccionado={hashtagSeleccionado}
           />
         </div>
         <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
