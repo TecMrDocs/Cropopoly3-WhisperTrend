@@ -18,6 +18,20 @@ export default function LaunchProducto() {
   const [palabrasAsociadas, setPalabrasAsociadas] = useState<string[]>([]);
   const navigate = useNavigate();
 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const validarFormulario = () => {
+    const nuevosErrores: { [key: string]: string } = {};
+  
+    if (!pors.trim()) nuevosErrores.pors = "Este campo es obligatorio";
+    if (!nombreProducto.trim()) nuevosErrores.nombreProducto = "Este campo es obligatorio";
+    if (!descripcion.trim()) nuevosErrores.descripcion = "Este campo es obligatorio";
+  
+    setErrors(nuevosErrores);
+  
+    return Object.keys(nuevosErrores).length === 0;
+  };  
+
   const handleReturn = () => {
     navigate("/launchEmpresa");
   };
@@ -29,13 +43,18 @@ export default function LaunchProducto() {
   };
 
   const handleSubmit = () => {
+    if (!validarFormulario()) return;
+
+    const palabrasJoin = palabrasAsociadas.join(", ");
+
     const data = {
       pors,
       nombreProducto,
       descripcion,
-      palabrasAsociadas,
+      palabrasJoin,
     };
-    console.log("Formulario:", data);
+
+    console.log("Formulario válido:", data);
     navigate("/launchVentas");
   };
 
@@ -46,16 +65,25 @@ export default function LaunchProducto() {
       <p className="text-xl mt-10 text-center">¿Ofreces un producto o servicio?</p>
       <div className="mt-3">
         <SelectField options={prodOrServ} width="300px" placeholder="Elige una categoría" value={pors} onChange={(e) => setPors(e.target.value)} />
+        {errors.pors && (
+          <p className="text-red-500 text-sm mt-1">{errors.pors}</p>
+        )}
       </div>
       
       <p className="text-xl mt-10 text-center">¿Cómo se llama tu producto o servicio?</p>
       <div className="mt-3">
         <TextFieldWHolder placeholder="Escribe el nombre de tu producto o servicio" width="600px" value={nombreProducto} onChange={(e) => setNombreProducto(e.target.value)} />
+        {errors.nombreProducto && (
+          <p className="text-red-500 text-sm mt-1">{errors.nombreProducto}</p>
+        )}
       </div>
       
       <p className="text-xl mt-10 text-center">Explica en qué consiste tu producto o servicio</p>
       <div className="mt-3">
         <TextAreaField placeholder="Explica en qué consiste tu producto o servicio" maxLength={300} width="600px" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
+        {errors.descripcion && (
+          <p className="text-red-500 text-sm mt-1">{errors.descripcion}</p>
+        )}
       </div>
       
       <p className="text-xl mt-3 text-center">Indica palabras asociadas con tu producto o servicio (máximo 10)</p>
