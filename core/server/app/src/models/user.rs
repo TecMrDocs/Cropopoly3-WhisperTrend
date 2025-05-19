@@ -10,9 +10,9 @@ pub struct Credentials {
 }
 
 #[derive(Validate, Clone)]
-#[macros::database(create, update(id), delete(id), get(email, id))]
 #[macros::diesel_default(schema::users)]
 #[diesel(primary_key(id))]
+#[macros::database(create, update(id), delete(id), get(email, id))]
 pub struct User {
     #[serde(skip_deserializing)]
     #[diesel(deserialize_as = i32)]

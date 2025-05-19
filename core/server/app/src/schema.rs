@@ -1,7 +1,7 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    recurso (id) {
+    recursos (id) {
         id -> Int4,
         id_usuario -> Int4,
         #[max_length = 50]
@@ -48,6 +48,6 @@ diesel::table! {
 }
 
 diesel::allow_tables_to_appear_in_same_query!(
-    recurso,
+    recursos,
     users,
 );

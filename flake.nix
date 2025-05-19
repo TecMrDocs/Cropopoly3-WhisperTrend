@@ -74,6 +74,7 @@
           pkgs.fd
           pkgs.dos2unix
           pkgs.openssl
+          pkgs.openssl.dev
         ];
       in {
         devShell = pkgs.mkShell {
