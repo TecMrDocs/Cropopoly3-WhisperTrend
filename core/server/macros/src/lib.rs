@@ -46,6 +46,7 @@ struct DatabaseOperations {
     updates: Vec<UpdateOperation>,
     deletes: Vec<String>,
     gets: Vec<String>,
+    get_all: bool,
 }
 
 #[proc_macro_attribute]
@@ -129,6 +130,7 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
         updates: Vec::new(),
         deletes: Vec::new(),
         gets: Vec::new(),
+        get_all: false,
     };
 
     let clean_attr = attr_str.replace(" ", "");
@@ -217,6 +219,9 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
             ops.gets = get_content.split(',').map(|s| s.to_string()).collect();
 
             current_pos = end_pos + 1;
+        } else if clean_attr[current_pos..].starts_with("get_all") {
+            ops.get_all = true;
+            current_pos += 7;
         } else {
             current_pos += 1;
         }
@@ -248,6 +253,19 @@ fn generate_methods(
             }
         };
         methods.extend(create_method);
+    }
+
+    if ops.get_all {
+        let get_all_method = quote! {
+            pub async fn get_all() -> anyhow::Result<Vec<#struct_name>> {
+                Database::query_wrapper(move |conn| {
+                    #table_path::table
+                        .load::<#struct_name>(conn)
+                })
+                .await
+            }
+        };
+        methods.extend(get_all_method);
     }
 
     for get_field in &ops.gets {
