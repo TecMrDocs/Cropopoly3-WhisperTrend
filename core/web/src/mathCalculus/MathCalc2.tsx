@@ -115,8 +115,8 @@ const MathCalc2: React.FC<MathCalc2Props> = ({ modoVisualizacion }) => {
               type="monotone"
               dataKey={String(nombreMetrica)}
               stroke={colores[index % colores.length]}
-              dot={{ r: 4 }}
-              activeDot={{ r: 6 }}
+              dot={{ r: 3 }}
+              activeDot={{ r: 5 }}
             />
           ))}
         </LineChart>
