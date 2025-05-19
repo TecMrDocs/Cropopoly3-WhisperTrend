@@ -30,3 +30,6 @@ RUN dos2unix /root/.zshrc
 RUN mkdir -p /root/.config/starship
 COPY .devcontainer/starship.toml /root/.config/starship.toml
 RUN dos2unix /root/.config/starship.toml
+
+# Ensure OpenSSL is properly set up
+RUN mkdir -p /etc/ssl
