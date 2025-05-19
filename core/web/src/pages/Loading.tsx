@@ -12,11 +12,11 @@ export default function AnalysisLoading() {
 
   return (
     <div className=" bg-white flex flex-col items-center justify-center text-center pt-20">
-      <h2 className="text-2xl md:text-3xl font-bold text-blue-900">
+      <h2 className="text-2xl md:text-3xl font-bold text-blue-900 mb-20">
         Ejecutando análisis
       </h2>
 
-      <div className="loader-square-50 pt-20">
+      <div className="loader pt-20">
         <div></div>
         <div></div>
         <div></div>
