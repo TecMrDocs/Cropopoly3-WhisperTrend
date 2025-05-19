@@ -1,4 +1,5 @@
 import React from 'react';
+import BlueButton from './BlueButton';
 
 type MenuComponentesProps = {
   modoVisualizacion: 'original' | 'logaritmo' | 'normalizado';
@@ -39,11 +40,11 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
   };
 
   // Estilo para los botones
-  const getButtonStyle = (value: string) => {
+  /* const getButtonStyle = (value: string) => {
     return isActive(value)
       ? "px-4 py-1 bg-blue-700 text-white rounded-full shadow-md font-semibold"
       : "px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition";
-  };
+  }; */
 
   // Estilo para los círculos
   const getCircleStyle = (hashtag: string) => {
@@ -84,12 +85,11 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                 Ventas de Bolso Marianne
               </span>
             </div>
-            <button
-              className={getButtonStyle('Ventas')}
+            <BlueButton
+              text="Ver más"
+              width="90px"
               onClick={() => handleItemClick_2('Ventas')}
-            >
-              Ver más
-            </button>
+            />
           </div>
         </div>
 
@@ -106,12 +106,11 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                 #EcoFriendly - Correlación: 91%
               </span>
             </div>
-            <button
-              className={getButtonStyle('#EcoFriendly')}
+            <BlueButton
+              text="Ver más"
+              width="90px"
               onClick={() => handleItemClick_2('#EcoFriendly')}
-            >
-              Ver más
-            </button>
+            />
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -123,12 +122,12 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                 #SustainableFashion - Correlación: 82%
               </span>
             </div>
-            <button
-              className={getButtonStyle('#SustainableFashion')}
+            <BlueButton
+              text="Ver más"
+              width="90px"
               onClick={() => handleItemClick_2('#SustainableFashion')}
-            >
-              Ver más
-            </button>
+            />
+             
           </div>
 
           <div className="flex items-center justify-between">
@@ -141,12 +140,12 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                 #NuevosMateriales - Correlación: 70%
               </span>
             </div>
-            <button
-              className={getButtonStyle('#NuevosMateriales')}
+            <BlueButton
+              text="Ver más"
+              width="90px"
               onClick={() => handleItemClick_2('#NuevosMateriales')}
-            >
-              Ver más
-            </button>
+            />
+             
           </div>
         </div>
 
@@ -163,12 +162,11 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                 Moda sostenible en auge
               </span>
             </div>
-            <button
-              className={getButtonStyle('Noticia1')}
+            <BlueButton
+              text="Ver más"
+              width="90px"
               onClick={() => handleItemClick_2('Noticia1')}
-            >
-              Ver más
-            </button>
+            />
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -180,12 +178,12 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                 Materiales reciclados en bolsos
               </span>
             </div>
-            <button
-              className={getButtonStyle('Noticia2')}
+            <BlueButton
+              text="Ver más"
+              width="90px"
               onClick={() => handleItemClick_2('Noticia2')}
-            >
-              Ver más
-            </button>
+            />
+              
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -197,12 +195,11 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                 Tendencias eco para 2025
               </span>
             </div>
-            <button
-              className={getButtonStyle('Noticia3')}
+            <BlueButton
+              text="Ver más"
+              width="90px"
               onClick={() => handleItemClick_2('Noticia3')}
-            >
-              Ver más
-            </button>
+            />
           </div>
         </div>
       </div>

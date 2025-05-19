@@ -4,6 +4,8 @@ import MenuComponentes from '../components/MenuComponentes';
 import InterpretacionDashboard from '../components/InterpretacionDashboard';
 import TendenciaUniforme from '../mathCalculus/TendenciaUniforme'
 import InstaCalc from '../mathCalculus/InstaCalc';
+import { IoChevronBackOutline } from "react-icons/io5";
+
 
 // Mapeo de ID de selección a tipo de visualización
 const mapeoTipos = {
@@ -64,8 +66,9 @@ export default function Dashboard() {
             <div>
               <button
                 onClick={resetVisualizacion}
-                className="mb-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition"
+                className="mb-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition flex flex-row items-center gap-2"
               >
+                <IoChevronBackOutline />
                 Volver a Gráfica de Líneas
               </button>
               <TendenciaUniforme tipo={getTipoVisualizacion()} />
