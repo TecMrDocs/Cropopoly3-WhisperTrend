@@ -6,23 +6,25 @@ import {
 // Datos originales
 const datos = [
   ["", "01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
-  ["UpVotes", 2836, 844, 284, 405],
-  ["Comentarios", 1001, 747, 323, 103],
-  ["Suscriptores", 4234000, 914000, 3533000, 950000],
-  ["Horas", 10905, 6415, 2712, 1416]
+  ["Likes", 46822, 423520, 153642, 14964],
+  ["Comentarios", 940, 44062, 1277, 296],
+  ["Vistas", 1428400, 4672900, 2488200, 390800],
+  ["Seguidores", 636298, 2192196, 391213, 705736],
+  ["Compartidos", 37, 68136, 41645, 1112],
 ];
 
 // Función que calcula la tasa de interacción
 function generadorTasaInteraccion(datos: any[]) {
   const fechas = datos[0].slice(1);
-  const upvotes = datos[1].slice(1);
+  const likes = datos[1].slice(1);
   const comentarios = datos[2].slice(1);
-  const suscriptores = datos[3].slice(1);
+  const vistas = datos[3].slice(1);
+  const compartidos = datos[5].slice(1);
 
   return fechas.map((fecha: string, i: number) => {
-    const interacciones = upvotes[i] + comentarios[i];
-    const suscriptoresActuales = suscriptores[i];
-    const tasa = suscriptoresActuales > 0 ? (interacciones / suscriptoresActuales) * 100 : 0;
+    const interacciones = likes[i] + comentarios[i] + compartidos[i];
+    const vistasActuales = vistas[i];
+    const tasa = vistasActuales > 0 ? (interacciones / vistasActuales) * 100 : 0;
     return {
       fecha,
       tasa: parseFloat(tasa.toFixed(2)),
@@ -33,14 +35,15 @@ function generadorTasaInteraccion(datos: any[]) {
 // Función que calcula la tasa de viralidad
 function generadorTasaViralidad(datos: any[]) {
   const fechas = datos[0].slice(1);
-  const upvotes = datos[1].slice(1);
+const likes = datos[1].slice(1);  
   const comentarios = datos[2].slice(1);
-  const horas = datos[4].slice(1);
+  const seguidores = datos[4].slice(1);
+  const compartidos = datos[5].slice(1);
 
   return fechas.map((fecha: string, i: number) => {
-    const interacciones = upvotes[i] + comentarios[i];
-    const horasActuales = horas[i];
-    const tasa = horasActuales > 0 ? (interacciones / horasActuales) * 100 : 0;
+    const interacciones = likes[i] + comentarios[i] + compartidos[i];
+    const seguidoresActuales = seguidores[i];
+    const tasa = seguidoresActuales > 0 ? (interacciones / seguidoresActuales) * 100 : 0;
     return {
       fecha,
       tasa: parseFloat(tasa.toFixed(2)),
@@ -49,7 +52,7 @@ function generadorTasaViralidad(datos: any[]) {
 }
 
 // Componente con dos gráficos
-const RedditCalc: React.FC = () => {
+const InstaCalc: React.FC = () => {
   const datosInteraccion = generadorTasaInteraccion(datos);
   const datosViralidad = generadorTasaViralidad(datos);
 
@@ -86,4 +89,4 @@ const RedditCalc: React.FC = () => {
   );
 };
 
-export default RedditCalc;
+export default InstaCalc;

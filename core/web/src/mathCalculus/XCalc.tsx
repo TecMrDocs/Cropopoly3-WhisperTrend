@@ -52,7 +52,7 @@ function generadorTasaViralidad(datos: any[]) {
 }
 
 // Componente con dos gráficos
-const InstaCalc: React.FC = () => {
+const XCalc: React.FC = () => {
   const datosInteraccion = generadorTasaInteraccion(datos);
   const datosViralidad = generadorTasaViralidad(datos);
 
@@ -89,4 +89,4 @@ const InstaCalc: React.FC = () => {
   );
 };
 
-export default InstaCalc;
+export default XCalc;
