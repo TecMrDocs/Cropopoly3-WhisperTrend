@@ -58,7 +58,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white shadow-md rounded-lg p-6">
           <h3 className="text-2xl font-bold mb-4">
-            {mostrarTendenciaUniforme ? `Análisis: ${hashtagSeleccionado}` : 'Gráfica de Líneas'}
+            {mostrarTendenciaUniforme ? `Análisis de ${hashtagSeleccionado}` : 'Gráfica de tasa de viralidad en redes sociales'}
           </h3>
           {mostrarTendenciaUniforme ? (
             <div>
