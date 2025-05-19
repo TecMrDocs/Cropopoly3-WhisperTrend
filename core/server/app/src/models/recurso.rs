@@ -6,7 +6,7 @@ use validator::Validate;
 #[macros::diesel_default(schema::recursos)]
 #[diesel(primary_key(id))]
 #[macros::database(create, update(id), delete(id), get(id))]
-pub struct Recursos {
+pub struct Recurso {
     #[serde(skip_deserializing)]
     #[diesel(deserialize_as = i32)]
     pub id: Option<i32>,
