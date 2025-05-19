@@ -3,24 +3,20 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
-// Datos originales
-const datos = [
-  ["", "01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
-  ["UpVotes", 2836, 844, 284, 405],
-  ["Comentarios", 1001, 747, 323, 103],
-  ["Suscriptores", 4234000, 914000, 3533000, 950000],
-  ["Horas", 10905, 6415, 2712, 1416]
-];
+
+const datos = {
+  fechas: ["01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
+  upVotes: [2836, 844, 284, 405],
+  comentarios: [1001, 747, 323, 103],
+  suscriptores: [4234000, 914000, 3533000, 950000],
+  horas: [10905, 6415, 2712, 1416],
+};
 
 // Función que calcula la tasa de interacción
-function generadorTasaInteraccion(datos: any[]) {
-  const fechas = datos[0].slice(1);
-  const upvotes = datos[1].slice(1);
-  const comentarios = datos[2].slice(1);
-  const suscriptores = datos[3].slice(1);
-
+function generadorTasaInteraccion(data: typeof datos) {
+  const { fechas, upVotes, comentarios, suscriptores } = data;
   return fechas.map((fecha: string, i: number) => {
-    const interacciones = upvotes[i] + comentarios[i];
+    const interacciones = upVotes[i] + comentarios[i];
     const suscriptoresActuales = suscriptores[i];
     const tasa = suscriptoresActuales > 0 ? (interacciones / suscriptoresActuales) * 100 : 0;
     return {
@@ -31,14 +27,10 @@ function generadorTasaInteraccion(datos: any[]) {
 }
 
 // Función que calcula la tasa de viralidad
-function generadorTasaViralidad(datos: any[]) {
-  const fechas = datos[0].slice(1);
-  const upvotes = datos[1].slice(1);
-  const comentarios = datos[2].slice(1);
-  const horas = datos[4].slice(1);
-
+function generadorTasaViralidad(data: typeof datos) {
+  const { fechas, upVotes, comentarios, horas } = data;
   return fechas.map((fecha: string, i: number) => {
-    const interacciones = upvotes[i] + comentarios[i];
+    const interacciones = upVotes[i] + comentarios[i];
     const horasActuales = horas[i];
     const tasa = horasActuales > 0 ? (interacciones / horasActuales) * 100 : 0;
     return {
