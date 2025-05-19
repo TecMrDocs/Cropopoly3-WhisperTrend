@@ -22,3 +22,7 @@ CLANG_INCLUDE=$(find $LIBCLANG_PATH/clang -name include -type d | head -1)
 GLIBC_INCLUDE=$(find /nix/store -name include -path "*glibc*dev*" -type d | head -1)
 
 export BINDGEN_EXTRA_CLANG_ARGS="-I$CLANG_INCLUDE -I$LIBCLANG_PATH/include -I$GLIBC_INCLUDE"
+
+OPENSSL_PATH=$(ls -d /nix/store/*-openssl-* | grep -v dev | head -1)
+export OPENSSL_DIR="$OPENSSL_PATH"
+export PKG_CONFIG_PATH="$OPENSSL_PATH/lib/pkgconfig:$PKG_CONFIG_PATH"
