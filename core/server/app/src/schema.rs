@@ -1,6 +1,21 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    recurso (id) {
+        id -> Int4,
+        id_usuario -> Int4,
+        #[max_length = 50]
+        tipo -> Varchar,
+        #[max_length = 50]
+        nombre -> Varchar,
+        #[max_length = 300]
+        descripcion -> Varchar,
+        #[max_length = 300]
+        palabras_rel -> Varchar,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Int4,
         #[max_length = 50]
@@ -31,3 +46,8 @@ diesel::table! {
         num_sucursales -> Varchar,
     }
 }
+
+diesel::allow_tables_to_appear_in_same_query!(
+    recurso,
+    users,
+);
