@@ -3,10 +3,13 @@ use diesel::prelude::*;
 use validator::Validate;
 
 #[derive(Validate, Clone)]
-#[macros::database(create, update(id), delete(id), get(id))]
-#[macros::diesel_default(schema::recurso)]
+#[derive(serde::Deserialize, serde::Serialize, Debug)]
+#[derive(diesel::Queryable, diesel::Selectable, diesel::Identifiable, diesel::Insertable, diesel::AsChangeset)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+#[diesel(table_name = schema::recursos)]
 #[diesel(primary_key(id))]
-pub struct Recurso {
+#[macros::database(create, update(id), delete(id), get(id), table_name = "schema::recursos")]
+pub struct Recursos {
     #[serde(skip_deserializing)]
     #[diesel(deserialize_as = i32)]
     pub id: Option<i32>,

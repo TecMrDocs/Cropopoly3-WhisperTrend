@@ -1,4 +1,5 @@
 mod user;
-mod recurso;
+mod recursos;
+
 pub use user::{User, Credentials};
-pub use recurso::Recurso;
+pub use recursos::Recursos;

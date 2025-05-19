@@ -10,9 +10,12 @@ pub struct Credentials {
 }
 
 #[derive(Validate, Clone)]
-#[macros::database(create, update(id), delete(id), get(email, id))]
-#[macros::diesel_default(schema::users)]
+#[derive(serde::Deserialize, serde::Serialize, Debug)]
+#[derive(diesel::Queryable, diesel::Selectable, diesel::Identifiable, diesel::Insertable, diesel::AsChangeset)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+#[diesel(table_name = schema::users)]
 #[diesel(primary_key(id))]
+#[macros::database(create, update(id), delete(id), get(email, id))]
 pub struct User {
     #[serde(skip_deserializing)]
     #[diesel(deserialize_as = i32)]
