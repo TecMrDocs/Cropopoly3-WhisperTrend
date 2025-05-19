@@ -5,7 +5,7 @@ use validator::Validate;
 #[derive(Validate, Clone)]
 #[macros::diesel_default(schema::recursos)]
 #[diesel(primary_key(id))]
-#[macros::database(create, update(id), delete(id), get(id), table_name = "schema::recursos")]
+#[macros::database(create, update(id), delete(id), get(id))]
 pub struct Recursos {
     #[serde(skip_deserializing)]
     #[diesel(deserialize_as = i32)]
