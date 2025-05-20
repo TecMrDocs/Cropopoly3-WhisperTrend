@@ -47,6 +47,14 @@ lazy_static! {
             config.secret_key
         });
 
+        match env::var("BROWSERLESS_WS") {
+            Ok(value) => config.browserless_ws = Some(value),
+            Err(_) => {
+                warn!("BROWSERLESS_WS is not set, using default value: {:?}", config.browserless_ws);
+                config.browserless_ws = None
+            },
+        }
+
         config
     };
 }
@@ -69,6 +77,8 @@ pub struct Config {
     pub secret_key: String,
     #[builder(default = "1296000")] // 15 days
     pub token_expiration: usize,
+    #[builder(default = "None")]
+    pub browserless_ws: Option<String>,
 }
 
 impl ApplicationConfig for Config {
@@ -108,5 +118,9 @@ impl Config {
 
     fn get_token_expiration() -> usize {
         CONFIG.token_expiration
+    }
+
+    pub fn get_browserless_ws() -> Option<&'static str> {
+        CONFIG.browserless_ws.as_deref()
     }
 }

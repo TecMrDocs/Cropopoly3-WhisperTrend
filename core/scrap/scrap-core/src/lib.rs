@@ -100,9 +100,10 @@ impl Drop for Context {
 }
 
 impl Scraper {
-    pub fn new() -> Self {
+    pub fn new(url: Option<&str>) -> Self {
+        let c_url = CString::new(url.unwrap_or_default()).unwrap_or_default();
         unsafe {
-            let id = NewScraper();
+            let id = NewScraper(c_url.as_ptr() as *mut c_char);
             Self { id }
         }
     }
@@ -140,7 +141,7 @@ mod tests {
 
     #[test]
     fn test_execute() {
-        let scraper = Scraper::new();
+        let scraper = Scraper::new(None);
         let title = scraper.execute(|ctx| {
             ctx.navigate("https://www.example.com");
             return ctx.evaluate("document.querySelector('h1').textContent");

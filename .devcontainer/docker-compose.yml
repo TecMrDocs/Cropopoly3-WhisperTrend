@@ -13,7 +13,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - ENABLE_DEBUGGER=true
+      - DEFAULT_STEALTH=true
 
   development:
     build:
