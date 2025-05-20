@@ -10,13 +10,13 @@ pub struct Recurso {
     #[serde(skip_deserializing)]
     #[diesel(deserialize_as = i32)]
     pub id: Option<i32>,
-    pub id_usuario: i32,
+    pub user_id: i32,
     #[validate(length(min = 1, max = 255))]
-    pub tipo: String,
+    pub r_type: String,
     #[validate(length(min = 1, max = 255))]
-    pub nombre: String,
+    pub name: String,
     #[validate(length(min = 1, max = 255))]
-    pub descripcion: String,
+    pub description: String,
     #[validate(length(min = 1, max = 255))]
-    pub palabras_rel: String,
+    pub related_words: String,
 }
