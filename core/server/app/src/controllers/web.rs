@@ -1,4 +1,4 @@
-use crate::scraping::reddit::RedditScraper;
+use crate::scraping::{notices::NoticesScraper, reddit::RedditScraper};
 use actix_web::{HttpResponse, Responder, get, web};
 
 #[get("/reddit/get-posts")]
@@ -13,8 +13,15 @@ pub async fn get_simple_posts_reddit(path: web::Path<String>) -> impl Responder 
     HttpResponse::Ok().json(posts)
 }
 
+#[get("/notices/get-notices")]
+pub async fn get_notices() -> impl Responder {
+    let notices = NoticesScraper::get_notices();
+    HttpResponse::Ok().json(notices)
+}
+
 pub fn routes() -> actix_web::Scope {
     actix_web::Scope::new("/web")
         .service(get_posts_reddit)
         .service(get_simple_posts_reddit)
+        .service(get_notices)
 }

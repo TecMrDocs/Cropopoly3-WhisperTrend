@@ -19,16 +19,16 @@ pub async fn register(mut user: web::Json<User>) -> Result<impl Responder> {
         return Ok(HttpResponse::Unauthorized().body("Invalid data"));
     }
 
-    if let Ok(hash) = PasswordHasher::hash(&user.contrasena) {
-        if let Ok(None) = User::get_by_email(user.email.clone()).await {
+    if let Ok(None) = User::get_by_email(user.email.clone()).await {
+        if let Ok(hash) = PasswordHasher::hash(&user.contrasena) {
             user.contrasena = hash.to_string();
 
             let id = User::create(user.clone()).await.to_web()?;
             user.id = Some(id);
 
-            return Ok(HttpResponse::Ok().json(user));
+            return Ok(HttpResponse::Ok().finish());
         }
-
+    } else {
         return Ok(HttpResponse::Unauthorized().body("Email already exists"));
     }
 
@@ -74,6 +74,6 @@ pub fn routes() -> actix_web::Scope {
         .service(
             web::scope("/check")
                 .wrap(from_fn(middlewares::auth))
-                .service(check)
+                .service(check),
         )
 }
