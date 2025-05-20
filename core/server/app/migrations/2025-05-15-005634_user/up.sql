@@ -1,16 +1,16 @@
 CREATE TABLE "users"(
 	"id" SERIAL PRIMARY KEY,
 	"email" VARCHAR(50) NOT NULL,
-	"nombres" VARCHAR(50) NOT NULL,
-	"apellidos" VARCHAR(50) NOT NULL,
-	"telefono" VARCHAR(50) NOT NULL,
-	"puesto" VARCHAR(50) NOT NULL,
-	"contrasena" VARCHAR(150) NOT NULL,
+	"name" VARCHAR(50) NOT NULL,
+	"last_name" VARCHAR(50) NOT NULL,
+	"phone" VARCHAR(50) NOT NULL,
+	"position" VARCHAR(50) NOT NULL,
+	"password" VARCHAR(150) NOT NULL,
 	"plan" VARCHAR(50) NOT NULL,
-	"razon_social" VARCHAR(50) NOT NULL,
-	"sector" VARCHAR(50) NOT NULL,
-	"tamano_empresa" VARCHAR(50) NOT NULL,
-	"alcance" VARCHAR(50) NOT NULL,
-	"localidades" VARCHAR(250) NOT NULL,
-	"num_sucursales" VARCHAR(50) NOT NULL
+	"business_name" VARCHAR(50) NOT NULL,
+	"industry" VARCHAR(50) NOT NULL,
+	"company_size" VARCHAR(50) NOT NULL,
+	"scope" VARCHAR(50) NOT NULL,
+	"locations" VARCHAR(250) NOT NULL,
+	"num_branches" VARCHAR(50) NOT NULL
 );
