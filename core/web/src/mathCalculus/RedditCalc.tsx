@@ -3,87 +3,87 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
-// Datos originales
-const datos = [
-  ["", "01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
-  ["UpVotes", 2836, 844, 284, 405],
-  ["Comentarios", 1001, 747, 323, 103],
-  ["Suscriptores", 4234000, 914000, 3533000, 950000],
-  ["Horas", 10905, 6415, 2712, 1416]
-];
+const datos = {
+  fechas: ["01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
+  upVotes: [2836, 844, 284, 405],
+  comentarios: [1001, 747, 323, 103],
+  suscriptores: [4234000, 914000, 3533000, 950000],
+  horas: [10905, 6415, 2712, 1416],
+};
 
-// Función que calcula la tasa de interacción
-function generadorTasaInteraccion(datos: any[]) {
-  const fechas = datos[0].slice(1);
-  const upvotes = datos[1].slice(1);
-  const comentarios = datos[2].slice(1);
-  const suscriptores = datos[3].slice(1);
-
+// Calcula la tasa de interacción: (upVotes + comentarios) / suscriptores * 100
+function generadorTasaInteraccion(data: typeof datos) {
+  const { fechas, upVotes, comentarios, suscriptores } = data;
   return fechas.map((fecha: string, i: number) => {
-    const interacciones = upvotes[i] + comentarios[i];
+    const interacciones = upVotes[i] + comentarios[i];
     const suscriptoresActuales = suscriptores[i];
     const tasa = suscriptoresActuales > 0 ? (interacciones / suscriptoresActuales) * 100 : 0;
     return {
       fecha,
-      tasa: parseFloat(tasa.toFixed(2)),
+      tasa: parseFloat(tasa.toFixed(3)), // un decimal más para precisión
     };
   });
 }
 
-// Función que calcula la tasa de viralidad
-function generadorTasaViralidad(datos: any[]) {
-  const fechas = datos[0].slice(1);
-  const upvotes = datos[1].slice(1);
-  const comentarios = datos[2].slice(1);
-  const horas = datos[4].slice(1);
-
+// Calcula la tasa de viralidad: (upVotes + comentarios) / horas * 100
+function generadorTasaViralidad(data: typeof datos) {
+  const { fechas, upVotes, comentarios, horas } = data;
   return fechas.map((fecha: string, i: number) => {
-    const interacciones = upvotes[i] + comentarios[i];
+    const interacciones = upVotes[i] + comentarios[i];
     const horasActuales = horas[i];
     const tasa = horasActuales > 0 ? (interacciones / horasActuales) * 100 : 0;
     return {
       fecha,
-      tasa: parseFloat(tasa.toFixed(2)),
+      tasa: parseFloat(tasa.toFixed(3)),
     };
   });
 }
 
-// Componente con dos gráficos
 const RedditCalc: React.FC = () => {
   const datosInteraccion = generadorTasaInteraccion(datos);
   const datosViralidad = generadorTasaViralidad(datos);
 
   return (
-    <div style={{ width: '100%' }}>
-      <h2 style={{ textAlign: 'center' }}>Tasa de Interacción (%)</h2>
-      <div style={{ width: '100%', height: 300 }}>
+    <div style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '20px' }}>
+      <h2 style={{ textAlign: 'center', color: '#3b3b98', fontWeight: '700', marginBottom: 20 }}>
+        Tasa de Interacción (%)
+      </h2>
+      <div style={{ width: '100%', height: 320 }}>
         <ResponsiveContainer>
-          <LineChart data={datosInteraccion} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
-            <XAxis dataKey="fecha" />
-            <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
-            <Tooltip formatter={(value) => `${value}%`} />
-            <Legend />
-            <Line type="monotone" dataKey="tasa" stroke="#8884d8" name="Tasa de Interacción" />
+          <LineChart data={datosInteraccion} margin={{ top: 20, right: 40, left: 20, bottom: 20 }}>
+            <CartesianGrid stroke="#e0e0e0" strokeDasharray="4 4" />
+            <XAxis dataKey="fecha" tick={{ fontSize: 12 }} interval={0} angle={-30} textAnchor="end" height={60} />
+            <YAxis domain={[0, 'dataMax']} tickFormatter={(value) => `${value}%`} />
+            <Tooltip formatter={(value: number) => `${value.toFixed(3)}%`} />
+            <Legend verticalAlign="top" height={36} />
+            <Line type="monotone" dataKey="tasa" stroke="#3b3b98" name="Tasa de Interacción" strokeWidth={3} dot={{ r: 5 }} />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      <h2 style={{ textAlign: 'center', marginTop: 40 }}>Tasa de Viralidad (%)</h2>
-      <div style={{ width: '100%', height: 300 }}>
+      <h2 style={{ textAlign: 'center', color: '#22a6b3', fontWeight: '700', margin: '40px 0 20px' }}>
+        Tasa de Viralidad (%)
+      </h2>
+      <div style={{ width: '100%', height: 320 }}>
         <ResponsiveContainer>
-          <LineChart data={datosViralidad} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
-            <XAxis dataKey="fecha" />
-            <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
-            <Tooltip formatter={(value) => `${value}%`} />
-            <Legend />
-            <Line type="monotone" dataKey="tasa" stroke="#82ca9d" name="Tasa de Viralidad" />
+          <LineChart data={datosViralidad} margin={{ top: 20, right: 40, left: 20, bottom: 20 }}>
+            <CartesianGrid stroke="#e0e0e0" strokeDasharray="4 4" />
+            <XAxis dataKey="fecha" tick={{ fontSize: 12 }} interval={0} angle={-30} textAnchor="end" height={60} />
+            <YAxis domain={[0, 'dataMax']} tickFormatter={(value) => `${value}%`} />
+            <Tooltip formatter={(value: number) => `${value.toFixed(3)}%`} />
+            <Legend verticalAlign="top" height={36} />
+            <Line type="monotone" dataKey="tasa" stroke="#22a6b3" name="Tasa de Viralidad" strokeWidth={3} dot={{ r: 5 }} />
           </LineChart>
         </ResponsiveContainer>
       </div>
     </div>
   );
+};
+
+// Exportación para uso externo de los datos calculados
+export const resultadoRedditCalc = {
+  datosInteraccion: generadorTasaInteraccion(datos),
+  datosViralidad: generadorTasaViralidad(datos),
 };
 
 export default RedditCalc;

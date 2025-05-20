@@ -3,23 +3,18 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
-// Datos originales
-const datos = [
-  ["", "01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
-  ["Likes", 46822, 423520, 153642, 14964],
-  ["Comentarios", 940, 44062, 1277, 296],
-  ["Vistas", 1428400, 4672900, 2488200, 390800],
-  ["Seguidores", 636298, 2192196, 391213, 705736],
-  ["Compartidos", 37, 68136, 41645, 1112],
-];
+const datos = {
+  fechas: ["01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
+  likes: [46822, 423520, 153642, 14964],
+  comentarios: [940, 44062, 1277, 296],
+  vistas: [1428400, 4672900, 2488200, 390800],
+  seguidores: [636298, 2192196, 391213, 705736],
+  compartidos: [37, 68136, 41645, 1112],
+};
 
 // Función que calcula la tasa de interacción
-function generadorTasaInteraccion(datos: any[]) {
-  const fechas = datos[0].slice(1);
-  const likes = datos[1].slice(1);
-  const comentarios = datos[2].slice(1);
-  const vistas = datos[3].slice(1);
-  const compartidos = datos[5].slice(1);
+function generadorTasaInteraccion(data: typeof datos) {
+  const { fechas, likes, comentarios, vistas, compartidos } = data;
 
   return fechas.map((fecha: string, i: number) => {
     const interacciones = likes[i] + comentarios[i] + compartidos[i];
@@ -33,12 +28,8 @@ function generadorTasaInteraccion(datos: any[]) {
 }
 
 // Función que calcula la tasa de viralidad
-function generadorTasaViralidad(datos: any[]) {
-  const fechas = datos[0].slice(1);
-const likes = datos[1].slice(1);  
-  const comentarios = datos[2].slice(1);
-  const seguidores = datos[4].slice(1);
-  const compartidos = datos[5].slice(1);
+function generadorTasaViralidad(data: typeof datos) {
+  const { fechas, likes, comentarios, seguidores, compartidos } = data;
 
   return fechas.map((fecha: string, i: number) => {
     const interacciones = likes[i] + comentarios[i] + compartidos[i];
@@ -51,10 +42,16 @@ const likes = datos[1].slice(1);
   });
 }
 
-// Componente con dos gráficos
+// Exporta los datos para consolidación
+export const resultadoInstaCalc = {
+  datosInteraccion: generadorTasaInteraccion(datos),
+  datosViralidad: generadorTasaViralidad(datos),
+};
+
+// Componente con dos gráficos (si quieres seguir usándolo directamente)
 const InstaCalc: React.FC = () => {
-  const datosInteraccion = generadorTasaInteraccion(datos);
-  const datosViralidad = generadorTasaViralidad(datos);
+  const datosInteraccion = resultadoInstaCalc.datosInteraccion;
+  const datosViralidad = resultadoInstaCalc.datosViralidad;
 
   return (
     <div style={{ width: '100%' }}>

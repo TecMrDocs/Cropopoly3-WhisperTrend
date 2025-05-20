@@ -43,7 +43,6 @@
           # Go and tools
           pkgs.go
           pkgs.gopls
-          pkgs.chromium
 
           # Bun
           pkgs.nodejs
@@ -74,6 +73,7 @@
           pkgs.fd
           pkgs.dos2unix
           pkgs.openssl
+          pkgs.openssl.dev
         ];
       in {
         devShell = pkgs.mkShell {

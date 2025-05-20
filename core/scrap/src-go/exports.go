@@ -7,7 +7,7 @@ package main
 #include <string.h>
 #include "../../common/common.h"
 
-static char *callTask(Task task, int64_t contextID) {
+static inline char *callTask(Task task, int64_t contextID) {
     return task(contextID);
 }
 */
@@ -37,8 +37,10 @@ func getNextScraperID() int64 {
 
 //export NewScraper
 func NewScraper() C.int64_t {
+	url := "ws://browserless-chrome:3000?stealth=true&blockAds=true&headless=true&ignoreHTTPSErrors=true&slowMo=10"
 	scrap := scraper.New(scraper.Config{
 		Workers: Workers,
+		Url:     &url,
 	})
 	id := getNextScraperID()
 	scraperMap.Store(id, scrap)

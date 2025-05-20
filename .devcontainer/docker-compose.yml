@@ -7,12 +7,21 @@ services:
     env_file:
       - ../core/server/app/.env
 
+  browserless-chrome:
+    image: browserless/chrome:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - ENABLE_DEBUGGER=true
+
   development:
     build:
       context: ..
       dockerfile: Dockerfile.dev
     depends_on:
       - database-server
+      - browserless-chrome
     command: sleep infinity
     volumes:
       - cargo-cache:/usr/local/cargo

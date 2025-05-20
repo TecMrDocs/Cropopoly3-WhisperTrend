@@ -3,28 +3,22 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
-// Datos originales
-const datos = [
-  ["", "01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
-  ["Likes", 25, 25, 90, 178],
-  ["Repost", 0, 6, 51, 48],
-  ["Comentarios", 0, 1, 7, 5],
-  ["Vistas", 721, 3665, 6825, 3226],
-  ["Seguidores", 61643, 513589, 207664, 176927],
-];
+// Nuevo formato de datos
+const datos = {
+  fechas: ["01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
+  likes: [25, 25, 90, 178],
+  repost: [0, 6, 51, 48],
+  comentarios: [0, 1, 7, 5],
+  vistas: [721, 3665, 6825, 3226],
+  seguidores: [61643, 513589, 207664, 176927],
+};
 
 // Función que calcula la tasa de interacción
-function generadorTasaInteraccion(datos: any[]) {
-  const fechas = datos[0].slice(1);
-  const likes = datos[1].slice(1);
-  const repost = datos[2].slice(1);
-  const comentarios = datos[3].slice(1);
-  const vistas = datos[4].slice(1);
-
-  return fechas.map((fecha: string, i: number) => {
-    const interacciones = likes[i] + repost[i] + comentarios[i];
-    const vistasActuales = vistas[i];
-    const tasa = vistasActuales > 0 ? (interacciones / vistasActuales) * 100 : 0;
+function generadorTasaInteraccion(datos: any) {
+  return datos.fechas.map((fecha: string, i: number) => {
+    const interacciones = datos.likes[i] + datos.repost[i] + datos.comentarios[i];
+    const vistas = datos.vistas[i];
+    const tasa = vistas > 0 ? (interacciones / vistas) * 100 : 0;
     return {
       fecha,
       tasa: parseFloat(tasa.toFixed(2)),
@@ -33,17 +27,11 @@ function generadorTasaInteraccion(datos: any[]) {
 }
 
 // Función que calcula la tasa de viralidad
-function generadorTasaViralidad(datos: any[]) {
-  const fechas = datos[0].slice(1);
-  const likes = datos[1].slice(1);
-  const repost = datos[2].slice(1);
-  const comentarios = datos[3].slice(1);
-  const seguidores = datos[5].slice(1);
-
-  return fechas.map((fecha: string, i: number) => {
-    const interacciones = likes[i] + repost[i] + comentarios[i];
-    const seguidoresActuales = seguidores[i];
-    const tasa = seguidoresActuales > 0 ? (interacciones / seguidoresActuales) * 100 : 0;
+function generadorTasaViralidad(datos: any) {
+  return datos.fechas.map((fecha: string, i: number) => {
+    const interacciones = datos.likes[i] + datos.repost[i] + datos.comentarios[i];
+    const seguidores = datos.seguidores[i];
+    const tasa = seguidores > 0 ? (interacciones / seguidores) * 100 : 0;
     return {
       fecha,
       tasa: parseFloat(tasa.toFixed(2)),
@@ -51,11 +39,17 @@ function generadorTasaViralidad(datos: any[]) {
   });
 }
 
-// Componente con dos gráficos
-const XCalc: React.FC = () => {
-  const datosInteraccion = generadorTasaInteraccion(datos);
-  const datosViralidad = generadorTasaViralidad(datos);
+// Exportamos los resultados en formato JSON para uso externo
+export const resultadoXCalc = {
+  datosInteraccion: generadorTasaInteraccion(datos),
+  datosViralidad: generadorTasaViralidad(datos),
+};
 
+// Componente React
+const XCalc: React.FC = () => {
+  const datosInteraccion = resultadoXCalc.datosInteraccion;
+  const datosViralidad = resultadoXCalc.datosViralidad;
+  
   return (
     <div style={{ width: '100%' }}>
       <h2 style={{ textAlign: 'center' }}>Tasa de Interacción (%)</h2>
@@ -71,7 +65,6 @@ const XCalc: React.FC = () => {
           </LineChart>
         </ResponsiveContainer>
       </div>
-
       <h2 style={{ textAlign: 'center', marginTop: 40 }}>Tasa de Viralidad (%)</h2>
       <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>

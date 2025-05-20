@@ -19,9 +19,9 @@ pub async fn register(mut user: web::Json<User>) -> Result<impl Responder> {
         return Ok(HttpResponse::Unauthorized().body("Invalid data"));
     }
 
-    if let Ok(hash) = PasswordHasher::hash(&user.password) {
+    if let Ok(hash) = PasswordHasher::hash(&user.contrasena) {
         if let Ok(None) = User::get_by_email(user.email.clone()).await {
-            user.password = hash.to_string();
+            user.contrasena = hash.to_string();
 
             let id = User::create(user.clone()).await.to_web()?;
             user.id = Some(id);
@@ -38,7 +38,7 @@ pub async fn register(mut user: web::Json<User>) -> Result<impl Responder> {
 #[post("/signin")]
 pub async fn signin(profile: web::Json<Credentials>) -> impl Responder {
     if let Ok(Some(user)) = User::get_by_email(profile.email.clone()).await {
-        if let Ok(true) = PasswordHasher::verify(&profile.password, &user.password) {
+        if let Ok(true) = PasswordHasher::verify(&profile.contrasena, &user.contrasena) {
             if let Some(id) = user.id {
                 if let Ok(token) =
                     TokenService::<Claims>::create(&Config::get_secret_key(), Claims::new(id))
