@@ -6,6 +6,7 @@ import Home from "../pages/Home";
 import AcercaDe from "../pages/AcercaDe"
 import Dashboard from "../pages/Dashboard"
 import EditarProducto from "../pages/EditarProducto";
+import EditarDatos from "../pages/EditarDatos";
 import Empresa from "../pages/Empresa";
 import Perfil from "../pages/Perfil";
 import Productos from "../pages/Productos";
@@ -47,6 +48,10 @@ export default function WebRouter(){
       <Route path="/avisoPrivacidad" element={loadLayout(MainLayout, PrivacyNotice)} />
       <Route path="/confirmacionCorreo" element={loadLayout(MainLayout, EmailConfirmation)} />
       <Route path="/editarProducto" element={loadLayout(ProfileLayout, EditarProducto)} />
+<<<<<<< HEAD
+=======
+      <Route path="/editarDatos" element={loadLayout(ProfileLayout, EditarDatos)} />
+>>>>>>> efaba02215c2feeb7b1ae5aeb3a024e2899f1242
       <Route path="/empresa" element={loadLayout(ProfileLayout, Empresa)} />
       <Route path="/perfil" element={loadLayout(ProfileLayout, Perfil)} />
       <Route path="/productos" element={loadLayout(ProfileLayout, Productos)} />
