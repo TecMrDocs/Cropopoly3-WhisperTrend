@@ -30,7 +30,6 @@ export default function HolaDeNuevo() {
     <div className='flex flex-col items-center justify-center'>
       <h1 className="text-2xl font-w700 text-[#141652] font-semibold">¡Hola de nuevo!</h1>
       <h3 className="text-lg font-w100 pt-8 pb-8">Ingresa el código de verificación que llegó a tu correo</h3>
-      {/* <TextField label="Código de verificación:" width="500px" /> */}
       <label htmlFor="verify-input">Código de verificación:</label>
       <TextFieldWHolder
         id="verify-input"
