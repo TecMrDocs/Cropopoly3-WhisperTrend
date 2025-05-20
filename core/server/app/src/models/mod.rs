@@ -1,4 +1,5 @@
 pub use user::{User, Credentials};
+
 pub use resource::Resource;
 
 use crate::database::Database;
