@@ -1,20 +1,22 @@
-mod user;
-mod resource;
-
 pub use user::{User, Credentials};
 pub use resource::Resource;
 
 use crate::database::Database;
 
-impl Database {
-    pub async fn get_user_resources(&self, user_id_value: i32) -> anyhow::Result<Vec<resource::Resource>> {
-        Self::query_wrapper(move |conn| {
-            use crate::schema::resources::dsl::*;
-            use diesel::prelude::*;
+use crate::schema;
+use diesel::prelude::*;
 
-            resources
+mod user;
+mod resource;
+
+use crate::schema::resources::dsl::*;
+
+impl Database {
+    pub async fn get_user_resources(user_id_value: i32) -> anyhow::Result<Vec<Resource>> {
+        Self::query_wrapper(move |conn| {
+            schema::resources::table
                 .filter(user_id.eq(user_id_value))
-                .load::<resource::Resource>(conn)
+                .load::<Resource>(conn)
         }).await
     }
 }
