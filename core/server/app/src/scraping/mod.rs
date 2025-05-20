@@ -3,6 +3,7 @@ use scrap::Scraper;
 use std::sync::Arc;
 
 pub mod reddit;
+pub mod notices;
 
 lazy_static! {
     pub static ref SCRAPER: Arc<Scraper> = Arc::new(Scraper::new());

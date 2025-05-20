@@ -5,7 +5,7 @@ package main
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "../../common/common.h"
+#include "../../../common/common.h"
 
 static inline char *callTask(Task task, int64_t contextID) {
     return task(contextID);
