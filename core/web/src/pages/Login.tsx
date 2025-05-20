@@ -1,111 +1,3 @@
-// import { useState, FormEvent } from "react";
-// import GenericButton from "../components/GenericButton";
-// import LogoBackground from "../components/LogoBackground";
-// import Container from "../components/Container";
-// import TextFieldWHolder from "../components/TextFieldWHolder";
-
-// export default function Login() {
-//   const [email, setEmail] = useState("");
-//   const [contrasena, setContrasena] = useState("");
-//   const [errors, setErrors] = useState({
-//     email: "",
-//     contrasena: "",
-//   });
-
-//   const validateForm = () => {
-//     let valid = true;
-//     const newErrors = {
-//       email: "",
-//       contrasena: "",
-//     };
-
-//     if (!email) {
-//       newErrors.email = "El correo es requerido";
-//       valid = false;
-//     } else if (!email.includes("@")) {
-//       newErrors.email = "El correo debe contener @";
-//       valid = false;
-//     }
-
-//     if (!contrasena) {
-//       newErrors.contrasena = "La contraseña es requerida";
-//       valid = false;
-//     } 
-//     // else if (password.length < 8) {
-//     //   newErrors.password = "La contraseña debe tener mínimo 8 caracteres";
-//     //   valid = false;
-//     // }
-
-//     setErrors(newErrors);
-//     return valid;
-//   };
-
-//   const handleSubmit = (e: FormEvent) => {
-//     e.preventDefault();
-//     if (validateForm()) {
-//       console.log("Datos válidos:", { email, contrasena: contrasena });
-//       // autenticación
-//     }
-//   };
-
-//   return (
-//     <LogoBackground>
-//       <div className="flex flex-1 justify-center items-center p-8">
-//         <div>
-//           <h1 className="text-center mb-4 text-[#141652] text-2xl font-semibold">Bienvenid@</h1>
-//           <h2 className="text-center mb-4 text-[#141652] text-xl">Inicia sesión</h2>
-
-//           <form onSubmit={handleSubmit}>
-//             <Container>
-//               <div className="mb-4">
-//                 <label htmlFor="email-input" className="block mb-2">Correo</label>
-//                 <TextFieldWHolder
-//                   id="email-input"
-//                   name="email"
-//                   placeholder="Ingrese su correo"
-//                   value={email}
-//                   onChange={(e) => setEmail(e.target.value)}
-//                   hasError={!!errors.email}
-//                 />
-//                 {errors.email && (
-//                   <p className="text-red-500 text-sm mt-1 break-words">{errors.email}</p>
-//                 )}
-//               </div>
-
-//               <div className="mb-4">
-//                 <label htmlFor="password-input" className="block mb-2">Contraseña</label>
-//                 <TextFieldWHolder
-//                   id="password-input"
-//                   name="password"
-//                   type="password"
-//                   placeholder="Ingrese su contraseña"
-//                   value={contrasena}
-//                   onChange={(e) => setContrasena(e.target.value)}
-//                   hasError={!!errors.contrasena}
-//                 />
-//                 {errors.contrasena && (
-//                   <p className="text-red-500 text-sm mt-1">{errors.contrasena}</p>
-//                 )}
-//               </div>
-//             </Container>
-
-//             <GenericButton type="submit" text="Iniciar sesión" />
-//           </form>
-
-//           <div className="text-center mt-12 text-sm">
-//             <p>No tienes cuenta? <a href="/RegistroU" className="text-[#141652] underline">Regístrate</a></p>
-//             <p><a href="/ChangePassword" className="text-[#141652] underline">Olvidé mi contraseña</a></p>
-//             <p><a href="/avisoPrivacidad" className="text-[#141652] underline">Aviso de privacidad</a></p>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="flex-1 p-8 flex flex-col justify-center text-white max-w-[50%]">
-//       </div>
-//     </LogoBackground>
-//   );
-// }
-
 import { useState, FormEvent } from "react";
 import GenericButton from "../components/GenericButton";
 import LogoBackground from "../components/LogoBackground";
@@ -238,11 +130,41 @@ export default function Login() {
             <GenericButton type="submit" text="Iniciar sesión" />
           </form>
 
-          <div className="text-center mt-12 text-sm">
+          {/* <div className="text-center mt-12 text-sm">
             <p>No tienes cuenta? <a href="/RegistroU" className="text-[#141652] underline">Regístrate</a></p>
             <p><a href="/ChangePassword" className="text-[#141652] underline">Olvidé mi contraseña</a></p>
             <p><a href="/avisoPrivacidad" className="text-[#141652] underline">Aviso de privacidad</a></p>
+          </div> */}
+
+          <div className="text-center mt-12 text-sm">
+            <p>
+              No tienes cuenta?{" "}
+              <span
+                onClick={() => navigate("/RegistroU")}
+                className="text-[#141652] underline cursor-pointer"
+              >
+                Regístrate
+              </span>
+            </p>
+            <p>
+              <span
+                onClick={() => navigate("/ChangePassword")}
+                className="text-[#141652] underline cursor-pointer"
+              >
+                Olvidé mi contraseña
+              </span>
+            </p>
+            <p>
+              <span
+                onClick={() => navigate("/avisoPrivacidad")}
+                className="text-[#141652] underline cursor-pointer"
+              >
+                Aviso de privacidad
+              </span>
+            </p>
           </div>
+
+
         </div>
       </div>
 

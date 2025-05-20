@@ -20,6 +20,10 @@ export default function HolaDeNuevo() {
       navigate("/Dashboard");
     }
   };
+  const handleReturn = () => {
+    navigate("/launchProcess");
+  };
+  
 
   return (
     <div className='flex flex-col items-center justify-center'>
@@ -41,7 +45,7 @@ export default function HolaDeNuevo() {
       <BlueButton text="Continuar" width="200px" onClick={handleContinue} />
       <br></br>
       <p>¿No te llegó el código?</p>
-      <WhiteButton text="Enviar un código nuevo" width="250px" />
+      <WhiteButton text="Enviar un código nuevo" width="250px" onClick={handleReturn}/>
     </div>
   );
 }
