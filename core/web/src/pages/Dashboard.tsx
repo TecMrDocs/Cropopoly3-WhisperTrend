@@ -6,107 +6,15 @@ import TendenciaUniforme from '../mathCalculus/TendenciaUniforme'
 import XCalc from '../mathCalculus/XCalc';
 import RedditCalc from '../mathCalculus/RedditCalc';
 import InstaCalc from '../mathCalculus/InstaCalc';
-
-
-import { resultadoXCalc } from '../mathCalculus/XCalc';
-import { resultadoRedditCalc } from '../mathCalculus/RedditCalc';
-import { resultadoInstaCalc } from '../mathCalculus/InstaCalc';
 import { 
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, 
   ResponsiveContainer, CartesianGrid 
 } from 'recharts';
 
-// Componente de Consolidación extraído de MenuComponentes para usarlo independientemente
-const Consolidacion = () => {
-  const [seleccionadas, setSeleccionadas] = useState<string[]>(['xcalc']); // Por defecto muestra XCalc
-
-  // Define cada calculadora y sus datos
-  const calculadoras = [
-    { id: 'reddit', nombre: 'Reddit', datos: resultadoRedditCalc, color: '#8884d8' },
-    { id: 'insta', nombre: 'Instagram', datos: resultadoInstaCalc, color: '#82ca9d' },
-    { id: 'xcalc', nombre: 'XCalc', datos: resultadoXCalc, color: '#ffc658' },
-  ];
-
-  // Función para alternar selección de una calculadora
-  const toggleSeleccion = (id: string) => {
-    setSeleccionadas((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id].slice(-3) // máximo 3
-    );
-  };
-
-  // Combinar datos de las calculadoras seleccionadas
-  const combinarDatosInteraccion = () => {
-    // Array con todas las fechas, para alinear por fecha
-    const todasFechas = Array.from(
-      new Set(
-        seleccionadas.flatMap(
-          (id) => calculadoras.find((c) => c.id === id)?.datos.datosInteraccion.map((d: any) => d.fecha) || []
-        )
-      )
-    );
-
-    // Por cada fecha crear un objeto con la fecha y las tasas de cada calculadora seleccionada
-    return todasFechas.map((fecha) => {
-      const item: any = { fecha };
-      seleccionadas.forEach((id) => {
-        const calc = calculadoras.find((c) => c.id === id);
-        const dato = calc?.datos.datosInteraccion.find((d: any) => d.fecha === fecha);
-        item[id] = dato ? dato.tasa : 0;
-      });
-      return item;
-    });
-  };
-
-  const datosCombinados = combinarDatosInteraccion();
-
-  return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <h2 className="text-xl font-bold text-navy-900 mb-4">Consolidación de Tendencias</h2>
-
-      {/* Botones tipo bolitas para seleccionar calculadoras */}
-      <div className="flex gap-4 justify-center mb-6">
-        {calculadoras.map(({ id, nombre, color }) => (
-          <div
-            key={id}
-            onClick={() => toggleSeleccion(id)}
-            className={`w-10 h-10 rounded-full cursor-pointer flex items-center justify-center font-bold select-none
-              ${seleccionadas.includes(id) ? 'text-white' : 'text-gray-600'}`}
-            style={{ backgroundColor: seleccionadas.includes(id) ? color : '#ddd' }}
-            title={`Mostrar ${nombre}`}
-          >
-            {nombre[0]}
-          </div>
-        ))}
-      </div>
-
-      {/* Gráfica combinada que muestra las tendencias seleccionadas */}
-      <div className="w-full h-96">
-        <ResponsiveContainer>
-          <LineChart data={datosCombinados} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
-            <XAxis dataKey="fecha" />
-            <YAxis domain={[0, 'dataMax']} tickFormatter={(value) => `${value}%`} />
-            <Tooltip formatter={(value) => `${value}%`} />
-            <Legend />
-            {seleccionadas.map((id) => {
-              const calc = calculadoras.find((c) => c.id === id);
-              return (
-                <Line
-                  key={id}
-                  type="monotone"
-                  dataKey={id}
-                  stroke={calc?.color || '#000'}
-                  name={calc?.nombre || id}
-                  activeDot={{ r: 8 }}
-                />
-              );
-            })}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </div>
-  );
-};
+// Importamos los resultados de cada calculadora
+import { resultadoXCalc } from '../mathCalculus/XCalc';
+import { resultadoRedditCalc } from '../mathCalculus/RedditCalc';
+import { resultadoInstaCalc } from '../mathCalculus/InstaCalc';
 
 // Mapeo de ID de selección a tipo de visualización
 const mapeoTipos = {
@@ -119,12 +27,117 @@ const mapeoTipos = {
   'Noticia3': 'noticia3'
 };
 
+// Definición de los datos de tasa para mostrar en el componente seleccionado
+const datosTasas = {
+  'virX': { 
+    nombre: 'Tasa de viralidad en X', 
+    datos: resultadoXCalc.datosViralidad, 
+    color: '#8884d8' 
+  },
+  'intX': { 
+    nombre: 'Tasa de interacción en X', 
+    datos: resultadoXCalc.datosInteraccion, 
+    color: '#8884d8' 
+  },
+  'virInsta': { 
+    nombre: 'Tasa de viralidad en Instagram', 
+    datos: resultadoInstaCalc.datosViralidad, 
+    color: '#82ca9d' 
+  },
+  'intInsta': { 
+    nombre: 'Tasa de interacción en Instagram', 
+    datos: resultadoInstaCalc.datosInteraccion, 
+    color: '#82ca9d' 
+  },
+  'virReddit': { 
+    nombre: 'Tasa de viralidad en Reddit', 
+    datos: resultadoRedditCalc.datosViralidad, 
+    color: '#ffc658' 
+  },
+  'intReddit': { 
+    nombre: 'Tasa de interacción en Reddit', 
+    datos: resultadoRedditCalc.datosInteraccion, 
+    color: '#ffc658' 
+  }
+};
+
+// Componente que muestra la gráfica con múltiples tasas seleccionadas
+const TasasGrafica = ({ tasasIds }: { tasasIds: string[] }) => {
+  if (!tasasIds || tasasIds.length === 0) {
+    return <div>Selecciona al menos una tasa para visualizar</div>;
+  }
+
+  // Generamos los datos combinados para la gráfica
+  const generarDatosCombinados = () => {
+    // Obtenemos todas las fechas de todos los conjuntos de datos seleccionados
+    const todasFechas = Array.from(
+      new Set(
+        tasasIds.flatMap(id => {
+          const tasa = datosTasas[id as keyof typeof datosTasas];
+          return tasa ? tasa.datos.map((d: any) => d.fecha) : [];
+        })
+      )
+    );
+
+    // Para cada fecha, creamos un objeto con los valores de todas las tasas seleccionadas
+    return todasFechas.map(fecha => {
+      const item: any = { fecha };
+      
+      tasasIds.forEach(id => {
+        const tasa = datosTasas[id as keyof typeof datosTasas];
+        if (tasa) {
+          const datoTasa = tasa.datos.find((d: any) => d.fecha === fecha);
+          item[id] = datoTasa ? datoTasa.tasa : 0;
+        }
+      });
+      
+      return item;
+    });
+  };
+
+  const datosCombinados = generarDatosCombinados();
+
+  return (
+    <div className="w-full">
+      <h3 className="text-xl font-bold text-center mb-4">Comparativa de Tasas</h3>
+      <div className="w-full h-80">
+        <ResponsiveContainer>
+          <LineChart data={datosCombinados} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+            <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
+            <XAxis dataKey="fecha" />
+            <YAxis domain={[0, 'dataMax']} tickFormatter={(value) => `${value}%`} />
+            <Tooltip formatter={(value) => `${value}%`} />
+            <Legend />
+            {tasasIds.map(id => {
+              const tasa = datosTasas[id as keyof typeof datosTasas];
+              if (!tasa) return null;
+              
+              return (
+                <Line 
+                  key={id}
+                  type="monotone" 
+                  dataKey={id} 
+                  stroke={tasa.color} 
+                  name={tasa.nombre} 
+                  strokeWidth={3}
+                  dot={{ r: 5 }}
+                />
+              );
+            })}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
+
 export default function Dashboard() {
   const nombreProducto = "Bolso Mariana :D";
   const [modoVisualizacion, setModoVisualizacion] = useState<'original' | 'logaritmo' | 'normalizado'>('original');
   const [hashtagSeleccionado, setHashtagSeleccionado] = useState<string>('#EcoFriendly');
   const [mostrarTendenciaUniforme, setMostrarTendenciaUniforme] = useState<boolean>(false);
   const [mostrarConsolidacion, setMostrarConsolidacion] = useState<boolean>(true);
+  const [tasasSeleccionadas, setTasasSeleccionadas] = useState<string[]>(['intReddit']); // Por defecto seleccionamos una tasa
 
   // Función que será pasada a MenuComponentes para manejar el clic en #EcoFriendly
   const handleEcoFriendlyClick = () => {
@@ -136,6 +149,15 @@ export default function Dashboard() {
   const handleSeleccionItem = (itemId: string) => {
     setMostrarTendenciaUniforme(true);
     setHashtagSeleccionado(itemId);
+  };
+
+  // Función para manejar múltiples tasas seleccionadas
+  const handleTasasSeleccionadas = (tasasIds: string[]) => {
+    setTasasSeleccionadas(tasasIds);
+    // Si seleccionamos tasas, mostramos su visualización correspondiente
+    if (tasasIds.length > 0) {
+      setMostrarTendenciaUniforme(false);
+    }
   };
 
   // Función para restaurar la visualización normal
@@ -166,12 +188,19 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Columna izquierda con gráficas principales */}
         <div className="flex flex-col gap-6">
-          {/* Gráfica de líneas */}
+          {/* Gráfica de líneas o tasas seleccionadas */}
           <div className="bg-white shadow-md rounded-lg p-6">
             <h3 className="text-2xl font-bold mb-4">
-              {mostrarTendenciaUniforme ? `Análisis: ${hashtagSeleccionado}` : 'Gráfica de Líneas'}
+              {tasasSeleccionadas.length > 0 && hashtagSeleccionado === '#EcoFriendly'
+                ? "Comparativa de Tasas Seleccionadas"
+                : mostrarTendenciaUniforme 
+                  ? `Análisis: ${hashtagSeleccionado}`
+                  : 'Gráfica de Líneas'
+              }
             </h3>
-            {mostrarTendenciaUniforme ? (
+            {tasasSeleccionadas.length > 0 && hashtagSeleccionado === '#EcoFriendly' ? (
+              <TasasGrafica tasasIds={tasasSeleccionadas} />
+            ) : mostrarTendenciaUniforme ? (
               <div>
                 <button
                   onClick={resetVisualizacion}
@@ -185,20 +214,6 @@ export default function Dashboard() {
               <MathCalc2 modoVisualizacion={modoVisualizacion} />
             )}
           </div>
-          
-          {/* Consolidación de Tendencias (Nuevo posicionamiento) */}
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-2xl font-bold">Consolidación de Tendencias</h3>
-              <button
-                onClick={toggleConsolidacion}
-                className="px-4 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition font-semibold"
-              >
-                {mostrarConsolidacion ? "Ocultar" : "Ver más"}
-              </button>
-            </div>
-            {mostrarConsolidacion && <Consolidacion />}
-          </div>
         </div>
         
         {/* Columna derecha con menú de componentes */}
@@ -210,6 +225,7 @@ export default function Dashboard() {
             onSeleccionItem={handleSeleccionItem}
             onEcoFriendlyClick={handleEcoFriendlyClick}
             hashtagSeleccionado={hashtagSeleccionado}
+            onTasasSeleccionadas={handleTasasSeleccionadas}  // Pasamos el callback para manejar la selección múltiple de tasas
           />
         </div>
         
@@ -219,7 +235,7 @@ export default function Dashboard() {
           <InterpretacionDashboard />
         </div>
 
-        {/* Componentes de redes sociales */}
+        {/* Componentes de redes sociales - Se pueden mostrar u ocultar según necesidades */}
         <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
           <h3 className="text-2xl font-bold mb-4">X</h3>
           <XCalc />
