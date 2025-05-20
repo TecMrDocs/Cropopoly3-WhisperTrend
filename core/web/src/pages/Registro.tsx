@@ -495,7 +495,7 @@ export default function Registro() {
               placeholder="Confirme su contraseña"
             />
             {errors.confirmPassword && (
-              <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+              <p className="text-red-500 text-sm mt-1 break-words">{errors.confirmPassword}</p>
             )}
           </div>
         </div>

@@ -26,6 +26,7 @@ import Registro from "../pages/Registro";
 import PrivacyNotice from "../pages/PrivacyNotice";
 import EmailConfirmation from "../pages/EmailConfirmation";
 import ActualizarPlan from "../pages/ActualizarPlan";
+import HolaDeNuevo from "../pages/HolaDeNuevo";
 
 
 export default function WebRouter(){
@@ -62,7 +63,8 @@ export default function WebRouter(){
       <Route path="/resumen" element={loadLayout(MainLayout, Resumen)} />
       <Route path="/changePassword" element={loadLayout(MainLayout, ChangePassword)} />
       <Route path="/confirmaCorreo" element={loadLayout(MainLayout, confirmaCorreo)} />
-      <Route path="/RegistroU" element={loadLayout(MainLayout, Registro)}></Route>
+      <Route path="/RegistroU" element={loadLayout(MainLayout, Registro)}/>
+      <Route path="/holaDeNuevo" element={loadLayout(MainLayout, HolaDeNuevo)}/>
     </Routes>
   );
 }

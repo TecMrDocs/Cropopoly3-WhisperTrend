@@ -1,48 +1,4 @@
-// import GenericButton from "../components/GenericButton";
-// import LogoBackground from '../components/LogoBackground';
-// import Container from '../components/Container';
-// import TextFieldWHolder from "../components/TextFieldWHolder";
-
-// export default function Login() {
-//   return (
-//     <LogoBackground>
-//       <div className="flex flex-1 justify-center items-center p-8">
-//         <div>
-//           <h1 className="text-center mb-4 text-[#141652] text-2xl font-semibold">Bienvenid@</h1>
-//           <h2 className="text-center mb-4 text-[#141652] text-xl">Inicia sesión</h2>
-          
-//           <Container>
-//             <div className="mb-4">
-//               <label htmlFor="email" className="block mb-2">Correo</label>
-//               <TextFieldWHolder placeholder="Ingrese su correo" />
-//             </div>
-            
-//             <div className="mb-4">
-//               <label htmlFor="password" className="block mb-2">Contraseña</label>
-//               <TextFieldWHolder placeholder="Ingrese su contraseña" />
-//             </div>
-//           </Container>
-
-//           <GenericButton type="submit" text="Iniciar sesión" />
-
-//           <div className="text-center mt-12 text-sm">
-//             <p>No tienes cuenta? <a href="/RegistroU" className="text-[#141652] underline">Regístrate</a></p>
-//             <p><a href="/ChangePassword" className="text-[#141652] underline">Olvidé mi contraseña</a></p>
-//             <p><a href="/avisoPrivacidad" className="text-[#141652] underline">Aviso de privacidad</a></p>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="flex-1 p-8 flex flex-col justify-center text-white max-w-[50%]">
-//       </div>
-//     </LogoBackground>
-//   );
-// }
-
-
-//NUEVOOO
-
-// import { useState } from "react";
+// import { useState, FormEvent } from "react";
 // import GenericButton from "../components/GenericButton";
 // import LogoBackground from "../components/LogoBackground";
 // import Container from "../components/Container";
@@ -50,77 +6,46 @@
 
 // export default function Login() {
 //   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
+//   const [contrasena, setContrasena] = useState("");
+//   const [errors, setErrors] = useState({
+//     email: "",
+//     contrasena: "",
+//   });
 
-//   const handleSubmit = () => {
-//     const data = {
-//       email,
-//       password,
+//   const validateForm = () => {
+//     let valid = true;
+//     const newErrors = {
+//       email: "",
+//       contrasena: "",
 //     };
-//     console.log("Login data:", data);
-//     //Autenticación 
+
+//     if (!email) {
+//       newErrors.email = "El correo es requerido";
+//       valid = false;
+//     } else if (!email.includes("@")) {
+//       newErrors.email = "El correo debe contener @";
+//       valid = false;
+//     }
+
+//     if (!contrasena) {
+//       newErrors.contrasena = "La contraseña es requerida";
+//       valid = false;
+//     } 
+//     // else if (password.length < 8) {
+//     //   newErrors.password = "La contraseña debe tener mínimo 8 caracteres";
+//     //   valid = false;
+//     // }
+
+//     setErrors(newErrors);
+//     return valid;
 //   };
 
-//   return (
-//     <LogoBackground>
-//       <div className="flex flex-1 justify-center items-center p-8">
-//         <div>
-//           <h1 className="text-center mb-4 text-[#141652] text-2xl font-semibold">Bienvenid@</h1>
-//           <h2 className="text-center mb-4 text-[#141652] text-xl">Inicia sesión</h2>
-
-//           <Container>
-//             <div className="mb-4">
-//               <label htmlFor="email" className="block mb-2">Correo</label>
-//               <TextFieldWHolder
-//                 name="email"
-//                 placeholder="Ingrese su correo"
-//                 value={email}
-//                 onChange={(e) => setEmail(e.target.value)}
-//               />
-//             </div>
-
-//             <div className="mb-4">
-//               <label htmlFor="password" className="block mb-2">Contraseña</label>
-//               <TextFieldWHolder
-//                 name="password"
-//                 placeholder="Ingrese su contraseña"
-//                 value={password}
-//                 onChange={(e) => setPassword(e.target.value)}
-//               />
-//             </div>
-//           </Container>
-
-//           <GenericButton type="submit" text="Iniciar sesión" onClick={handleSubmit} />
-
-//           <div className="text-center mt-12 text-sm">
-//             <p>No tienes cuenta? <a href="/RegistroU" className="text-[#141652] underline">Regístrate</a></p>
-//             <p><a href="/ChangePassword" className="text-[#141652] underline">Olvidé mi contraseña</a></p>
-//             <p><a href="/avisoPrivacidad" className="text-[#141652] underline">Aviso de privacidad</a></p>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="flex-1 p-8 flex flex-col justify-center text-white max-w-[50%]">
-//       </div>
-//     </LogoBackground>
-//   );
-// }
-
-
-// import { useState } from "react";
-// import GenericButton from "../components/GenericButton";
-// import LogoBackground from "../components/LogoBackground";
-// import Container from "../components/Container";
-// import TextFieldWHolder from "../components/TextFieldWHolder";
-
-// export default function Login() {
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-
-//   const handleSubmit = (e: React.FormEvent) => {
+//   const handleSubmit = (e: FormEvent) => {
 //     e.preventDefault();
-//     console.log("Login data:", { email, password });
-//     // Autenticación
+//     if (validateForm()) {
+//       console.log("Datos válidos:", { email, contrasena: contrasena });
+//       // autenticación
+//     }
 //   };
 
 //   return (
@@ -140,7 +65,11 @@
 //                   placeholder="Ingrese su correo"
 //                   value={email}
 //                   onChange={(e) => setEmail(e.target.value)}
+//                   hasError={!!errors.email}
 //                 />
+//                 {errors.email && (
+//                   <p className="text-red-500 text-sm mt-1 break-words">{errors.email}</p>
+//                 )}
 //               </div>
 
 //               <div className="mb-4">
@@ -148,10 +77,15 @@
 //                 <TextFieldWHolder
 //                   id="password-input"
 //                   name="password"
+//                   type="password"
 //                   placeholder="Ingrese su contraseña"
-//                   value={password}
-//                   onChange={(e) => setPassword(e.target.value)}
+//                   value={contrasena}
+//                   onChange={(e) => setContrasena(e.target.value)}
+//                   hasError={!!errors.contrasena}
 //                 />
+//                 {errors.contrasena && (
+//                   <p className="text-red-500 text-sm mt-1">{errors.contrasena}</p>
+//                 )}
 //               </div>
 //             </Container>
 
@@ -177,22 +111,26 @@ import GenericButton from "../components/GenericButton";
 import LogoBackground from "../components/LogoBackground";
 import Container from "../components/Container";
 import TextFieldWHolder from "../components/TextFieldWHolder";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [contrasena, setContrasena] = useState("");
   const [errors, setErrors] = useState({
     email: "",
-    password: "",
+    contrasena: "",
   });
+  const [apiError, setApiError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const validateForm = () => {
     let valid = true;
     const newErrors = {
       email: "",
-      password: "",
+      contrasena: "",
     };
-    
+
     if (!email) {
       newErrors.email = "El correo es requerido";
       valid = false;
@@ -200,21 +138,54 @@ export default function Login() {
       newErrors.email = "El correo debe contener @";
       valid = false;
     }
-    
-    if (!password) {
-      newErrors.password = "La contraseña es requerida";
+
+    if (!contrasena) {
+      newErrors.contrasena = "La contraseña es requerida";
       valid = false;
     }
+    // else if (contrasena.length < 8) {
+    //   newErrors.contrasena = "La contraseña debe tener mínimo 8 caracteres";
+    //   valid = false;
+    // }
 
     setErrors(newErrors);
     return valid;
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  // const handleSubmit = (e: FormEvent) => {
+  //   e.preventDefault();
+  //   if (validateForm()) {
+  //     console.log("Datos válidos:", { email, contrasena: contrasena });
+  //     // autenticación
+  //   }
+  // };
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      console.log("Datos válidos:", { email, password });
-      // autenticación
+    setApiError("");
+
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8080/api/v1/auth/signin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, contrasena }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Email o contraseña incorrectos");
+      }
+
+      const data = await response.json();
+      localStorage.setItem("token", data.token);
+      navigate("/HolaDeNuevo");
+    } catch (error: any) {
+      console.error("Error al iniciar sesión:", error);
+      setApiError(error.message || "Ocurrió un error al iniciar sesión");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -225,6 +196,11 @@ export default function Login() {
           <h1 className="text-center mb-4 text-[#141652] text-2xl font-semibold">Bienvenid@</h1>
           <h2 className="text-center mb-4 text-[#141652] text-xl">Inicia sesión</h2>
 
+          {apiError && (
+            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+              {apiError}
+            </div>
+          )}
           <form onSubmit={handleSubmit}>
             <Container>
               <div className="mb-4">
@@ -238,23 +214,23 @@ export default function Login() {
                   hasError={!!errors.email}
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                  <p className="text-red-500 text-sm mt-1 break-words">{errors.email}</p>
                 )}
               </div>
 
               <div className="mb-4">
-                <label htmlFor="password-input" className="block mb-2">Contraseña</label>
+                <label htmlFor="password-input" >Contraseña</label>
                 <TextFieldWHolder
                   id="password-input"
                   name="password"
                   type="password"
                   placeholder="Ingrese su contraseña"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  hasError={!!errors.password}
+                  value={contrasena}
+                  onChange={(e) => setContrasena(e.target.value)}
+                  hasError={!!errors.contrasena}
                 />
-                {errors.password && (
-                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                {errors.contrasena && (
+                  <p className="text-red-500 text-sm mt-1">{errors.contrasena}</p>
                 )}
               </div>
             </Container>
@@ -270,7 +246,7 @@ export default function Login() {
         </div>
       </div>
 
-      <div className="flex-1 p-8 flex flex-col justify-center text-white max-w-[50%]">
+      <div className="flex-1 p-8 flex flex-col justify-center text-white">
       </div>
     </LogoBackground>
   );
