@@ -11,11 +11,7 @@ const SideBar: FC = () => {
 
   return (
     <div 
-<<<<<<< HEAD
-      className={`h-[42vh] text-white p-2 rounded-2xl m-5 transition-all duration-300 ease-in-out ${
-=======
       className={`h-1/2 text-white p-2 rounded-2xl m-5 transition-all duration-300 ease-in-out ${
->>>>>>> 5bb85cbfd1eab873925f0e26656bd9d490395925
         isExpanded ? 'w-48' : 'w-20'
       }`}
       style={{
