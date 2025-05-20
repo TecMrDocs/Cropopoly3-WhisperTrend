@@ -3,11 +3,6 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 
-// Importa los datos de los tres calculadores (asumiendo que existen)
-// Si estos archivos/componentes no existen, deberás crearlos o simularlos
-// import { resultadoXCalc } from './XCalc';
-// import { resultadoRedditCalc } from './RedditCalc';
-// import { resultadoInstaCalc } from './InstaCalc';
 
 // Datos simulados para demostración (si no tienes los componentes reales)
 const resultadoXCalc = {
