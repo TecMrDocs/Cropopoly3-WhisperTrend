@@ -61,6 +61,11 @@ func New(config Config) *Scraper {
 		chromedp.DisableGPU,
 		chromedp.NoFirstRun,
 		chromedp.NoDefaultBrowserCheck,
+		chromedp.Flag("headless", true),
+		chromedp.Flag("disable-blink-features", "AutomationControlled"),
+		chromedp.Flag("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
+		chromedp.Flag("window-size", "1920,1080"),
+		chromedp.Flag("enable-javascript", true),
 	)
 
 	defaultOpts = append(defaultOpts, config.Opts...)

@@ -7,7 +7,7 @@ package main
 #include <string.h>
 #include "../../common/common.h"
 
-char *callTask(Task task, int64_t contextID) {
+static char *callTask(Task task, int64_t contextID) {
     return task(contextID);
 }
 */
@@ -21,6 +21,8 @@ import (
 
 	"github.com/chromedp/chromedp"
 )
+
+var Workers int = 5
 
 var (
 	scraperMap sync.Map
@@ -36,7 +38,7 @@ func getNextScraperID() int64 {
 //export NewScraper
 func NewScraper() C.int64_t {
 	scrap := scraper.New(scraper.Config{
-		Workers: 1,
+		Workers: Workers,
 	})
 	id := getNextScraperID()
 	scraperMap.Store(id, scrap)
@@ -75,6 +77,60 @@ func Evaluate(ctxID C.int64_t, expr *C.char, result *C.int64_t) *C.char {
 		return C.CString("")
 	}
 	return C.CString(resultStr)
+}
+
+//export GetHTML
+func GetHTML(ctxID C.int64_t, result *C.int64_t) *C.char {
+	ctxInterface, ok := contextMap.Load(int64(ctxID))
+	if !ok {
+		*result = C.int64_t(1)
+		return C.CString("")
+	}
+	ctx := ctxInterface.(*context.Context)
+
+	const jsScript = `
+	(() => {
+			const serializeNode = (node) => {
+					if (node.nodeType === 3) return node.textContent;
+					if (node.nodeType === 8) return '<!--' + node.textContent + '-->';
+					
+					let html = '<' + node.localName;
+					
+					for (const attr of node.attributes || []) {
+							html += ' ' + attr.name + '="' + attr.value.replace(/"/g, '&quot;') + '"';
+					}
+					
+					html += '>';
+					
+					if (node.shadowRoot) {
+							html += '<!--shadow-root-->';
+							for (const child of node.shadowRoot.childNodes) {
+									html += serializeNode(child);
+							}
+							html += '<!--/shadow-root-->';
+					}
+					
+					for (const child of node.childNodes) {
+							html += serializeNode(child);
+					}
+					
+					if (!node.localName) return html;
+					return html + '</' + node.localName + '>';
+			};
+			
+			return serializeNode(document.documentElement);
+	})();
+	`
+
+	var htmlContent string
+	err := chromedp.Run(*ctx, chromedp.Evaluate(jsScript, &htmlContent))
+	if err != nil {
+		*result = C.int64_t(1)
+		return C.CString("")
+	}
+
+	*result = C.int64_t(0)
+	return C.CString(htmlContent)
 }
 
 //export Execute

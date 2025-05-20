@@ -25,16 +25,25 @@
           pkgs.zsh-fast-syntax-highlighting
           pkgs.zsh-autosuggestions
 
+          # Backend
+          pkgs.diesel-cli
+          pkgs.postgresql_13
+          pkgs.postgresql_13.lib
+          pkgs.pkg-config
+
           # Python and related tools
           pkgs.python311
           pkgs.poetry
 
           # Rust and tools
           rustWithMirror
+          pkgs.libclang
+          pkgs.llvmPackages.libclang
 
           # Go and tools
           pkgs.go
           pkgs.gopls
+          pkgs.chromium
 
           # Bun
           pkgs.nodejs
@@ -65,6 +74,7 @@
           pkgs.fd
           pkgs.dos2unix
           pkgs.openssl
+          pkgs.openssl.dev
         ];
       in {
         devShell = pkgs.mkShell {
@@ -73,6 +83,12 @@
 
           shellHook = ''
             export STARSHIP_CONFIG="/dev/null"
+
+            export PQ_LIB_DIR="${pkgs.postgresql_13.lib}/lib"
+            export LD_LIBRARY_PATH="${pkgs.postgresql_13.lib}/lib:$LD_LIBRARY_PATH"
+
+            export LIBCLANG_PATH="${pkgs.libclang}/lib"
+            export BINDGEN_EXTRA_CLANG_ARGS="-I${pkgs.clang}/resource-root/include -I${pkgs.glibc.dev}/include"
 
             if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then
               source ~/.nix-profile/etc/profile.d/nix.sh

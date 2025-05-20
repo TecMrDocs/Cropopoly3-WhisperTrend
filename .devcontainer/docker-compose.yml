@@ -1,8 +1,18 @@
 services:
+  database-server:
+    image: postgres:13
+    restart: unless-stopped
+    volumes:
+      - database-data:/var/lib/postgresql/data
+    env_file:
+      - ../core/server/app/.env
+
   development:
     build:
       context: ..
       dockerfile: Dockerfile.dev
+    depends_on:
+      - database-server
     command: sleep infinity
     volumes:
       - cargo-cache:/usr/local/cargo

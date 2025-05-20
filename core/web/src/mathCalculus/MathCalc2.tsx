@@ -19,12 +19,12 @@ const colores = ["#8884d8", "#82ca9d", "#ffc658", "#ff6384", "#00c49f", "#ff8042
 // Datos originales
 const datos: DataTable = [
   ["", "01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
-  ["Tasa Interacción X", 10.99, 1.88, 1.91, 25.52],
-  ["Tasa Viralidad X", 1.75, 1.92, 0.69, 83.53],
-  ["Tasa Interacción Instagram", 9.579002606, 346.0624043, 6.09294629, 4.261592452],
-  ["Tasa Viralidad Instagram", 141.99, 213.98, 78.32, 5.35],
-  ["Tasa interacción Reddit", 0.2474374817, 1.366677887, 0.1016653724, 0.2087342069],
-  ["Tasa viralidad reddit", 0.2980078249, 0.2502433548, 0.224227941, 0.3087851555]
+  ["Tasa Interacción X", 3.47, 0.87, 2.17, 7.16],
+  ["Tasa Viralidad X", 0.04, 0.01, 0.07, 0.13],
+  ["Tasa Interacción Instagram", 3.36, 11.46, 7.9, 4.19],
+  ["Tasa Viralidad Instagram", 7.15, 24.44, 50.24, 2.32],
+  ["Tasa interacción Reddit", 0.09, .17, 0.02, 0.05],
+  ["Tasa viralidad reddit", 35.18, 24.8, 22.38, 35.88]
 ];
 
 // Función para aplicar logaritmo base 10

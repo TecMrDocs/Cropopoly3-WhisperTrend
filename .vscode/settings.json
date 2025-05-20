@@ -1,6 +1,6 @@
 {
   "rust-analyzer.linkedProjects": [
-    "./core/scraper/Cargo.toml",
+    "./core/scrap/Cargo.toml",
     "./core/server/Cargo.toml",
     "./core/common/Cargo.toml"
   ],

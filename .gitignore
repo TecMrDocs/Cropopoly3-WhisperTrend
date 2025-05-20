@@ -11,6 +11,7 @@ oci_instance.pub
 terraform.tfstate.backup
 terraform.tfstate
 libscraper.a
+libscraper.h
 bindings.rs
 rules.json
 .env

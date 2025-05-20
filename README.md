@@ -50,7 +50,7 @@ bun install
 6. Start the project
 
 ```bash
-cd core/server
+cd core/server/app
 cargo run
 ```
 
@@ -60,13 +60,22 @@ npm run dev
 ```
 
 # Backend
-.env file variables example
-```bash
-DATABASE_URL=postgres://user:password@ip:port/db_name
-ADMIN_DEFAULT_EMAIL=admin@test.com
-ADMIN_SECRET_KEY=Edsfsdg/fI08g/AbvzbsdfsTOPYmE8+qYLeDRHG2+934c=
-USER_SECRET_KEY=2dfdfNLRtsfsdfsdfsfszQQUDooq3v58ygnL7rog/xerw=
 
-RUST_LOG=info
+- Create a `.env` file inside the app folder and add the following environment variables:
+
+```bash
+# core/server/app/.env
+MODE=dev
+RUST_LOG=debug
+HOST=0.0.0.0
+PORT=8080
+
+SECRET_KEY=secret
+
+DATABASE_URL=postgres://admin:awdrqwer12@database-server:5432/ksp
+POSTGRES_USER=admin
+POSTGRES_PASSWORD=awdrqwer12
+POSTGRES_DB=ksp
+
+GROQ_API_KEY=gsk_...
 ```
-You can generate *_SECRET_KEY using `openssl rand -base64 32`

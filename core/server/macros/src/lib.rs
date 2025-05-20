@@ -3,13 +3,31 @@ use quote::{format_ident, quote};
 use syn::{Attribute, DeriveInput, Meta, parse_macro_input};
 
 #[proc_macro_attribute]
-pub fn diesel_default(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn diesel_default(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as DeriveInput);
+
+    let table_name = if attr.is_empty() {
+        None
+    } else {
+        let attr_str = attr.to_string();
+        Some(syn::parse_str::<syn::Path>(&attr_str).unwrap())
+    };
+
+    let table_attr = if let Some(table) = table_name {
+        quote! {
+            #[diesel(check_for_backend(diesel::pg::Pg))]
+            #[diesel(table_name = #table)]
+        }
+    } else {
+        quote! {
+            #[diesel(check_for_backend(diesel::pg::Pg))]
+        }
+    };
 
     let expanded = quote! {
         #[derive(serde::Deserialize, serde::Serialize, Debug)]
         #[derive(diesel::Queryable, diesel::Selectable, diesel::Identifiable, diesel::Insertable, diesel::AsChangeset)]
-        #[diesel(check_for_backend(diesel::pg::Pg))]
+        #table_attr
         #input
     };
 
@@ -28,6 +46,7 @@ struct DatabaseOperations {
     updates: Vec<UpdateOperation>,
     deletes: Vec<String>,
     gets: Vec<String>,
+    get_all: bool,
 }
 
 #[proc_macro_attribute]
@@ -76,7 +95,33 @@ fn extract_table_name(attrs: &[Attribute]) -> String {
         }
     }
 
-    "schema::users".to_string()
+    for attr in attrs {
+        if attr.path().is_ident("diesel") {
+            match &attr.meta {
+                Meta::List(meta_list) => {
+                    let tokens = meta_list.tokens.clone();
+                    let token_str = tokens.to_string();
+
+                    if let Some(pos) = token_str.find("table_name") {
+                        let rest = &token_str[pos..];
+                        if let Some(pos) = rest.find('=') {
+                            let after_eq = &rest[pos + 1..];
+                            let trimmed = after_eq.trim();
+
+                            if let Some(end) = trimmed.find(',') {
+                                return trimmed[..end].trim().to_string();
+                            } else {
+                                return trimmed.to_string();
+                            }
+                        }
+                    }
+                }
+                _ => continue,
+            }
+        }
+    }
+
+    panic!("Not found table name");
 }
 
 fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
@@ -85,6 +130,7 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
         updates: Vec::new(),
         deletes: Vec::new(),
         gets: Vec::new(),
+        get_all: false,
     };
 
     let clean_attr = attr_str.replace(" ", "");
@@ -173,6 +219,9 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
             ops.gets = get_content.split(',').map(|s| s.to_string()).collect();
 
             current_pos = end_pos + 1;
+        } else if clean_attr[current_pos..].starts_with("get_all") {
+            ops.get_all = true;
+            current_pos += 7;
         } else {
             current_pos += 1;
         }
@@ -204,6 +253,19 @@ fn generate_methods(
             }
         };
         methods.extend(create_method);
+    }
+
+    if ops.get_all {
+        let get_all_method = quote! {
+            pub async fn get_all() -> anyhow::Result<Vec<#struct_name>> {
+                Database::query_wrapper(move |conn| {
+                    #table_path::table
+                        .load::<#struct_name>(conn)
+                })
+                .await
+            }
+        };
+        methods.extend(get_all_method);
     }
 
     for get_field in &ops.gets {

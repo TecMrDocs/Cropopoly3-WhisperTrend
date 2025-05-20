@@ -1,5 +1,5 @@
 [package]
-name = "scraper"
+name = "scrap"
 version = "0.1.0"
 edition = "2024"
 
@@ -11,3 +11,4 @@ walkdir = "2.3"
 libc = "0.2"
 dashmap = "6.1.0"
 lazy_static = "1.5.0"
+tracing = "0.1.41"
