@@ -149,7 +149,7 @@ impl RedditScraper {
 
     pub fn get_posts() -> Vec<Post> {
         let content = SCRAPER.execute(|context| {
-            context.navigate("https://www.reddit.com/");
+            context.navigate("https://reddit.com/");
             std::thread::sleep(std::time::Duration::from_secs(3));
             context.get_html()
         });

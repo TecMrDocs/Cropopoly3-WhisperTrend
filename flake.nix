@@ -43,7 +43,6 @@
           # Go and tools
           pkgs.go
           pkgs.gopls
-          pkgs.chromium
 
           # Bun
           pkgs.nodejs
@@ -65,6 +64,7 @@
           pkgs.openssh
           pkgs.curl
           pkgs.wget
+          pkgs.brave
 
           # Development editors and utilities
           pkgs.jq

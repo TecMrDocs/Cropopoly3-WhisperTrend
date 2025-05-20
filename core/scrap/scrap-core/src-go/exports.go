@@ -5,9 +5,9 @@ package main
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "../../common/common.h"
+#include "../../../common/common.h"
 
-static char *callTask(Task task, int64_t contextID) {
+static inline char *callTask(Task task, int64_t contextID) {
     return task(contextID);
 }
 */
@@ -36,9 +36,17 @@ func getNextScraperID() int64 {
 }
 
 //export NewScraper
-func NewScraper() C.int64_t {
+func NewScraper(url *C.char) C.int64_t {
+	urlStr := C.GoString(url)
+
+	var urlPtr *string
+	if urlStr != "" {
+		urlPtr = &urlStr
+	}
+
 	scrap := scraper.New(scraper.Config{
 		Workers: Workers,
+		Url:     urlPtr,
 	})
 	id := getNextScraperID()
 	scraperMap.Store(id, scrap)

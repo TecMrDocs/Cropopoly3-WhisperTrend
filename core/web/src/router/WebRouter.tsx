@@ -6,6 +6,7 @@ import Home from "../pages/Home";
 import AcercaDe from "../pages/AcercaDe"
 import Dashboard from "../pages/Dashboard"
 import EditarProducto from "../pages/EditarProducto";
+import EditarDatos from "../pages/EditarDatos";
 import Empresa from "../pages/Empresa";
 import Perfil from "../pages/Perfil";
 import Productos from "../pages/Productos";
@@ -44,9 +45,11 @@ export default function WebRouter(){
       <Route path="/acercaDe" element={loadLayout(ProfileLayout, AcercaDe)} />
       <Route path="/actualizarPlan" element={loadLayout(MainLayout, ActualizarPlan)} />
       <Route path="/dashboard" element={loadLayout(ProfileLayout, Dashboard)} />
+      <Route path="/editarProducto" element={loadLayout(ProfileLayout, EditarProducto)} />
       <Route path="/avisoPrivacidad" element={loadLayout(MainLayout, PrivacyNotice)} />
       <Route path="/confirmacionCorreo" element={loadLayout(MainLayout, EmailConfirmation)} />
-      <Route path="/editarProducto" element={loadLayout(MainLayout, EditarProducto)} />
+      <Route path="/editarProducto" element={loadLayout(ProfileLayout, EditarProducto)} />
+      <Route path="/editarDatos" element={loadLayout(ProfileLayout, EditarDatos)} />
       <Route path="/empresa" element={loadLayout(ProfileLayout, Empresa)} />
       <Route path="/perfil" element={loadLayout(ProfileLayout, Perfil)} />
       <Route path="/productos" element={loadLayout(ProfileLayout, Productos)} />
