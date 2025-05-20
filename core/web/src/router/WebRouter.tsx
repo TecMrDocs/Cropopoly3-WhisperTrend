@@ -62,7 +62,7 @@ export default function WebRouter(){
       <Route path="/login" element={loadLayout(MainLayout, Login)} />
       <Route path="/resumen" element={loadLayout(MainLayout, Resumen)} />
       <Route path="/changePassword" element={loadLayout(MainLayout, ChangePassword)} />
-      <Route path="/confirmaCorreo" element={loadLayout(MainLayout, confirmaCorreo)} />
+      {/* <Route path="/confirmaCorreo" element={loadLayout(MainLayout, confirmaCorreo)} /> */}
       <Route path="/RegistroU" element={loadLayout(MainLayout, Registro)}/>
       <Route path="/holaDeNuevo" element={loadLayout(MainLayout, HolaDeNuevo)}/>
     </Routes>

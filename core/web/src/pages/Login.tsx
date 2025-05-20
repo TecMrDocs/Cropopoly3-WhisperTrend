@@ -13,7 +13,6 @@ export default function Login() {
     contrasena: "",
   });
   const [apiError, setApiError] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const validateForm = () => {
@@ -22,6 +21,7 @@ export default function Login() {
       email: "",
       contrasena: "",
     };
+    console.log("formulario", { email, contrasena });
 
     if (!email) {
       newErrors.email = "El correo es requerido";
@@ -44,20 +44,11 @@ export default function Login() {
     return valid;
   };
 
-  // const handleSubmit = (e: FormEvent) => {
-  //   e.preventDefault();
-  //   if (validateForm()) {
-  //     console.log("Datos válidos:", { email, contrasena: contrasena });
-  //     // autenticación
-  //   }
-  // };
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setApiError("");
 
     if (!validateForm()) return;
-
-    setLoading(true);
 
     try {
       const response = await fetch("http://127.0.0.1:8080/api/v1/auth/signin", {
@@ -76,8 +67,6 @@ export default function Login() {
     } catch (error: any) {
       console.error("Error al iniciar sesión:", error);
       setApiError(error.message || "Ocurrió un error al iniciar sesión");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -127,14 +116,8 @@ export default function Login() {
               </div>
             </Container>
 
-            <GenericButton type="submit" text="Iniciar sesión" />
+            <GenericButton type="submit" text="Iniciar sesión"/>
           </form>
-
-          {/* <div className="text-center mt-12 text-sm">
-            <p>No tienes cuenta? <a href="/RegistroU" className="text-[#141652] underline">Regístrate</a></p>
-            <p><a href="/ChangePassword" className="text-[#141652] underline">Olvidé mi contraseña</a></p>
-            <p><a href="/avisoPrivacidad" className="text-[#141652] underline">Aviso de privacidad</a></p>
-          </div> */}
 
           <div className="text-center mt-12 text-sm">
             <p>
@@ -163,8 +146,6 @@ export default function Login() {
               </span>
             </p>
           </div>
-
-
         </div>
       </div>
 
