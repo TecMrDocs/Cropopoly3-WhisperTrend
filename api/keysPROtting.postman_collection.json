@@ -1,10 +1,9 @@
 {
 	"info": {
-		"_postman_id": "c6a38eed-4a8b-4870-a1e8-2ec56688a636",
+		"_postman_id": "cdb59f60-bea0-47c2-9b12-c6ca8b2c4f0f",
 		"name": "keysPROtting",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "44483805",
-		"_collection_link": "https://ren-8364636.postman.co/workspace/Ren's-Workspace~9eb567de-d8f0-4d4a-8e0b-709a797443d6/collection/44483805-c6a38eed-4a8b-4870-a1e8-2ec56688a636?action=share&source=collection_link&creator=44483805"
+		"_exporter_id": "31321817"
 	},
 	"item": [
 		{
@@ -166,7 +165,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"message\": \"Hola\"\n}",
+					"raw": "{\n    \"model\": \"deepseek-r1-distill-llama-70b\",\n    \"message\": \"Hola\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -208,6 +207,41 @@
 						"api",
 						"v1",
 						"recurso"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Notices",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"tesla\",\n    \"startdatetime\": \"2024-11-03\",\n    \"enddatetime\": \"2024-11-04\",\n    \"language\": \"English\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/web/notices/get-notices",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"web",
+						"notices",
+						"get-notices"
 					]
 				}
 			},

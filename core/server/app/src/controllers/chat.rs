@@ -1,13 +1,14 @@
 use actix_web::{HttpResponse, Responder, post, web};
 use rig::{
     completion::Prompt,
-    providers::{self, groq::DEEPSEEK_R1_DISTILL_LLAMA_70B},
+    providers,
 };
 use serde::Deserialize;
 use tracing::warn;
 
 #[derive(Deserialize)]
 struct ChatRequest {
+    model: String,
     message: String,
 }
 
@@ -16,7 +17,7 @@ pub async fn handle_chat(body: web::Json<ChatRequest>) -> impl Responder {
     let client = providers::groq::Client::from_env();
 
     let comedian_agent = client
-        .agent(DEEPSEEK_R1_DISTILL_LLAMA_70B)
+        .agent(body.model.as_str())
         .preamble("You are an expert researcher")
         .build();
 
@@ -31,5 +32,5 @@ pub async fn handle_chat(body: web::Json<ChatRequest>) -> impl Responder {
 
 pub fn routes() -> actix_web::Scope {
     actix_web::Scope::new("/chat")
-      .service(handle_chat)
+        .service(handle_chat)
 }
