@@ -5,7 +5,7 @@ import InterpretacionDashboard from '../components/InterpretacionDashboard';
 import TendenciaUniforme from '../mathCalculus/TendenciaUniforme'
 import InstaCalc from '../mathCalculus/InstaCalc';
 import { IoChevronBackOutline } from "react-icons/io5";
-
+import TrendChart from '../components/TrendChart';  
 
 // Mapeo de ID de selección a tipo de visualización
 const mapeoTipos = {
@@ -95,6 +95,10 @@ export default function Dashboard() {
         <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
           <h3 className="text-2xl font-bold mb-4">Insta</h3>
           <InstaCalc />
+        </div>
+
+        <div>
+          <TrendChart/>
         </div>
         
       </div>
