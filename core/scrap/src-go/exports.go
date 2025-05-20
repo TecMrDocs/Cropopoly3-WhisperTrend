@@ -37,7 +37,7 @@ func getNextScraperID() int64 {
 
 //export NewScraper
 func NewScraper() C.int64_t {
-	url := "ws://browserless-chrome:3000?stealth=true&blockAds=true&headless=true&ignoreHTTPSErrors=true&slowMo=10"
+	url := "ws://browserless-chrome:3000"
 	scrap := scraper.New(scraper.Config{
 		Workers: Workers,
 		Url:     &url,

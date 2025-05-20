@@ -59,14 +59,11 @@ func New(config Config) *Scraper {
 
 	defaultOpts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.Flag("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"),
-		chromedp.Flag("disable-blink-features", "AutomationControlled"),
-		chromedp.Flag("disable-extensions", true),
-		chromedp.Flag("no-sandbox", true),
-		chromedp.Flag("ignore-certificate-errors", true),
-		chromedp.Flag("disable-infobars", true),
-		chromedp.Flag("disable-dev-shm-usage", true),
-		chromedp.Flag("excludeSwitches", []string{"enable-automation"}),
-		chromedp.Flag("enable-features", "NetworkService,NetworkServiceInProcess"),
+		chromedp.Flag("headless", false),
+		chromedp.Flag("disable-gpu", false),
+		chromedp.Flag("disable-dev-shm-usage", false),
+		chromedp.Flag("no-sandbox", false),
+		chromedp.Flag("window-size", "1920,1080"),
 	)
 
 	defaultOpts = append(defaultOpts, config.Opts...)

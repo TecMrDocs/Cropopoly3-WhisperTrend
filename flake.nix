@@ -64,6 +64,7 @@
           pkgs.openssh
           pkgs.curl
           pkgs.wget
+          pkgs.brave
 
           # Development editors and utilities
           pkgs.jq
