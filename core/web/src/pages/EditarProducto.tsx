@@ -1,16 +1,19 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import BlueButton from "../components/BlueButton";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import WhiteButton from "../components/WhiteButton";
 import SelectField from "../components/SelectField";
 import TextAreaField from "../components/TextAreaField";
-import { Plus, Trash2 } from "lucide-react"; // asegúrate de tener lucide-react instalado
+import { Plus, Trash2 } from "lucide-react";
 
 export default function EditarProducto() {
   const [palabra, setPalabra] = useState("");
   const [palabras, setPalabras] = useState<string[]>([]);
   const [tipo, setTipo] = useState("");
 
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleAgregar = () => {
     const nueva = palabra.trim();
@@ -26,6 +29,32 @@ export default function EditarProducto() {
 
   return (
     <div className="p-8">
+      {/* Tabs */}
+      <div className="flex justify-center mb-6">
+        <div className="flex border rounded-md overflow-hidden">
+          <button
+            className={`px-6 py-2 font-semibold ${
+              location.pathname === "/editarproducto"
+                ? "bg-gradient-to-r from-[#00BFB3] to-[#0091D5] text-white"
+                : "bg-white text-black"
+            }`}
+            onClick={() => navigate("/editarproducto")}
+          >
+            Editar información del producto
+          </button>
+          <button
+            className={`px-6 py-2 font-semibold ${
+              location.pathname === "/editardatos"
+                ? "bg-gradient-to-r from-[#00BFB3] to-[#0091D5] text-white"
+                : "bg-white text-black"
+            }`}
+            onClick={() => navigate("/editardatos")}
+          >
+            Editar datos de ventas
+          </button>
+        </div>
+      </div>
+
       <div className="flex items-center justify-center mb-6">
         <h1 className="text-2xl font-w700">Edita tu producto o servicio</h1>
       </div>
@@ -51,7 +80,6 @@ export default function EditarProducto() {
           width="700px"
         />
 
-        {/* Campo de entrada con botón */}
         <div className="flex flex-col gap-2" style={{ width: "700px" }}>
           <label className="text-base font-medium">Palabras asociadas</label>
           <div className="flex gap-2">
@@ -70,7 +98,6 @@ export default function EditarProducto() {
             </button>
           </div>
 
-          {/* Palabras renderizadas */}
           <div className="flex flex-wrap gap-2 mt-2">
             {palabras.map((p, idx) => (
               <span
@@ -97,4 +124,3 @@ export default function EditarProducto() {
     </div>
   );
 }
-
