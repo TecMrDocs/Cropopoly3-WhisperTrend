@@ -19,7 +19,7 @@ export default function EmailConfirmation() {
     setError('');
     const jsonData = JSON.stringify({ verificationCode: code });
     console.log('JSON generado:', jsonData);
-    navigate('/dashboard');
+    navigate('/LaunchProcess');
   };
 
   const handleResendCode = () => {
@@ -48,7 +48,7 @@ export default function EmailConfirmation() {
           {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
         </label>
 
-        <BlueButton text="Continuar" width="200px" onClick={handleSubmit} />
+        <BlueButton text="Continuar" width="200px" type="submit" />
         <br></br>
       </form>
 

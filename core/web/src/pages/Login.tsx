@@ -13,6 +13,7 @@ export default function Login() {
     contrasena: "",
   });
   const [apiError, setApiError] = useState("");
+  const [token, setToken] = useState("");
   const navigate = useNavigate();
 
   const validateForm = () => {
@@ -62,7 +63,8 @@ export default function Login() {
       }
 
       const data = await response.json();
-      localStorage.setItem("token", data.token);
+      setToken(data.token);
+      console.log("Token recibido:", data.token);
       navigate("/HolaDeNuevo");
     } catch (error: any) {
       console.error("Error al iniciar sesión:", error);

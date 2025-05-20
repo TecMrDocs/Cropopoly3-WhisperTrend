@@ -383,6 +383,10 @@ export default function Registro() {
     }
   };
 
+  const handleCancel = () => {
+    navigate("/Login");
+  }
+
   return(
     <div>
       <div className='flex items-center justify-center'>
@@ -505,7 +509,7 @@ export default function Registro() {
         <br />
 
         <div className="flex flex-row justify-center gap-10">
-          <WhiteButton text="Cancelar" width="300px" />
+          <WhiteButton text="Cancelar" width="300px" onClick={handleCancel}/>
           <BlueButton text="Crear cuenta" width="300px" type="submit" />
         </div>
       </form>
