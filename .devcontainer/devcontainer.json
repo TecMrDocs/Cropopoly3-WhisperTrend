@@ -47,6 +47,7 @@
   "forwardPorts": [
     5173,
     "database-server:5432",
-    8080
+    8080,
+    "browserless-chrome:3000"
   ]
 }

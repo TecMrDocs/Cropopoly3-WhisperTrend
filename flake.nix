@@ -43,7 +43,6 @@
           # Go and tools
           pkgs.go
           pkgs.gopls
-          pkgs.chromium
 
           # Bun
           pkgs.nodejs

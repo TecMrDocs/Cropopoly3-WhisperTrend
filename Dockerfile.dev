@@ -26,6 +26,9 @@ ENV PATH="/source/bin:${PATH}"
 COPY .devcontainer/.zshrc /root/.zshrc
 RUN dos2unix /root/.zshrc
 
+COPY .devcontainer/.bashrc /root/.bashrc
+RUN dos2unix /root/.bashrc
+
 # Copy starship config
 RUN mkdir -p /root/.config/starship
 COPY .devcontainer/starship.toml /root/.config/starship.toml
