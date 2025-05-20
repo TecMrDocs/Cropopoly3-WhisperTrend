@@ -15,6 +15,8 @@ import {
 import { resultadoXCalc } from '../mathCalculus/XCalc';
 import { resultadoRedditCalc } from '../mathCalculus/RedditCalc';
 import { resultadoInstaCalc } from '../mathCalculus/InstaCalc';
+import PlotTrend from '@/components/PlotTrend';
+import UniformTrendPlot from '@/components/UniformTrendPlot';
 
 // Mapeo de ID de selección a tipo de visualización
 const mapeoTipos = {
@@ -211,7 +213,7 @@ export default function Dashboard() {
                 <TendenciaUniforme tipo={getTipoVisualizacion()} />
               </div>
             ) : (
-              <MathCalc2 modoVisualizacion={modoVisualizacion} />
+              <PlotTrend modoVisualizacion={modoVisualizacion} />
             )}
           </div>
         </div>
@@ -250,6 +252,12 @@ export default function Dashboard() {
           <h3 className="text-2xl font-bold mb-4">Instagram</h3>
           <InstaCalc />
         </div>
+
+
+        <div>
+          <PlotTrend modoVisualizacion={modoVisualizacion} />
+        </div>
+        <UniformTrendPlot tipo={getTipoVisualizacion()} />
       </div>
     </div>
   );
