@@ -17,11 +17,15 @@ export default function ChangePassword() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (newPassword.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres");
+    if (!newPassword || !confirmPassword) {
+      setError("Por favor, complete todos los campos");
       return;
     }
+
+    // if (newPassword.length < 8) {
+    //   setError("La contraseña debe tener al menos 8 caracteres");
+    //   return;
+    // }
 
     if (newPassword !== confirmPassword) {
       setError("Las contraseñas no coinciden");
