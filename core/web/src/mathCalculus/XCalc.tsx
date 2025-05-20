@@ -39,11 +39,17 @@ function generadorTasaViralidad(datos: any) {
   });
 }
 
-// Componente
-const XCalc: React.FC = () => {
-  const datosInteraccion = generadorTasaInteraccion(datos);
-  const datosViralidad = generadorTasaViralidad(datos);
+// Exportamos los resultados en formato JSON para uso externo
+export const resultadoXCalc = {
+  datosInteraccion: generadorTasaInteraccion(datos),
+  datosViralidad: generadorTasaViralidad(datos),
+};
 
+// Componente React
+const XCalc: React.FC = () => {
+  const datosInteraccion = resultadoXCalc.datosInteraccion;
+  const datosViralidad = resultadoXCalc.datosViralidad;
+  
   return (
     <div style={{ width: '100%' }}>
       <h2 style={{ textAlign: 'center' }}>Tasa de Interacción (%)</h2>
@@ -59,7 +65,6 @@ const XCalc: React.FC = () => {
           </LineChart>
         </ResponsiveContainer>
       </div>
-
       <h2 style={{ textAlign: 'center', marginTop: 40 }}>Tasa de Viralidad (%)</h2>
       <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
