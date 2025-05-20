@@ -3,10 +3,10 @@ use diesel::prelude::*;
 use validator::Validate;
 
 #[derive(Validate, Clone)]
-#[macros::diesel_default(schema::recursos)]
+#[macros::diesel_default(schema::resources)]
 #[diesel(primary_key(id))]
 #[macros::database(create, update(id), delete(id), get(id))]
-pub struct Recurso {
+pub struct Resource {
     #[serde(skip_deserializing)]
     #[diesel(deserialize_as = i32)]
     pub id: Option<i32>,
