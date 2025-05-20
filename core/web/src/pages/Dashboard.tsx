@@ -6,7 +6,7 @@ import TendenciaUniforme from '../mathCalculus/TendenciaUniforme'
 import InstaCalc from '../mathCalculus/InstaCalc';
 import { IoChevronBackOutline } from "react-icons/io5";
 import TrendChart from '../components/TrendChart';  
-
+import UniformTrendChart from '../components/UniformTrendChart';
 // Mapeo de ID de selección a tipo de visualización
 const mapeoTipos = {
   'Ventas': 'ventas',
@@ -98,9 +98,12 @@ export default function Dashboard() {
         </div>
 
         <div>
-          <TrendChart/>
+          <TrendChart modoVisualizacion={modoVisualizacion}/>
         </div>
-        
+
+        <div>
+          <UniformTrendChart tipo={getTipoVisualizacion()} />
+        </div>
       </div>
     </div>
   );
