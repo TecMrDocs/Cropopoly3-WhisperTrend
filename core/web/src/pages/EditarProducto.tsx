@@ -1,10 +1,14 @@
+<<<<<<< HEAD
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+=======
+>>>>>>> 379a7e0 (Actualizo Pantalla de Editar Producto, ya que estaba sin terminar. Solo decia en texto editar producto.)
 import BlueButton from "../components/BlueButton";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import WhiteButton from "../components/WhiteButton";
 import SelectField from "../components/SelectField";
 import TextAreaField from "../components/TextAreaField";
+<<<<<<< HEAD
 import { Plus, Trash2 } from "lucide-react";
 
 export default function EditarProducto() {
@@ -34,32 +38,39 @@ export default function EditarProducto() {
         <div className="flex border rounded-md overflow-hidden">
           <button
             className={`px-6 py-2 font-semibold ${
-              location.pathname === "/editarproducto"
+              location.pathname === "/editarProducto"
                 ? "bg-gradient-to-r from-[#00BFB3] to-[#0091D5] text-white"
                 : "bg-white text-black"
             }`}
-            onClick={() => navigate("/editarproducto")}
+            onClick={() => navigate("/editarProducto")}
           >
             Editar información del producto
           </button>
           <button
             className={`px-6 py-2 font-semibold ${
-              location.pathname === "/editardatos"
+              location.pathname === "/editarDatos"
                 ? "bg-gradient-to-r from-[#00BFB3] to-[#0091D5] text-white"
                 : "bg-white text-black"
             }`}
-            onClick={() => navigate("/editardatos")}
+            onClick={() => navigate("/editarDatos")}
           >
             Editar datos de ventas
           </button>
         </div>
       </div>
 
+=======
+
+export default function EditarProducto() {
+  return (
+    <div>
+>>>>>>> 379a7e0 (Actualizo Pantalla de Editar Producto, ya que estaba sin terminar. Solo decia en texto editar producto.)
       <div className="flex items-center justify-center mb-6">
         <h1 className="text-2xl font-w700">Edita tu producto o servicio</h1>
       </div>
 
       <div className="flex flex-col items-center gap-6">
+<<<<<<< HEAD
         <SelectField
           label="Producto o servicio"
           width="700px"
@@ -118,6 +129,17 @@ export default function EditarProducto() {
       </div>
 
       <div className="flex flex-row justify-center gap-10 mt-10">
+=======
+        <SelectField label="Selecciona si es un producto o servicio" width="700px" options={["Producto", "Servicio"]}/>
+        <TextFieldWHolder label="Nombre de producto o servicio:" width="700px" placeholder="Ej. Bandolera"/>
+        <TextAreaField label="¿Qué es tu producto o servicio?, ¿en qué consiste?" placeholder="Es una bolsa de piel sintética" width="700px"/>
+        <TextFieldWHolder label="Indica palabras asociadas con tu producto o servicio (máximo 10)" width="700px" placeholder="Ej. Moda, Elegancia..."/>
+      </div>
+
+      <br />
+
+      <div className="flex flex-row justify-center gap-10">
+>>>>>>> 379a7e0 (Actualizo Pantalla de Editar Producto, ya que estaba sin terminar. Solo decia en texto editar producto.)
         <WhiteButton text="Regresar" width="300px" />
         <BlueButton text="Continuar" width="300px" />
       </div>
