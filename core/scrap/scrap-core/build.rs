@@ -48,7 +48,7 @@ fn main() {
 }
 
 fn build_common_library(profile: &str) {
-    let common_dir = Path::new("..").join("common");
+    let common_dir = Path::new("../../common");
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_else(|_| "x86_64".to_string());
     let target = if cfg!(target_os = "windows") {
         match &target_arch[..] {

@@ -78,4 +78,6 @@ POSTGRES_PASSWORD=awdrqwer12
 POSTGRES_DB=ksp
 
 GROQ_API_KEY=gsk_...
+
+BROWSERLESS_WS=ws://browserless-chrome:3000
 ```
