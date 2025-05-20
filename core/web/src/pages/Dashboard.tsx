@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import MathCalc2 from '../mathCalculus/MathCalc2';
 import MenuComponentes from '../components/MenuComponentes';
 import InterpretacionDashboard from '../components/InterpretacionDashboard';
-import TendenciaUniforme from '../mathCalculus/TendenciaUniforme'
 import XCalc from '../mathCalculus/XCalc';
 import RedditCalc from '../mathCalculus/RedditCalc';
 import InstaCalc from '../mathCalculus/InstaCalc';
@@ -17,6 +15,7 @@ import { resultadoRedditCalc } from '../mathCalculus/RedditCalc';
 import { resultadoInstaCalc } from '../mathCalculus/InstaCalc';
 import PlotTrend from '@/components/PlotTrend';
 import UniformTrendPlot from '@/components/UniformTrendPlot';
+import RatePlot from '@/components/RatePlot';
 
 // Mapeo de ID de selección a tipo de visualización
 const mapeoTipos = {
@@ -201,7 +200,7 @@ export default function Dashboard() {
               }
             </h3>
             {tasasSeleccionadas.length > 0 && hashtagSeleccionado === '#EcoFriendly' ? (
-              <TasasGrafica tasasIds={tasasSeleccionadas} />
+              <RatePlot tasasIds={tasasSeleccionadas} />
             ) : mostrarTendenciaUniforme ? (
               <div>
                 <button
@@ -210,7 +209,7 @@ export default function Dashboard() {
                 >
                   Volver a Gráfica de Líneas
                 </button>
-                <TendenciaUniforme tipo={getTipoVisualizacion()} />
+                <UniformTrendPlot tipo={getTipoVisualizacion()} />
               </div>
             ) : (
               <PlotTrend modoVisualizacion={modoVisualizacion} />
@@ -254,10 +253,7 @@ export default function Dashboard() {
         </div>
 
 
-        <div>
-          <PlotTrend modoVisualizacion={modoVisualizacion} />
-        </div>
-        <UniformTrendPlot tipo={getTipoVisualizacion()} />
+        
       </div>
     </div>
   );
