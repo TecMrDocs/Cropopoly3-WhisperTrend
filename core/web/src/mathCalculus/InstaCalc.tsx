@@ -3,8 +3,6 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
-
-
 const datos = {
   fechas: ["01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
   likes: [46822, 423520, 153642, 14964],
@@ -14,10 +12,9 @@ const datos = {
   compartidos: [37, 68136, 41645, 1112],
 };
 
-
 // Función que calcula la tasa de interacción
 function generadorTasaInteraccion(data: typeof datos) {
-    const { fechas, likes, comentarios, vistas, compartidos } = data;
+  const { fechas, likes, comentarios, vistas, compartidos } = data;
 
   return fechas.map((fecha: string, i: number) => {
     const interacciones = likes[i] + comentarios[i] + compartidos[i];
@@ -32,7 +29,7 @@ function generadorTasaInteraccion(data: typeof datos) {
 
 // Función que calcula la tasa de viralidad
 function generadorTasaViralidad(data: typeof datos) {
-  const { fechas, likes, comentarios, seguidores, compartidos} = data;
+  const { fechas, likes, comentarios, seguidores, compartidos } = data;
 
   return fechas.map((fecha: string, i: number) => {
     const interacciones = likes[i] + comentarios[i] + compartidos[i];
@@ -45,10 +42,16 @@ function generadorTasaViralidad(data: typeof datos) {
   });
 }
 
-// Componente con dos gráficos
+// Exporta los datos para consolidación
+export const resultadoInstaCalc = {
+  datosInteraccion: generadorTasaInteraccion(datos),
+  datosViralidad: generadorTasaViralidad(datos),
+};
+
+// Componente con dos gráficos (si quieres seguir usándolo directamente)
 const InstaCalc: React.FC = () => {
-  const datosInteraccion = generadorTasaInteraccion(datos);
-  const datosViralidad = generadorTasaViralidad(datos);
+  const datosInteraccion = resultadoInstaCalc.datosInteraccion;
+  const datosViralidad = resultadoInstaCalc.datosViralidad;
 
   return (
     <div style={{ width: '100%' }}>
