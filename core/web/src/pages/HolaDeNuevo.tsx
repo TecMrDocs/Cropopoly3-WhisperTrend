@@ -21,7 +21,8 @@ export default function HolaDeNuevo() {
     }
   };
   const handleReturn = () => {
-    navigate("/launchProcess");
+    // navigate("/launchProcess");
+    alert('Código nuevo enviado');
   };
   
 
