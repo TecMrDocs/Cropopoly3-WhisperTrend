@@ -7,27 +7,18 @@ const FORMAT: &str = "JSON";
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ApiResponse {
-    #[serde(default)]
     pub articles: Vec<Articles>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Default)]
 pub struct Articles {
-    #[serde(default)]
     pub url: String,
-    #[serde(default)]
     pub url_mobile: String,
-    #[serde(default)]
     pub title: String,
-    #[serde(default)]
     pub seendate: String,
-    #[serde(default)]
     pub socialimage: String,
-    #[serde(default)]
     pub domain: String,
-    #[serde(default)]
     pub language: String,
-    #[serde(default)]
     pub sourcecountry: String,
 }
 
