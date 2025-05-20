@@ -1,5 +1,6 @@
 [workspace]
 resolver = "3"
+default-members = ["scrap-core"]
 members = ["scrap-core", "scrap-utils"]
 
 [workspace.dependencies]

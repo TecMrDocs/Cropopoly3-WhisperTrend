@@ -36,11 +36,17 @@ func getNextScraperID() int64 {
 }
 
 //export NewScraper
-func NewScraper() C.int64_t {
-	url := "ws://browserless-chrome:3000"
+func NewScraper(url *C.char) C.int64_t {
+	urlStr := C.GoString(url)
+
+	var urlPtr *string
+	if urlStr != "" {
+		urlPtr = &urlStr
+	}
+
 	scrap := scraper.New(scraper.Config{
 		Workers: Workers,
-		Url:     &url,
+		Url:     urlPtr,
 	})
 	id := getNextScraperID()
 	scraperMap.Store(id, scrap)
