@@ -1,4 +1,5 @@
 use crate::scraping::{
+    instagram::InstagramScraper,
     notices::{NoticesScraper, Params},
     reddit::RedditScraper,
 };
@@ -34,9 +35,7 @@ pub async fn get_notices(query: web::Json<Query>) -> actix_web::Result<impl Resp
         Ok(date) => date,
         Err(e) => {
             warn!("Failed to parse start date: {}", e);
-            return Err(actix_web::error::ErrorBadRequest(
-                "Invalid start date format",
-            ));
+            return Err(actix_web::error::ErrorBadRequest("Invalid start date format"));
         }
     };
 
@@ -67,9 +66,7 @@ pub async fn get_details(query: web::Json<Query>) -> actix_web::Result<impl Resp
         Ok(date) => date,
         Err(e) => {
             warn!("Failed to parse start date: {}", e);
-            return Err(actix_web::error::ErrorBadRequest(
-                "Invalid start date format",
-            ));
+            return Err(actix_web::error::ErrorBadRequest("Invalid start date format"));
         }
     };
 
@@ -92,10 +89,33 @@ pub async fn get_details(query: web::Json<Query>) -> actix_web::Result<impl Resp
     }
 }
 
+#[get("/instagram/login")]
+pub async fn login_instagram() -> impl Responder {
+    match InstagramScraper::login().await {
+        Ok(msg) => HttpResponse::Ok().json(serde_json::json!({
+            "status": "success",
+            "message": msg,
+        })),
+        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({
+            "status": "error",
+            "message": format!("Login failed: {}", e),
+        })),
+    }
+}
+
+#[get("/instagram/get-posts/{hashtag}")]
+pub async fn get_posts_instagram(path: web::Path<String>) -> impl Responder {
+    let hashtag = path.into_inner();
+    let posts = InstagramScraper::get_posts_by_hashtag(&hashtag, 5);
+    HttpResponse::Ok().json(posts)
+}
+
 pub fn routes() -> actix_web::Scope {
     actix_web::Scope::new("/web")
         .service(get_posts_reddit)
         .service(get_simple_posts_reddit)
         .service(get_notices)
         .service(get_details)
+        .service(login_instagram)
+        .service(get_posts_instagram)
 }
