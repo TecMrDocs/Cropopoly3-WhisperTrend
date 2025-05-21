@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 pub use user::{User, Credentials};
 
+=======
+pub use user::{User, Credentials, BusinessData};
+>>>>>>> backend-renato
 pub use resource::Resource;
 
 use crate::database::Database;

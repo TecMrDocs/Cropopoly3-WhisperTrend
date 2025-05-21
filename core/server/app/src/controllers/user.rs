@@ -1,5 +1,6 @@
 use crate::{
     database::DbResponder,
+<<<<<<< HEAD
     middlewares,
     models::{Credentials, User},
 };
@@ -9,6 +10,18 @@ use actix_web::{
 };
 use auth::{PasswordHasher, TokenService};
 use serde_json::json;
+=======
+    //middlewares,
+    models::{User, BusinessData},
+};
+use actix_web::{
+    // HttpMessage, 
+    HttpRequest, HttpResponse, Responder, Result, error, get, 
+    // middleware::from_fn,
+    post, web,
+};
+use auth::PasswordHasher;
+>>>>>>> backend-renato
 use tracing::error;
 use validator::Validate;
 
@@ -58,9 +71,47 @@ pub async fn get_all_users() -> Result<impl Responder> {
     return Ok(HttpResponse::Ok().json(users));
 }
 
+<<<<<<< HEAD
+=======
+#[post("/update/{id}")]
+pub async fn update_user_business_data(
+    req: HttpRequest,
+    data: web::Json<BusinessData>,
+) -> Result<impl Responder> {
+    let Some(id_str) = req.match_info().get("id") else {
+        return Err(error::ErrorBadRequest("Missing user ID"));
+    };
+
+    let id = id_str.parse::<i32>().map_err(|_| error::ErrorBadRequest("Invalid ID"))?;
+
+    if let Ok(_) = User::update_business_name_and_industry_and_company_size_and_scope_and_locations_and_num_branches_by_id(
+        id,
+        data.business_name.clone(),
+        data.industry.clone(),
+        data.company_size.clone(),
+        data.scope.clone(),
+        data.locations.clone(),
+        data.num_branches.clone(),
+    )
+    .await
+    .to_web()
+    {
+        return Ok(HttpResponse::Ok().finish());
+    }
+
+    Err(error::ErrorInternalServerError("Failed to update user business data"))
+}
+
+
+
+>>>>>>> backend-renato
 pub fn routes() -> actix_web::Scope {
     web::scope("/user")
         .service(create_user)
         .service(get_user)
         .service(get_all_users)
+<<<<<<< HEAD
+=======
+        .service(update_user_business_data)
+>>>>>>> backend-renato
 }
