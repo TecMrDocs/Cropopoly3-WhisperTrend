@@ -537,9 +537,50 @@ export default function Dashboard() {
         </div>
         
         {/* Interpretación - Span completo */}
-        <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
-          <h3 className="text-2xl font-bold mb-4">Interpretación del Análisis</h3>
-          <InterpretacionDashboard />
+        <div className="relative bg-gradient-to-br from-white via-green-50/40 to-emerald-50/60 shadow-2xl rounded-3xl p-8 border-2 border-green-200/30 backdrop-blur-lg overflow-hidden lg:col-span-2">
+          {/* Decoraciones de fondo */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-emerald-500/20 rounded-full blur-3xl -translate-y-16 translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-teal-400/20 to-cyan-400/20 rounded-full blur-2xl translate-y-12 -translate-x-12"></div>
+          
+          <div className="relative z-10">
+            {/* Header elegante */}
+            <div className="mb-6 pb-4 border-b border-green-200/50">
+              <div className="flex items-center mb-3">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl blur-md opacity-75"></div>
+                  <div className="relative bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-3 shadow-lg">
+                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-green-700 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                    🧠 Interpretación del Análisis
+                  </h3>
+                  <div className="flex items-center mt-1">
+                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                    <p className="text-gray-600 text-sm font-medium">Insights generados por IA</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Badge de información */}
+              <div className="bg-gradient-to-r from-green-100/80 to-emerald-100/80 backdrop-blur-sm rounded-xl p-3 border border-green-200/50">
+                <div className="flex items-center">
+                  <span className="text-green-600 mr-2">💡</span>
+                  <p className="text-gray-700 text-sm font-medium">
+                    Análisis automático basado en <span className="text-green-600 font-semibold">patrones de datos</span> y tendencias de mercado
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Contenedor del contenido con efecto glassmorphism */}
+            <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-6 border border-white/40 shadow-inner">
+              <InterpretacionDashboard />
+            </div>
+          </div>
         </div>
 
       </div>
