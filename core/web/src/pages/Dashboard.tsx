@@ -421,35 +421,119 @@ export default function Dashboard() {
         {/* Columna izquierda con gráficas principales */}
         <div className="flex flex-col gap-6">
           {/* Gráfica de líneas o mensaje inicial */}
-          <div className="bg-white shadow-md rounded-lg p-6">
-            <h3 className="text-2xl font-bold mb-4">
-              {!hashtagSeleccionado || hashtagSeleccionado === ''
-                ? "Visualización de Tendencias"
-                : tasasSeleccionadas.length > 0 && hashtagSeleccionado === '#EcoFriendly'
-                ? "Comparativa de Tasas Seleccionadas"
-                : hashtagsNoticiasSeleccionados.length > 0 && hashtagSeleccionado === 'Noticia1'
-                ? "Análisis de Hashtags - Noticias"
-                : mostrarTendenciaUniforme 
-                  ? `Análisis: ${hashtagSeleccionado}`
-                  : 'Gráfica de Líneas'
-              }
-            </h3>
-            {renderGraficaPrincipal()}
+          <div className="relative bg-gradient-to-br from-white via-gray-50/40 to-blue-50/60 shadow-2xl rounded-3xl p-8 border-2 border-gray-200/30 backdrop-blur-lg overflow-hidden">
+            {/* Decoraciones de fondo */}
+            <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-gray-400/20 to-blue-500/20 rounded-full blur-3xl -translate-y-16 -translate-x-16"></div>
+            <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tr from-indigo-400/20 to-purple-400/20 rounded-full blur-2xl translate-y-12 translate-x-12"></div>
+            
+            <div className="relative z-10">
+              {/* Header elegante */}
+              <div className="mb-6 pb-4 border-b border-gray-200/50">
+                <div className="flex items-center mb-3">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-blue-700 rounded-2xl blur-md opacity-75"></div>
+                    <div className="relative bg-gradient-to-br from-gray-500 to-blue-600 rounded-2xl p-3 shadow-lg">
+                      <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-700 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                      {!hashtagSeleccionado || hashtagSeleccionado === ''
+                        ? "📊 Visualización de Tendencias"
+                        : tasasSeleccionadas.length > 0 && hashtagSeleccionado === '#EcoFriendly'
+                        ? "📈 Comparativa de Tasas Seleccionadas"
+                        : hashtagsNoticiasSeleccionados.length > 0 && hashtagSeleccionado === 'Noticia1'
+                        ? "📰 Análisis de Hashtags - Noticias"
+                        : mostrarTendenciaUniforme 
+                          ? `📋 Análisis: ${hashtagSeleccionado}`
+                          : '📉 Gráfica de Líneas'
+                      }
+                    </h3>
+                    <div className="flex items-center mt-1">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
+                      <p className="text-gray-600 text-sm font-medium">Datos en tiempo real</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Badge de información */}
+                <div className="bg-gradient-to-r from-gray-100/80 to-blue-100/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200/50">
+                  <div className="flex items-center">
+                    <span className="text-blue-600 mr-2">🔍</span>
+                    <p className="text-gray-700 text-sm font-medium">
+                      {!hashtagSeleccionado || hashtagSeleccionado === ''
+                        ? <>Aquí podrás ver tus <span className="text-blue-600 font-semibold">tendencias</span></>
+                        : "Visualización activa - Datos actualizados"
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contenedor del contenido con efecto glassmorphism */}
+              <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-6 border border-white/40 shadow-inner min-h-80">
+                {renderGraficaPrincipal()}
+              </div>
+            </div>
           </div>
         </div>
         
         {/* Columna derecha con menú de componentes */}
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <MenuComponentes
-            modoVisualizacion={modoVisualizacion}
-            setModoVisualizacion={setModoVisualizacion}
-            setHashtagSeleccionado={setHashtagSeleccionado}
-            onSeleccionItem={handleSeleccionItem}
-            onEcoFriendlyClick={handleEcoFriendlyClick}
-            hashtagSeleccionado={hashtagSeleccionado}
-            onTasasSeleccionadas={handleTasasSeleccionadas}  // Pasamos el callback para manejar la selección múltiple de tasas
-            onHashtagsNoticiasSeleccionados={handleHashtagsNoticiasSeleccionados} // Pasamos el callback para hashtags de noticias
-          />
+        <div className="relative bg-gradient-to-br from-white via-blue-50/40 to-indigo-100/60 shadow-2xl rounded-3xl p-8 border-2 border-blue-200/30 backdrop-blur-lg overflow-hidden">
+          {/* Decoraciones de fondo */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-500/20 rounded-full blur-3xl -translate-y-16 translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-400/20 to-pink-400/20 rounded-full blur-2xl translate-y-12 -translate-x-12"></div>
+          
+          <div className="relative z-10">
+            {/* Header elegante */}
+            <div className="mb-6 pb-4 border-b border-blue-200/50">
+              <div className="flex items-center mb-3">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl blur-md opacity-75"></div>
+                  <div className="relative bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-3 shadow-lg">
+                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    🎯 Panel de Control
+                  </h3>
+                  <div className="flex items-center mt-1">
+                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                    <p className="text-gray-600 text-sm font-medium">Sistema activo</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Badge de información */}
+              <div className="bg-gradient-to-r from-blue-100/80 to-indigo-100/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/50">
+                <div className="flex items-center">
+                  <span className="text-blue-600 mr-2">💡</span>
+                  <p className="text-gray-700 text-sm font-medium">
+                    Selecciona las <span className="text-blue-600 font-semibold">tendencias</span> que deseas analizar
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Contenedor del menú con efecto glassmorphism */}
+            <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-4 border border-white/40 shadow-inner">
+              <MenuComponentes
+                modoVisualizacion={modoVisualizacion}
+                setModoVisualizacion={setModoVisualizacion}
+                setHashtagSeleccionado={setHashtagSeleccionado}
+                onSeleccionItem={handleSeleccionItem}
+                onEcoFriendlyClick={handleEcoFriendlyClick}
+                hashtagSeleccionado={hashtagSeleccionado}
+                onTasasSeleccionadas={handleTasasSeleccionadas}
+                onHashtagsNoticiasSeleccionados={handleHashtagsNoticiasSeleccionados}
+              />
+            </div>
+          </div>
         </div>
         
         {/* Interpretación - Span completo */}
@@ -458,6 +542,21 @@ export default function Dashboard() {
           <InterpretacionDashboard />
         </div>
 
+        {/* Componentes de redes sociales - Se pueden mostrar u ocultar según necesidades */}
+        <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
+          <h3 className="text-2xl font-bold mb-4">X</h3>
+          <XCalc />
+        </div>
+
+        <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
+          <h3 className="text-2xl font-bold mb-4">Reddit</h3>
+          <RedditCalc />
+        </div>
+
+        <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
+          <h3 className="text-2xl font-bold mb-4">Instagram</h3>
+          <InstaCalc />
+        </div>
       </div>
     </div>
   );
