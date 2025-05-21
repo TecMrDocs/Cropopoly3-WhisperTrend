@@ -3,7 +3,7 @@ use crate::scraping::{reddit::RedditScraper, SCRAPER, notices::Details};
 pub struct TrendsScraper;
 
 impl TrendsScraper {
-    pub fn get_reddit_trends(details: &Details) {
+    pub async fn get_reddit_trends(details: &Details) {
           
     }
 }

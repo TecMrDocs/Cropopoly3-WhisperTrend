@@ -19,6 +19,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/chromedp/cdproto/emulation"
 	"github.com/chromedp/chromedp"
 )
 
@@ -84,6 +85,21 @@ func Evaluate(ctxID C.int64_t, expr *C.char, result *C.int64_t) *C.char {
 		return C.CString("")
 	}
 	return C.CString(resultStr)
+}
+
+//export SetUserAgent
+func SetUserAgent(ctxID C.int64_t, userAgent *C.char) C.int64_t {
+	ctxInterface, ok := contextMap.Load(int64(ctxID))
+	if !ok {
+		return C.int64_t(1)
+	}
+
+	ctx := ctxInterface.(*context.Context)
+	err := chromedp.Run(*ctx, emulation.SetUserAgentOverride(C.GoString(userAgent)))
+	if err != nil {
+		return C.int64_t(1)
+	}
+	return C.int64_t(0)
 }
 
 //export GetHTML

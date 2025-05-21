@@ -108,7 +108,7 @@ impl NoticesScraper {
         Ok(articles)
     }
 
-    pub async fn get_details(params: Params) -> anyhow::Result<Vec<Info>> {
+    pub async fn get_details(params: Params) -> anyhow::Result<Details> {
         let articles = Self::get_articles(params).await?;
         let client = Client::new();
 
