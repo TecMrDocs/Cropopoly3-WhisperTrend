@@ -1,4 +1,5 @@
 use crate::scraping::SCRAPER;
+use fake::{Fake, faker::internet::en::UserAgent};
 use futures::future::join_all;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -160,6 +161,8 @@ impl RedditScraper {
     pub async fn get_simple_posts_by_keyword(keyword: String) -> Vec<SimplePost> {
         let content = SCRAPER
             .execute(move |context| {
+                let user_agent: String = UserAgent().fake();
+                context.set_user_agent(&user_agent);
                 context.navigate(&format!("https://www.reddit.com/search?q={}", keyword));
                 std::thread::sleep(std::time::Duration::from_secs(3));
                 context.get_html()
@@ -193,6 +196,8 @@ impl RedditScraper {
             let future = async move {
                 let content = scraper_clone
                     .execute(move |context| {
+                        let user_agent: String = UserAgent().fake();
+                        context.set_user_agent(&user_agent);
                         context.navigate(&post.subreddit);
                         std::thread::sleep(std::time::Duration::from_secs(2));
                         context.get_html()

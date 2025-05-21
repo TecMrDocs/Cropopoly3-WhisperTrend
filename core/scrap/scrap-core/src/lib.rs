@@ -60,6 +60,13 @@ impl Context {
         }
     }
 
+    pub fn set_user_agent<T: AsRef<str>>(&self, user_agent: T) {
+        let c_user_agent = CString::new(user_agent.as_ref()).unwrap_or_default();
+        unsafe {
+            SetUserAgent(self.id, c_user_agent.as_ptr() as *mut c_char);
+        }
+    }
+
     pub fn evaluate<T: AsRef<str>>(&self, expr: T) -> String {
         let c_expr = CString::new(expr.as_ref()).unwrap_or_default();
         unsafe {
