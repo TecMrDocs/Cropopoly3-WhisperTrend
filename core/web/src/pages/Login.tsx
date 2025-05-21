@@ -7,10 +7,10 @@ import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
-  const [contrasena, setContrasena] = useState("");
+  const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({
     email: "",
-    contrasena: "",
+    password: "",
   });
   const [apiError, setApiError] = useState("");
   const [token, setToken] = useState("");
@@ -20,9 +20,9 @@ export default function Login() {
     let valid = true;
     const newErrors = {
       email: "",
-      contrasena: "",
+      password: "",
     };
-    console.log("formulario", { email, contrasena });
+    console.log("formulario", { email, password: password });
 
     if (!email) {
       newErrors.email = "El correo es requerido";
@@ -32,12 +32,12 @@ export default function Login() {
       valid = false;
     }
 
-    if (!contrasena) {
-      newErrors.contrasena = "La contraseña es requerida";
+    if (!password) {
+      newErrors.password = "La contraseña es requerida";
       valid = false;
     }
-    // else if (contrasena.length < 8) {
-    //   newErrors.contrasena = "La contraseña debe tener mínimo 8 caracteres";
+    // else if (password.length < 8) {
+    //   newErrors.password = "La contraseña debe tener mínimo 8 caracteres";
     //   valid = false;
     // }
 
@@ -55,7 +55,7 @@ export default function Login() {
       const response = await fetch("http://127.0.0.1:8080/api/v1/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, contrasena }),
+        body: JSON.stringify({ email, password: password }),
       });
 
       if (!response.ok) {
@@ -108,12 +108,12 @@ export default function Login() {
                   name="password"
                   type="password"
                   placeholder="Ingrese su contraseña"
-                  value={contrasena}
-                  onChange={(e) => setContrasena(e.target.value)}
-                  hasError={!!errors.contrasena}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  hasError={!!errors.password}
                 />
-                {errors.contrasena && (
-                  <p className="text-red-500 text-sm mt-1">{errors.contrasena}</p>
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
                 )}
               </div>
             </Container>
