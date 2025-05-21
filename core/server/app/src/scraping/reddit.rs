@@ -10,14 +10,18 @@ lazy_static! {
     static ref NEWLINE_REGEX: Regex = Regex::new(r"[\n\r]+").unwrap();
     static ref HUMAN_NUMBER_REGEX: Regex =
         Regex::new(r"^([\d,.]+)\s*([kKmM]il|mill[oó]n|mills?|[kKMGTP])?$").unwrap();
+
+    // posts
     static ref ARTICLE_SELECTOR: Selector = Selector::parse("article").unwrap();
     static ref TIME_SELECTOR: Selector = Selector::parse("time").unwrap();
     static ref TITLE_SELECTOR: Selector = Selector::parse("a[slot='title']").unwrap();
-    static ref POST_TITLE_SELECTOR: Selector = Selector::parse("h1[slot='title']").unwrap();
     static ref CONTENT_SELECTOR: Selector = Selector::parse("a[slot='text-body']").unwrap();
     static ref NUMBER_SELECTOR: Selector = Selector::parse("faceplate-number").unwrap();
-    static ref POST_CONSUME_TRACKER_SELECTOR: Selector =
-        Selector::parse("post-consume-tracker").unwrap();
+
+    // simple posts
+    static ref POST_CONSUME_SELECTOR: Selector = Selector::parse("[consume-events]").unwrap();
+    static ref POST_TITLE_SELECTOR: Selector = Selector::parse("[data-testid='post-title-text']").unwrap();
+    static ref SUBREDDIT_SELECTOR: Selector = Selector::parse("faceplate-hovercard a").unwrap();
 }
 
 #[derive(Debug, Serialize)]
@@ -35,6 +39,7 @@ pub struct SimplePost {
     title: String,
     vote: u32,
     comments: u32,
+    subreddit: String,
 }
 
 pub struct RedditScraper;
@@ -50,37 +55,40 @@ impl RedditScraper {
         let text = Self::clean_text(text);
 
         if let Some(captures) = HUMAN_NUMBER_REGEX.captures(&text) {
-            let number_str = captures.get(1).unwrap().as_str();
-            let multiplier =
-                captures
-                    .get(2)
-                    .map_or(1, |m| match m.as_str().to_lowercase().as_str() {
-                        "k" => 1_000,
-                        "m" => 1_000_000,
-                        "g" => 1_000_000_000,
-                        "t" => 1_000_000_000_000_i64,
-                        "p" => 1_000_000_000_000_000_i64,
-                        "mil" | "kmil" | "mmil" => 1_000,
-                        "millón" | "millon" | "mill" | "mills" => 1_000_000,
-                        _ => 1,
-                    });
+            if let Some(number_str) = captures.get(1) {
+                let number_str = number_str.as_str();
+                let multiplier =
+                    captures
+                        .get(2)
+                        .map_or(1, |m| match m.as_str().to_lowercase().as_str() {
+                            "k" => 1_000,
+                            "m" => 1_000_000,
+                            "g" => 1_000_000_000,
+                            "t" => 1_000_000_000_000_i64,
+                            "p" => 1_000_000_000_000_000_i64,
+                            "mil" | "kmil" | "mmil" => 1_000,
+                            "millón" | "millon" | "mill" | "mills" => 1_000_000,
+                            _ => 1,
+                        });
 
-            if let Ok(num) = number_str.parse::<f64>() {
-                return (num * multiplier as f64) as u32;
+                if let Ok(num) = number_str.parse::<f64>() {
+                    return (num * multiplier as f64) as u32;
+                }
+
+                let with_dot = number_str.replace(',', ".");
+                if let Ok(num) = with_dot.parse::<f64>() {
+                    return (num * multiplier as f64) as u32;
+                }
+
+                let without_comma = number_str.replace(',', "");
+                if let Ok(num) = without_comma.parse::<f64>() {
+                    return (num * multiplier as f64) as u32;
+                }
+
+                let clean_number = number_str.replace(',', "").replace('.', "");
+                return (clean_number.parse::<f64>().unwrap_or_default() * multiplier as f64)
+                    as u32;
             }
-
-            let with_dot = number_str.replace(',', ".");
-            if let Ok(num) = with_dot.parse::<f64>() {
-                return (num * multiplier as f64) as u32;
-            }
-
-            let without_comma = number_str.replace(',', "");
-            if let Ok(num) = without_comma.parse::<f64>() {
-                return (num * multiplier as f64) as u32;
-            }
-
-            let clean_number = number_str.replace(',', "").replace('.', "");
-            return (clean_number.parse::<f64>().unwrap_or_default() * multiplier as f64) as u32;
         }
 
         if let Ok(num) = text.parse::<f64>() {
@@ -185,12 +193,23 @@ impl RedditScraper {
             let vote = vote_element.text().collect::<Vec<_>>().join(" ");
             let comments = comments_element.text().collect::<Vec<_>>().join(" ");
 
-            return Ok(SimplePost {
-                time: time.to_string(),
-                title: Self::clean_text(&title),
-                vote: Self::parse_human_number(&vote),
-                comments: Self::parse_human_number(&comments),
-            });
+            if let Some(subreddit_element) = element.select(&SUBREDDIT_SELECTOR).next() {
+                let subreddit = subreddit_element.attr("href").unwrap_or_default();
+
+                return Ok(SimplePost {
+                    time: time.to_string(),
+                    title: Self::clean_text(&title),
+                    vote: Self::parse_human_number(&vote),
+                    comments: Self::parse_human_number(&comments),
+                    subreddit: {
+                        if subreddit.to_string().starts_with("/r/") {
+                            format!("https://www.reddit.com{}", subreddit.to_string())
+                        } else {
+                            subreddit.to_string()
+                        }
+                    },
+                });
+            }
         }
 
         Err(anyhow::anyhow!("Not found elements"))
@@ -206,7 +225,7 @@ impl RedditScraper {
         let document = Html::parse_document(&content);
         let mut posts = Vec::new();
 
-        for element in document.select(&POST_CONSUME_TRACKER_SELECTOR) {
+        for element in document.select(&POST_CONSUME_SELECTOR) {
             let post = Self::get_simple_post(element);
 
             match post {

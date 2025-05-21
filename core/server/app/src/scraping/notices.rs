@@ -16,6 +16,8 @@ const BASE_URL: &str = "https://api.gdeltproject.org/api/v2/doc/doc";
 const MODE: &str = "artlist";
 const FORMAT: &str = "JSON";
 
+pub type Details = Vec<Info>;
+
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ApiResponse {
     pub articles: Vec<Articles>,
