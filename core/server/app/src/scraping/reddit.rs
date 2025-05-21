@@ -1,4 +1,5 @@
 use crate::scraping::SCRAPER;
+use futures::future::join_all;
 use lazy_static::lazy_static;
 use regex::Regex;
 use scraper::{ElementRef, Html, Selector};
@@ -22,15 +23,9 @@ lazy_static! {
     static ref POST_CONSUME_SELECTOR: Selector = Selector::parse("[consume-events]").unwrap();
     static ref POST_TITLE_SELECTOR: Selector = Selector::parse("[data-testid='post-title-text']").unwrap();
     static ref SUBREDDIT_SELECTOR: Selector = Selector::parse("faceplate-hovercard a").unwrap();
-}
 
-#[derive(Debug, Serialize)]
-pub struct Post {
-    time: String,
-    title: String,
-    content: String,
-    vote: u32,
-    comments: u32,
+    // members
+    static ref MEMBERS_SELECTOR: Selector = Selector::parse("#subscribers faceplate-number").unwrap();
 }
 
 #[derive(Debug, Serialize)]
@@ -40,6 +35,16 @@ pub struct SimplePost {
     vote: u32,
     comments: u32,
     subreddit: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SimplePostWithMembers {
+    time: String,
+    title: String,
+    vote: u32,
+    comments: u32,
+    subreddit: String,
+    members: u32,
 }
 
 pub struct RedditScraper;
@@ -171,6 +176,47 @@ impl RedditScraper {
         }
 
         posts
+    }
+
+    pub async fn get_simple_posts_with_members(keyword: String) -> Vec<SimplePostWithMembers> {
+        let simple_posts = Self::get_simple_posts_by_keyword(keyword);
+
+        let mut futures = Vec::new();
+
+        for post in simple_posts {
+            let subreddit = post.subreddit.clone();
+
+            let future = async move {
+                let content = SCRAPER.execute(move |context| {
+                    context.navigate(&post.subreddit);
+                    std::thread::sleep(std::time::Duration::from_secs(2));
+                    context.get_html()
+                });
+
+                let document = Html::parse_document(&content);
+                let members_element = document.select(&MEMBERS_SELECTOR).next();
+
+                if let Some(members_element) = members_element {
+                    let members = members_element.text().collect::<Vec<_>>().join(" ");
+
+                    Some(SimplePostWithMembers {
+                        time: post.time,
+                        title: post.title,
+                        vote: post.vote,
+                        comments: post.comments,
+                        subreddit,
+                        members: Self::parse_human_number(&members),
+                    })
+                } else {
+                    None
+                }
+            };
+
+            futures.push(future);
+        }
+
+        let results = join_all(futures).await;
+        results.into_iter().filter_map(|result| result).collect()
     }
 }
 
