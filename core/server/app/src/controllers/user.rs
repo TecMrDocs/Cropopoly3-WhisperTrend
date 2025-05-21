@@ -1,16 +1,5 @@
 use crate::{
     database::DbResponder,
-<<<<<<< HEAD
-    middlewares,
-    models::{Credentials, User},
-};
-use actix_web::{
-    HttpMessage, HttpRequest, HttpResponse, Responder, Result, error, get, middleware::from_fn,
-    post, web,
-};
-use auth::{PasswordHasher, TokenService};
-use serde_json::json;
-=======
     //middlewares,
     models::{User, BusinessData},
 };
@@ -21,7 +10,6 @@ use actix_web::{
     post, web,
 };
 use auth::PasswordHasher;
->>>>>>> backend-renato
 use tracing::error;
 use validator::Validate;
 
