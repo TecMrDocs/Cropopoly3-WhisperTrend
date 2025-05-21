@@ -4,6 +4,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use scraper::{ElementRef, Html, Selector};
 use serde::Serialize;
+use std::sync::Arc;
 use tracing::warn;
 
 lazy_static! {
@@ -156,12 +157,14 @@ impl RedditScraper {
         Err(anyhow::anyhow!("Not found elements"))
     }
 
-    pub fn get_simple_posts_by_keyword(keyword: String) -> Vec<SimplePost> {
-        let content = SCRAPER.execute(move |context| {
-            context.navigate(&format!("https://www.reddit.com/search?q={}", keyword));
-            std::thread::sleep(std::time::Duration::from_secs(3));
-            context.get_html()
-        });
+    pub async fn get_simple_posts_by_keyword(keyword: String) -> Vec<SimplePost> {
+        let content = SCRAPER
+            .execute(move |context| {
+                context.navigate(&format!("https://www.reddit.com/search?q={}", keyword));
+                std::thread::sleep(std::time::Duration::from_secs(3));
+                context.get_html()
+            })
+            .await;
 
         let document = Html::parse_document(&content);
         let mut posts = Vec::new();
@@ -179,19 +182,22 @@ impl RedditScraper {
     }
 
     pub async fn get_simple_posts_with_members(keyword: String) -> Vec<SimplePostWithMembers> {
-        let simple_posts = Self::get_simple_posts_by_keyword(keyword);
-
+        let simple_posts = Self::get_simple_posts_by_keyword(keyword).await;
         let mut futures = Vec::new();
+        let scraper = Arc::clone(&SCRAPER);
 
         for post in simple_posts {
             let subreddit = post.subreddit.clone();
+            let scraper_clone = Arc::clone(&scraper);
 
             let future = async move {
-                let content = SCRAPER.execute(move |context| {
-                    context.navigate(&post.subreddit);
-                    std::thread::sleep(std::time::Duration::from_secs(2));
-                    context.get_html()
-                });
+                let content = scraper_clone
+                    .execute(move |context| {
+                        context.navigate(&post.subreddit);
+                        std::thread::sleep(std::time::Duration::from_secs(2));
+                        context.get_html()
+                    })
+                    .await;
 
                 let document = Html::parse_document(&content);
                 let members_element = document.select(&MEMBERS_SELECTOR).next();

@@ -23,7 +23,7 @@ pub async fn get_simple_posts_with_members_reddit(path: web::Path<String>) -> im
 
 #[get("/reddit/get-simple-posts/{keyword}")]
 pub async fn get_simple_posts_reddit(path: web::Path<String>) -> impl Responder {
-    let posts = RedditScraper::get_simple_posts_by_keyword(path.into_inner());
+    let posts = RedditScraper::get_simple_posts_by_keyword(path.into_inner()).await;
     HttpResponse::Ok().json(posts)
 }
 
@@ -35,7 +35,9 @@ pub async fn get_notices(query: web::Json<Query>) -> actix_web::Result<impl Resp
         Ok(date) => date,
         Err(e) => {
             warn!("Failed to parse start date: {}", e);
-            return Err(actix_web::error::ErrorBadRequest("Invalid start date format"));
+            return Err(actix_web::error::ErrorBadRequest(
+                "Invalid start date format",
+            ));
         }
     };
 
@@ -66,7 +68,9 @@ pub async fn get_details(query: web::Json<Query>) -> actix_web::Result<impl Resp
         Ok(date) => date,
         Err(e) => {
             warn!("Failed to parse start date: {}", e);
-            return Err(actix_web::error::ErrorBadRequest("Invalid start date format"));
+            return Err(actix_web::error::ErrorBadRequest(
+                "Invalid start date format",
+            ));
         }
     };
 

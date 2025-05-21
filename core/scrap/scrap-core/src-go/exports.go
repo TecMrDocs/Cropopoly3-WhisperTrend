@@ -22,8 +22,6 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-var Workers int = 5
-
 var (
 	scraperMap sync.Map
 	contextMap sync.Map
@@ -36,7 +34,7 @@ func getNextScraperID() int64 {
 }
 
 //export NewScraper
-func NewScraper(url *C.char) C.int64_t {
+func NewScraper(url *C.char, workers C.int64_t) C.int64_t {
 	urlStr := C.GoString(url)
 
 	var urlPtr *string
@@ -45,9 +43,10 @@ func NewScraper(url *C.char) C.int64_t {
 	}
 
 	scrap := scraper.New(scraper.Config{
-		Workers: Workers,
+		Workers: int(workers),
 		Url:     urlPtr,
 	})
+
 	id := getNextScraperID()
 	scraperMap.Store(id, scrap)
 

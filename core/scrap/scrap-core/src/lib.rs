@@ -13,6 +13,7 @@ use std::{
     os::raw::c_char,
 };
 use tracing::error;
+use tokio::task;
 
 include!(concat!(env!("CARGO_MANIFEST_DIR"), "/bindings.rs"));
 
@@ -100,30 +101,38 @@ impl Drop for Context {
 }
 
 impl Scraper {
-    pub fn new(url: Option<&str>) -> Self {
+    pub fn new(url: Option<&str>, workers: i64) -> Self {
         let c_url = CString::new(url.unwrap_or_default()).unwrap_or_default();
         unsafe {
-            let id = NewScraper(c_url.as_ptr() as *mut c_char);
+            let id = NewScraper(c_url.as_ptr() as *mut c_char, workers);
             Self { id }
         }
     }
 
-    pub fn execute(&self, task: impl Fn(Context) -> String + Send + Sync + 'static) -> String {
-        let context_id =
-            register_callback(Box::new(move |context_id| task(Context::new(context_id))));
+    pub async fn execute<F>(&self, task: F) -> String 
+    where 
+        F: Fn(Context) -> String + Send + Sync + 'static 
+    {
+        let scraper_id = self.id;
+        
+        task::spawn_blocking(move || {
+            let context_id = register_callback(Box::new(move |context_id| {
+                task(Context::new(context_id))
+            }));
 
-        unsafe {
-            let mut err = 0;
-            let result = Execute(self.id, context_id, Some(callback_trampoline), &mut err);
+            unsafe {
+                let mut err = 0;
+                let result = Execute(scraper_id, context_id, Some(callback_trampoline), &mut err);
 
-            match err {
-                0 => CStr::from_ptr(result).to_string_lossy().to_string(),
-                _ => {
-                    error!("Failed to execute task");
-                    String::new()
-                },
+                match err {
+                    0 => CStr::from_ptr(result).to_string_lossy().to_string(),
+                    _ => {
+                        error!("Failed to execute task");
+                        String::new()
+                    },
+                }
             }
-        }
+        }).await.unwrap_or_default()
     }
 }
 
@@ -139,13 +148,13 @@ impl Drop for Scraper {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_execute() {
-        let scraper = Scraper::new(None);
+    #[tokio::test]
+    async fn test_execute() {
+        let scraper = Scraper::new(None, 1);
         let title = scraper.execute(|ctx| {
             ctx.navigate("https://www.example.com");
             return ctx.evaluate("document.querySelector('h1').textContent");
-        });
+        }).await;
 
         assert_eq!(title, "Example Domain");
     }
