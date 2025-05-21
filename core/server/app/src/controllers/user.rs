@@ -1,14 +1,15 @@
 use crate::{
     database::DbResponder,
-    middlewares,
-    models::{Credentials, User},
+    //middlewares,
+    models::User,
 };
 use actix_web::{
-    HttpMessage, HttpRequest, HttpResponse, Responder, Result, error, get, middleware::from_fn,
+    // HttpMessage, 
+    HttpRequest, HttpResponse, Responder, Result, error, get, 
+    // middleware::from_fn,
     post, web,
 };
-use auth::{PasswordHasher, TokenService};
-use serde_json::json;
+use auth::PasswordHasher;
 use tracing::error;
 use validator::Validate;
 
