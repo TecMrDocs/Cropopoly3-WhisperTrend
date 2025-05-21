@@ -154,7 +154,26 @@ impl NoticesScraper {
         });
 
         let results = join_all(futures).await;
-        let details: Vec<Info> = results.into_iter().filter_map(|result| result).collect();
+        let mut details: Vec<Info> = results.into_iter().filter_map(|result| result).collect();
+        details.sort_by(|a, b| b.keywords.len().cmp(&a.keywords.len()));
+        details = details.into_iter().take(5).collect();
+
+        for detail in &mut details {
+            detail.keywords.sort_by_key(|keyword| keyword.split(" ").count());
+            detail.keywords = detail.keywords.clone().into_iter().take(3).collect();
+            detail.keywords = detail.keywords.iter().map(|keyword| {
+                keyword.to_lowercase().split(' ')
+                    .filter(|s| !s.is_empty())
+                    .map(|word| {
+                        let mut chars = word.chars();
+                        match chars.next() {
+                            None => String::new(),
+                            Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                        }
+                    })
+                    .collect::<String>()
+            }).collect();
+        }
 
         Ok(details)
     }
