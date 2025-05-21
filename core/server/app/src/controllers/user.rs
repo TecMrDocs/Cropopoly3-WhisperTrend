@@ -59,8 +59,6 @@ pub async fn get_all_users() -> Result<impl Responder> {
     return Ok(HttpResponse::Ok().json(users));
 }
 
-<<<<<<< HEAD
-=======
 #[post("/update/{id}")]
 pub async fn update_user_business_data(
     req: HttpRequest,
@@ -92,14 +90,10 @@ pub async fn update_user_business_data(
 
 
 
->>>>>>> backend-renato
 pub fn routes() -> actix_web::Scope {
     web::scope("/user")
         .service(create_user)
         .service(get_user)
         .service(get_all_users)
-<<<<<<< HEAD
-=======
         .service(update_user_business_data)
->>>>>>> backend-renato
 }
