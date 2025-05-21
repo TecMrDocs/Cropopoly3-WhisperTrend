@@ -12,6 +12,7 @@ const datos = {
   compartidos: [37, 68136, 41645, 1112],
 };
 
+
 // Función que calcula la tasa de interacción
 function generadorTasaInteraccion(data: typeof datos) {
   const { fechas, likes, comentarios, vistas, compartidos } = data;

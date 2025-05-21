@@ -3,16 +3,35 @@ use diesel::prelude::*;
 use validator::Validate;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, Deserialize, Serialize, Validate)]
+pub struct BusinessData {
+    #[validate(length(min = 1, max = 50))]
+    pub business_name: String,
+    #[validate(length(min = 1, max = 50))]
+    pub industry: String,
+    #[validate(length(min = 1, max = 50))]
+    pub company_size: String,
+    #[validate(length(min = 1, max = 50))]
+    pub scope: String,
+    #[validate(length(min = 1, max = 50))]
+    pub locations: String,
+    #[validate(length(min = 1, max = 50))]
+    pub num_branches: String,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Credentials {
     pub email: String,
-    pub contrasena: String,
+    pub password: String,
 }
 
 #[derive(Validate, Clone)]
 #[macros::diesel_default(schema::users)]
 #[diesel(primary_key(id))]
-#[macros::database(create, update(id), delete(id), get(email, id))]
+#[macros::database(create, delete(id), get(email, id), get_all)]
+#[macros::database(update(id))]
+#[macros::database(update(id{business_name,industry,company_size,scope,locations,num_branches}))]
+
 pub struct User {
     #[serde(skip_deserializing)]
     #[diesel(deserialize_as = i32)]
@@ -20,28 +39,28 @@ pub struct User {
     #[validate(length(min = 1, max = 255))]
     pub email: String,
     #[validate(length(min = 1, max = 20))]
-    pub nombres: String,
+    pub name: String,
     #[validate(length(min = 1, max = 20))]
-    pub apellidos: String,
+    pub last_name: String,
     #[validate(length(min = 1, max = 20))]
-    pub telefono: String,
+    pub phone: String,
     #[validate(length(min = 1, max = 20))]
-    pub puesto: String,
+    pub position: String,
     #[validate(length(min = 1, max = 150))]
     #[serde(skip_serializing)]
-    pub contrasena: String,
+    pub password: String,
     #[validate(length(min = 1, max = 20))]
     pub plan: String,
     #[validate(length(min = 1, max = 20))]
-    pub razon_social: String,
+    pub business_name: String,
     #[validate(length(min = 1, max = 20))]
-    pub sector: String,
+    pub industry: String,
     #[validate(length(min = 1, max = 20))]
-    pub tamano_empresa: String,
+    pub company_size: String,
     #[validate(length(min = 1, max = 20))]
-    pub alcance: String,
+    pub scope: String,
     #[validate(length(min = 1, max = 20))]
-    pub localidades: String,
+    pub locations: String,
     #[validate(length(min = 1, max = 20))]
-    pub num_sucursales: String,
+    pub num_branches: String,
 }

@@ -22,12 +22,15 @@ import Login from "../pages/Login";
 import Resumen from "../pages/Resumen";
 import ProfileLayout from "../layouts/profileLayout";
 import ChangePassword from "../pages/ChangePassword";
-import confirmaCorreo from "../pages/ConfirmaCorreo";
 import Registro from "../pages/Registro";
 import PrivacyNotice from "../pages/PrivacyNotice";
 import EmailConfirmation from "../pages/EmailConfirmation";
 import ActualizarPlan from "../pages/ActualizarPlan";
+<<<<<<< HEAD
 import Us from "../pages/Us";
+=======
+import HolaDeNuevo from "../pages/HolaDeNuevo";
+>>>>>>> 628f30fd870c112fea9d9925c6ec1a958d7bdb59
 
 
 export default function WebRouter(){
@@ -66,8 +69,8 @@ export default function WebRouter(){
       <Route path="/login" element={loadLayout(MainLayout, Login)} />
       <Route path="/resumen" element={loadLayout(MainLayout, Resumen)} />
       <Route path="/changePassword" element={loadLayout(MainLayout, ChangePassword)} />
-      <Route path="/confirmaCorreo" element={loadLayout(MainLayout, confirmaCorreo)} />
-      <Route path="/RegistroU" element={loadLayout(MainLayout, Registro)}></Route>
+      <Route path="/RegistroU" element={loadLayout(MainLayout, Registro)}/>
+      <Route path="/holaDeNuevo" element={loadLayout(MainLayout, HolaDeNuevo)}/>
     </Routes>
   );
 }
