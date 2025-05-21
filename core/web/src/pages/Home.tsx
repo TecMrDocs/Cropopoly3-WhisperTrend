@@ -13,6 +13,13 @@ export default function Home() {
         <span className="text-xl">→</span>
       </Link>
 
+      <Link
+        to="/nosotros"
+        className="mt-4 bg-white px-3 rounded-full flex items-center gap-2 hover:scale-105 transition-transform"
+      >
+        Conócenos
+      </Link>
+
       <div className="bg-white text-black text-center p-8 mt-11 max-w-4xl rounded shadow-md">
         <p>
           Whispertrend es tu plataforma de inteligencia de mercado. Nosotros sabemos que las tendencias y
