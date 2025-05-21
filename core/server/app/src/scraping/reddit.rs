@@ -4,7 +4,7 @@ use futures::future::join_all;
 use lazy_static::lazy_static;
 use regex::Regex;
 use scraper::{ElementRef, Html, Selector};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::warn;
 
@@ -30,7 +30,7 @@ lazy_static! {
     static ref MEMBERS_SELECTOR: Selector = Selector::parse("#subscribers faceplate-number").unwrap();
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SimplePost {
     time: String,
     title: String,
@@ -39,7 +39,7 @@ pub struct SimplePost {
     subreddit: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SimplePostWithMembers {
     time: String,
     title: String,

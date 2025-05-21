@@ -6,6 +6,7 @@ use std::sync::Arc;
 pub mod instagram;
 pub mod notices;
 pub mod reddit;
+pub mod trends;
 
 lazy_static! {
     pub static ref SCRAPER: Arc<Scraper> = Arc::new(Scraper::new(
