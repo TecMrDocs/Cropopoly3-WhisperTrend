@@ -10,6 +10,14 @@ lazy_static! {
     static ref NEWLINE_REGEX: Regex = Regex::new(r"[\n\r]+").unwrap();
     static ref HUMAN_NUMBER_REGEX: Regex =
         Regex::new(r"^([\d,.]+)\s*([kKmM]il|mill[oó]n|mills?|[kKMGTP])?$").unwrap();
+    static ref ARTICLE_SELECTOR: Selector = Selector::parse("article").unwrap();
+    static ref TIME_SELECTOR: Selector = Selector::parse("time").unwrap();
+    static ref TITLE_SELECTOR: Selector = Selector::parse("a[slot='title']").unwrap();
+    static ref POST_TITLE_SELECTOR: Selector = Selector::parse("h1[slot='title']").unwrap();
+    static ref CONTENT_SELECTOR: Selector = Selector::parse("a[slot='text-body']").unwrap();
+    static ref NUMBER_SELECTOR: Selector = Selector::parse("faceplate-number").unwrap();
+    static ref POST_CONSUME_TRACKER_SELECTOR: Selector =
+        Selector::parse("post-consume-tracker").unwrap();
 }
 
 #[derive(Debug, Serialize)]
@@ -94,23 +102,11 @@ impl RedditScraper {
     }
 
     pub fn get_post(element: ElementRef) -> anyhow::Result<Post> {
-        let time_selector = Selector::parse("time")
-            .map_err(|e| anyhow::anyhow!("Error parsing time selector: {}", e))?;
+        let time_element = element.select(&TIME_SELECTOR).next();
+        let title_element = element.select(&TITLE_SELECTOR).next();
+        let content_element = element.select(&CONTENT_SELECTOR).next();
 
-        let title_selector = Selector::parse("a[slot='title']")
-            .map_err(|e| anyhow::anyhow!("Error parsing title selector: {}", e))?;
-
-        let content_selector = Selector::parse("a[slot='text-body']")
-            .map_err(|e| anyhow::anyhow!("Error parsing content selector: {}", e))?;
-
-        let number_selector = Selector::parse("faceplate-number")
-            .map_err(|e| anyhow::anyhow!("Error parsing number selector: {}", e))?;
-
-        let time_element = element.select(&time_selector).next();
-        let title_element = element.select(&title_selector).next();
-        let content_element = element.select(&content_selector).next();
-
-        let mut number_elements = element.select(&number_selector);
+        let mut number_elements = element.select(&NUMBER_SELECTOR);
         let vote_element = number_elements.next();
         let comments_element = number_elements.next();
 
@@ -155,39 +151,25 @@ impl RedditScraper {
         });
 
         let document = Html::parse_document(&content);
+        let mut posts = Vec::new();
 
-        match Selector::parse("article") {
-            Ok(selector) => {
-                let mut posts = Vec::new();
-                for element in document.select(&selector) {
-                    let post = Self::get_post(element);
+        for element in document.select(&ARTICLE_SELECTOR) {
+            let post = Self::get_post(element);
 
-                    match post {
-                        Ok(post) => posts.push(post),
-                        Err(e) => warn!("Error: {}", e),
-                    }
-                }
-
-                posts
+            match post {
+                Ok(post) => posts.push(post),
+                Err(e) => warn!("Error: {}", e),
             }
-            Err(_) => Vec::new(),
         }
+
+        posts
     }
 
     fn get_simple_post(element: ElementRef) -> anyhow::Result<SimplePost> {
-        let time_selector = Selector::parse("time")
-            .map_err(|e| anyhow::anyhow!("Error parsing time selector: {}", e))?;
+        let time_element = element.select(&TIME_SELECTOR).next();
+        let title_element = element.select(&POST_TITLE_SELECTOR).next();
 
-        let title_selector = Selector::parse("a[data-testid='post-title-text']")
-            .map_err(|e| anyhow::anyhow!("Error parsing title selector: {}", e))?;
-
-        let number_selector = Selector::parse("faceplate-number")
-            .map_err(|e| anyhow::anyhow!("Error parsing number selector: {}", e))?;
-
-        let time_element = element.select(&time_selector).next();
-        let title_element = element.select(&title_selector).next();
-
-        let mut number_elements = element.select(&number_selector);
+        let mut number_elements = element.select(&NUMBER_SELECTOR);
         let vote_element = number_elements.next();
         let comments_element = number_elements.next();
 
@@ -222,23 +204,18 @@ impl RedditScraper {
         });
 
         let document = Html::parse_document(&content);
+        let mut posts = Vec::new();
 
-        match Selector::parse("post-consume-tracker") {
-            Ok(selector) => {
-                let mut posts = Vec::new();
-                for element in document.select(&selector) {
-                    let post = Self::get_simple_post(element);
+        for element in document.select(&POST_CONSUME_TRACKER_SELECTOR) {
+            let post = Self::get_simple_post(element);
 
-                    match post {
-                        Ok(post) => posts.push(post),
-                        Err(e) => warn!("Error: {}", e),
-                    }
-                }
-
-                posts
+            match post {
+                Ok(post) => posts.push(post),
+                Err(e) => warn!("Error: {}", e),
             }
-            Err(_) => Vec::new(),
         }
+
+        posts
     }
 }
 
