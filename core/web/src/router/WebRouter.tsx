@@ -26,11 +26,8 @@ import Registro from "../pages/Registro";
 import PrivacyNotice from "../pages/PrivacyNotice";
 import EmailConfirmation from "../pages/EmailConfirmation";
 import ActualizarPlan from "../pages/ActualizarPlan";
-<<<<<<< HEAD
 import Us from "../pages/Us";
-=======
 import HolaDeNuevo from "../pages/HolaDeNuevo";
->>>>>>> 628f30fd870c112fea9d9925c6ec1a958d7bdb59
 
 
 export default function WebRouter(){
