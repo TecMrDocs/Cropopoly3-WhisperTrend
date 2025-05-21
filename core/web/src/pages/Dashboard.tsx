@@ -542,21 +542,6 @@ export default function Dashboard() {
           <InterpretacionDashboard />
         </div>
 
-        {/* Componentes de redes sociales - Se pueden mostrar u ocultar según necesidades */}
-        <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
-          <h3 className="text-2xl font-bold mb-4">X</h3>
-          <XCalc />
-        </div>
-
-        <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
-          <h3 className="text-2xl font-bold mb-4">Reddit</h3>
-          <RedditCalc />
-        </div>
-
-        <div className="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
-          <h3 className="text-2xl font-bold mb-4">Instagram</h3>
-          <InstaCalc />
-        </div>
       </div>
     </div>
   );
