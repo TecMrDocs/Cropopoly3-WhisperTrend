@@ -7,7 +7,6 @@ type TextAreaFieldProps = {
   placeholder?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  label?: React.ReactNode; // ← loables también
 };
 
 export default function TextAreaField({
@@ -17,7 +16,6 @@ export default function TextAreaField({
   placeholder = 'Escribe tu mensaje...',
   value,
   onChange,
-  label,
 }: TextAreaFieldProps) {
   const [internalValue, setInternalValue] = useState('');
 
@@ -34,13 +32,8 @@ export default function TextAreaField({
   };
 
   return (
-<<<<<<< HEAD
-    <div className="flex flex-col gap-2" style={{ width }}>
-      {label && <label className="text-base font-medium">{label}</label>}
-=======
     <div className="flex flex-col gap-1" style={{ width }}>
       {label && <label className="text-md font-semibold">{label}</label>}
->>>>>>> 379a7e0 (Actualizo Pantalla de Editar Producto, ya que estaba sin terminar. Solo decia en texto editar producto.)
       <div className="p-[3px] rounded-[10px] bg-gradient-to-r from-[#00BFB3] to-[#0091D5] inline-block">
         <textarea
           placeholder={placeholder}

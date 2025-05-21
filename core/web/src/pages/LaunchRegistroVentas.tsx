@@ -1,24 +1,3 @@
-// import BlueButton from "../components/BlueButton";
-// import ProgressBar from "../components/ProgressBar";
-// import WhiteButton from "../components/WhiteButton";
-
-// export default function LaunchRegistroVentas() {
-//   return (
-//     <div>
-//       <ProgressBar activeStep={2} />
-//       <h1 className="text-center mb-4 text-[#141652] text-2xl font-semibold">Registro de ventas</h1>
-//       <h3 className="text-lg font-w100 pt-8 pb-8 w-[80%] mx-auto text-center">Si lo deseas, podrás poner algún campo vacío en caso de no contar con el dato del núero de ventas que tuviste ese mes</h3>
-
-//       {/* Tabla aquí */}
-
-//       <h3 className="text-lg font-w100 pt-8 pb-8 w-[80%] mx-auto text-center">Si lo deseas, más adelante podrás editar esta información</h3>
-//       <div className="flex flex-row justify-center gap-100 p-10">
-//         <WhiteButton text="Cancelar" width="200px" />
-//         <BlueButton text="Guardar" width="200px" />
-//       </div>
-//     </div>
-//   );
-// }
 import { useState } from "react";
 import BlueButton from "../components/BlueButton";
 import ProgressBar from "../components/ProgressBar";
