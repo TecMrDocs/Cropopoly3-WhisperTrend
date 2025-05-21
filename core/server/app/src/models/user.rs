@@ -3,6 +3,22 @@ use diesel::prelude::*;
 use validator::Validate;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, Deserialize, Serialize, Validate)]
+pub struct BusinessData {
+    #[validate(length(min = 1, max = 50))]
+    pub business_name: String,
+    #[validate(length(min = 1, max = 50))]
+    pub industry: String,
+    #[validate(length(min = 1, max = 50))]
+    pub company_size: String,
+    #[validate(length(min = 1, max = 50))]
+    pub scope: String,
+    #[validate(length(min = 1, max = 50))]
+    pub locations: String,
+    #[validate(length(min = 1, max = 50))]
+    pub num_branches: String,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Credentials {
     pub email: String,
