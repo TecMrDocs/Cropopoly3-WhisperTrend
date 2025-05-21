@@ -12,6 +12,8 @@ import EnclosedWord from "../components/EnclosedWord";
 export default function LaunchProducto() {
   const prodOrServ: string[] = ["Producto", "Servicio"];
 
+  const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNzQ5MDkyNTgzfQ.qOgICIc9OOBZuN78QeHLGbzsS-zftM9Il-7mS6QhW-k";
+
   const [pors, setPors] = useState("");
   const [nombreProducto, setNombreProducto] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -42,6 +44,26 @@ export default function LaunchProducto() {
     }
   };
 
+  const getUserId = async (): Promise<number | null> => {
+    try {
+      const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
+        headers: {
+          // Authorization: `Bearer ${token}`,
+          token: token,
+        },
+      });
+  
+      if (!res.ok) throw new Error("Error al verificar usuario");
+  
+      const data = await res.json();
+      return data.id;
+    } catch (err) {
+      console.error("Error obteniendo user_id:", err);
+      return null;
+    }
+  };
+
+  /*
   const handleSubmit = () => {
     if (!validarFormulario()) return;
 
@@ -57,6 +79,53 @@ export default function LaunchProducto() {
     console.log("Formulario válido:", data);
     navigate("/launchVentas");
   };
+  */
+
+  const handleSubmit = async () => {
+    if (!validarFormulario()) return;
+  
+    const userId = await getUserId();
+    if (!userId) {
+      alert("No se pudo obtener el usuario.");
+      return;
+    }
+  
+    const palabrasJoin = palabrasAsociadas.join(", ");
+  
+    const payload = {
+      user_id: userId,
+      r_type: pors,
+      name: nombreProducto,
+      description: descripcion,
+      related_words: palabrasJoin,
+    };
+  
+    try {
+      const response = await fetch("http://127.0.0.1:8080/api/v1/resource", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // el mismo token que usaste en /auth/check
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!response.ok) {
+        const msg = await response.text();
+        console.error("Error al crear el recurso:", msg);
+        alert("No se pudo crear el recurso.");
+        return;
+      }
+  
+      const nuevoRecurso = await response.json();
+      console.log("Recurso creado:", nuevoRecurso);
+      navigate("/launchVentas");
+    } catch (err) {
+      console.error("Error de red:", err);
+      alert("Error de red o del servidor.");
+    }
+  };
+  
 
   return(
     <div className="flex flex-col items-center h-screen bg-white">
