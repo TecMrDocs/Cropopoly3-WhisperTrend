@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import BlueButton from "../components/BlueButton";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import WhiteButton from "../components/WhiteButton";
 import SelectField from "../components/SelectField";
 import TextAreaField from "../components/TextAreaField";
+import { Plus, Trash2 } from "lucide-react";
 import { Plus, Trash2 } from "lucide-react";
 
 // Interfaz para el estado recibido
@@ -129,6 +132,25 @@ export default function EditarProducto() {
       console.error("Error de red:", err);
       alert("Error de red o del servidor.");
     }
+  };
+
+  const [palabra, setPalabra] = useState("");
+  const [palabras, setPalabras] = useState<string[]>([]);
+  const [tipo, setTipo] = useState("");
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleAgregar = () => {
+    const nueva = palabra.trim();
+    if (nueva && !palabras.includes(nueva) && palabras.length < 10) {
+      setPalabras([...palabras, nueva]);
+      setPalabra("");
+    }
+  };
+
+  const eliminarPalabra = (palabraAEliminar: string) => {
+    setPalabras(palabras.filter((p) => p !== palabraAEliminar));
   };
 
   return (
