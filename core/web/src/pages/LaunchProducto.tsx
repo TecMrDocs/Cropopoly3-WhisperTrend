@@ -12,7 +12,7 @@ import EnclosedWord from "../components/EnclosedWord";
 export default function LaunchProducto() {
   const prodOrServ: string[] = ["Producto", "Servicio"];
 
-  const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNzQ5MDkyNTgzfQ.qOgICIc9OOBZuN78QeHLGbzsS-zftM9Il-7mS6QhW-k";
+  const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzQ5MjI4MTIwfQ.ysOpkiGz9d07Dm-d1og-xAoSFIf-V7laT8xWp4COPfc";
 
   const [pors, setPors] = useState("");
   const [nombreProducto, setNombreProducto] = useState("");
@@ -105,7 +105,7 @@ export default function LaunchProducto() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // el mismo token que usaste en /auth/check
+          //Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
