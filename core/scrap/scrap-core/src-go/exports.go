@@ -18,8 +18,10 @@ import (
 	"libscraper/scraper"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/chromedp/cdproto/emulation"
+	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 )
 
@@ -34,8 +36,19 @@ func getNextScraperID() int64 {
 	return atomic.AddInt64(&scraperNextID, 1) - 1
 }
 
+var mapBlockResources = map[string]network.ResourceType{
+	"script":     network.ResourceTypeScript,
+	"stylesheet": network.ResourceTypeStylesheet,
+	"image":      network.ResourceTypeImage,
+	"font":       network.ResourceTypeFont,
+	"media":      network.ResourceTypeMedia,
+	"other":      network.ResourceTypeOther,
+	"document":   network.ResourceTypeDocument,
+	"manifest":   network.ResourceTypeManifest,
+}
+
 //export NewScraper
-func NewScraper(url *C.char, workers C.int64_t) C.int64_t {
+func NewScraper(url *C.char, workers C.int64_t, blockResources []*C.char) C.int64_t {
 	urlStr := C.GoString(url)
 
 	var urlPtr *string
@@ -43,9 +56,18 @@ func NewScraper(url *C.char, workers C.int64_t) C.int64_t {
 		urlPtr = &urlStr
 	}
 
+	var blockResourcesList []network.ResourceType
+	for _, resource := range blockResources {
+		resourceStr := C.GoString(resource)
+		if resourceType, ok := mapBlockResources[resourceStr]; ok {
+			blockResourcesList = append(blockResourcesList, resourceType)
+		}
+	}
+
 	scrap := scraper.New(scraper.Config{
-		Workers: int(workers),
-		Url:     urlPtr,
+		Workers:        int(workers),
+		Url:            urlPtr,
+		BlockResources: blockResourcesList,
 	})
 
 	id := getNextScraperID()
@@ -99,6 +121,26 @@ func SetUserAgent(ctxID C.int64_t, userAgent *C.char) C.int64_t {
 	if err != nil {
 		return C.int64_t(1)
 	}
+	return C.int64_t(0)
+}
+
+//export WaitForElement
+func WaitForElement(ctxID C.int64_t, selector *C.char, timeoutMs C.int64_t) C.int64_t {
+	ctxInterface, ok := contextMap.Load(int64(ctxID))
+	if !ok {
+		return C.int64_t(1)
+	}
+	ctx := ctxInterface.(*context.Context)
+
+	timeoutDuration := time.Duration(timeoutMs) * time.Millisecond
+	timeoutCtx, cancel := context.WithTimeout(*ctx, timeoutDuration)
+	defer cancel()
+
+	err := chromedp.Run(timeoutCtx, chromedp.WaitReady(C.GoString(selector), chromedp.ByQuery))
+	if err != nil {
+		return C.int64_t(1)
+	}
+
 	return C.int64_t(0)
 }
 

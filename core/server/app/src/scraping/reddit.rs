@@ -8,6 +8,9 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::warn;
 
+const SUBREDDIT_SELECTOR_STR: &str = "faceplate-hovercard a";
+const MEMBERS_SELECTOR_STR: &str = "#subscribers faceplate-number";
+
 lazy_static! {
     static ref WHITESPACE_REGEX: Regex = Regex::new(r"\s+").unwrap();
     static ref NEWLINE_REGEX: Regex = Regex::new(r"[\n\r]+").unwrap();
@@ -24,10 +27,10 @@ lazy_static! {
     // simple posts
     static ref POST_CONSUME_SELECTOR: Selector = Selector::parse("[consume-events]").unwrap();
     static ref POST_TITLE_SELECTOR: Selector = Selector::parse("[data-testid='post-title-text']").unwrap();
-    static ref SUBREDDIT_SELECTOR: Selector = Selector::parse("faceplate-hovercard a").unwrap();
+    static ref SUBREDDIT_SELECTOR: Selector = Selector::parse(SUBREDDIT_SELECTOR_STR).unwrap();
 
     // members
-    static ref MEMBERS_SELECTOR: Selector = Selector::parse("#subscribers faceplate-number").unwrap();
+    static ref MEMBERS_SELECTOR: Selector = Selector::parse(MEMBERS_SELECTOR_STR).unwrap();
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -163,8 +166,8 @@ impl RedditScraper {
             .execute(move |context| {
                 let user_agent: String = UserAgent().fake();
                 context.set_user_agent(&user_agent);
+                context.wait_for_element(SUBREDDIT_SELECTOR_STR, 3000);
                 context.navigate(&format!("https://www.reddit.com/search?q={}", keyword));
-                std::thread::sleep(std::time::Duration::from_secs(3));
                 context.get_html()
             })
             .await;
@@ -198,8 +201,8 @@ impl RedditScraper {
                     .execute(move |context| {
                         let user_agent: String = UserAgent().fake();
                         context.set_user_agent(&user_agent);
+                        context.wait_for_element(MEMBERS_SELECTOR_STR, 3000);
                         context.navigate(&post.subreddit);
-                        std::thread::sleep(std::time::Duration::from_secs(2));
                         context.get_html()
                     })
                     .await;

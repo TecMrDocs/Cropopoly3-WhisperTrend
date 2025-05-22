@@ -9,11 +9,11 @@ use dashmap::DashMap;
 use lazy_static::lazy_static;
 use std::{
     ffi::{CStr, CString},
-    sync::atomic::{AtomicI64, Ordering},
     os::raw::c_char,
+    sync::atomic::{AtomicI64, Ordering},
 };
-use tracing::error;
 use tokio::task;
+use tracing::error;
 
 include!(concat!(env!("CARGO_MANIFEST_DIR"), "/bindings.rs"));
 
@@ -38,6 +38,32 @@ fn register_callback(cb: Callback) -> i64 {
     let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
     CALLBACKS.insert(id, cb);
     id
+}
+
+pub enum BlockResource {
+    Script,
+    Stylesheet,
+    Image,
+    Font,
+    Media,
+    Other,
+    Document,
+    Manifest,
+}
+
+impl BlockResource {
+    pub fn as_str(&self) -> &str {
+        match self {
+            BlockResource::Script => "script",
+            BlockResource::Stylesheet => "stylesheet",
+            BlockResource::Image => "image",
+            BlockResource::Font => "font",
+            BlockResource::Media => "media",
+            BlockResource::Other => "other",
+            BlockResource::Document => "document",
+            BlockResource::Manifest => "manifest",
+        }
+    }
 }
 
 pub struct Scraper {
@@ -67,6 +93,13 @@ impl Context {
         }
     }
 
+    pub fn wait_for_element<T: AsRef<str>>(&self, selector: T, timeout: i64) {
+        let c_selector = CString::new(selector.as_ref()).unwrap_or_default();
+        unsafe {
+            WaitForElement(self.id, c_selector.as_ptr() as *mut c_char, timeout);
+        }
+    }
+
     pub fn evaluate<T: AsRef<str>>(&self, expr: T) -> String {
         let c_expr = CString::new(expr.as_ref()).unwrap_or_default();
         unsafe {
@@ -78,7 +111,7 @@ impl Context {
                 _ => {
                     error!("Failed to evaluate expression");
                     String::new()
-                },
+                }
             }
         }
     }
@@ -93,7 +126,7 @@ impl Context {
                 _ => {
                     error!("Failed to get HTML");
                     String::new()
-                },
+                }
             }
         }
     }
@@ -108,24 +141,38 @@ impl Drop for Context {
 }
 
 impl Scraper {
-    pub fn new(url: Option<&str>, workers: i64) -> Self {
+    pub fn new(url: Option<&str>, workers: i64, block_resources: Vec<BlockResource>) -> Self {
         let c_url = CString::new(url.unwrap_or_default()).unwrap_or_default();
+        let c_block_resources = block_resources
+            .iter()
+            .map(|r| CString::new(r.as_str()).unwrap_or_default())
+            .collect::<Vec<_>>();
+
+        let ptrs: Vec<*mut c_char> = c_block_resources.iter()
+            .map(|s| s.as_ptr() as *mut c_char)
+            .collect();
+
         unsafe {
-            let id = NewScraper(c_url.as_ptr() as *mut c_char, workers);
+            let slice = GoSlice {
+                data: ptrs.as_ptr() as *mut std::ffi::c_void,
+                len: ptrs.len() as GoInt,
+                cap: ptrs.len() as GoInt,
+            };
+            
+            let id = NewScraper(c_url.as_ptr() as *mut c_char, workers, slice);
             Self { id }
         }
     }
 
-    pub async fn execute<F>(&self, task: F) -> String 
-    where 
-        F: Fn(Context) -> String + Send + Sync + 'static 
+    pub async fn execute<F>(&self, task: F) -> String
+    where
+        F: Fn(Context) -> String + Send + Sync + 'static,
     {
         let scraper_id = self.id;
-        
+
         task::spawn_blocking(move || {
-            let context_id = register_callback(Box::new(move |context_id| {
-                task(Context::new(context_id))
-            }));
+            let context_id =
+                register_callback(Box::new(move |context_id| task(Context::new(context_id))));
 
             unsafe {
                 let mut err = 0;
@@ -136,10 +183,12 @@ impl Scraper {
                     _ => {
                         error!("Failed to execute task");
                         String::new()
-                    },
+                    }
                 }
             }
-        }).await.unwrap_or_default()
+        })
+        .await
+        .unwrap_or_default()
     }
 }
 
@@ -157,11 +206,13 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute() {
-        let scraper = Scraper::new(None, 1);
-        let title = scraper.execute(|ctx| {
-            ctx.navigate("https://www.example.com");
-            return ctx.evaluate("document.querySelector('h1').textContent");
-        }).await;
+        let scraper = Scraper::new(None, 1, vec![]);
+        let title = scraper
+            .execute(|ctx| {
+                ctx.navigate("https://www.example.com");
+                return ctx.evaluate("document.querySelector('h1').textContent");
+            })
+            .await;
 
         assert_eq!(title, "Example Domain");
     }
