@@ -38,6 +38,7 @@ impl Application for AppServer {
                         .service(controllers::chat::routes())
                         .service(controllers::recurso::routes())
                         .service(controllers::user::routes())
+                        .service(controllers::sale::routes())
                 )
         });
 

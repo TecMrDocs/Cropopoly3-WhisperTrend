@@ -16,6 +16,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    sales (id) {
+        id -> Int4,
+        resource_id -> Int4,
+        month -> Int4,
+        year -> Int4,
+        units_sold -> Int4,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Int4,
         #[max_length = 50]
@@ -48,8 +58,10 @@ diesel::table! {
 }
 
 diesel::joinable!(resources -> users (user_id));
+diesel::joinable!(sales -> resources (resource_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     resources,
+    sales,
     users,
 );
