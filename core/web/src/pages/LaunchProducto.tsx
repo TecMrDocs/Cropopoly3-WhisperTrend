@@ -65,6 +65,53 @@ export default function LaunchProducto() {
       return null;
     }
   };
+  */
+
+  const handleSubmit = async () => {
+    if (!validarFormulario()) return;
+  
+    const userId = await getUserId();
+    if (!userId) {
+      alert("No se pudo obtener el usuario.");
+      return;
+    }
+  
+    const palabrasJoin = palabrasAsociadas.join(", ");
+  
+    const payload = {
+      user_id: userId,
+      r_type: pors,
+      name: nombreProducto,
+      description: descripcion,
+      related_words: palabrasJoin,
+    };
+  
+    try {
+      const response = await fetch("http://127.0.0.1:8080/api/v1/resource", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          //Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!response.ok) {
+        const msg = await response.text();
+        console.error("Error al crear el recurso:", msg);
+        alert("No se pudo crear el recurso.");
+        return;
+      }
+  
+      const nuevoRecurso = await response.json();
+      console.log("Recurso creado:", nuevoRecurso);
+      navigate("/launchVentas");
+    } catch (err) {
+      console.error("Error de red:", err);
+      alert("Error de red o del servidor.");
+    }
+  };
+  
 
   const handleSubmit = async () => {
     if (!validarFormulario()) return;

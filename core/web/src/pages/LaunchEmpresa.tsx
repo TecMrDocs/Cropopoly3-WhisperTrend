@@ -10,6 +10,8 @@ import BlueButton from "../components/BlueButton";
 export default function LaunchEmpresa() {
   const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzQ5MjI4MTIwfQ.ysOpkiGz9d07Dm-d1og-xAoSFIf-V7laT8xWp4COPfc";
 
+  const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzQ5MjI4MTIwfQ.ysOpkiGz9d07Dm-d1og-xAoSFIf-V7laT8xWp4COPfc";
+
   const industrias: string[] = ["Manufactura", "Moda", "Alimentos", "Tecnología", "Salud"];
   const opcionesColabs: string[] = ["10 o menos", 
     "Entre 11 y 50", 
@@ -71,7 +73,71 @@ export default function LaunchEmpresa() {
   };
 
   const handleSubmit = async () => {
+  const getUserId = async (): Promise<number | null> => {
+    try {
+      const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
+        headers: {
+          token: token,
+        },
+      });
+  
+      if (!res.ok) throw new Error("Error al verificar usuario");
+  
+      const data = await res.json();
+      return data.id;
+    } catch (err) {
+      console.error("Error obteniendo user_id:", err);
+      return null;
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!validarFormulario()) return;
+
+    const userId = await getUserId();
+    if (!userId) {
+      alert("No se pudo obtener el usuario.");
+      return;
+    }
+
+    let ne = "";
+    if (numEmpleados === "10 o menos") ne = "micro empresa";
+    else if (numEmpleados === "Entre 11 y 50") ne = "pequeña empresa";
+    else if (numEmpleados === "Entre 51 y 250") ne = "empresa mediana";
+    else if (numEmpleados === "Más de 250") ne = "empresa grande";
+
+    const payload = {
+      business_name: nombreEmpresa,
+      industry: industria,
+      company_size: ne,
+      scope: alcance,
+      locations: operaciones,
+      num_branches: sucursales,
+    }
+  
+    try {
+      const response = await fetch(`http://127.0.0.1:8080/api/v1/user/update/${userId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!response.ok) {
+        const msg = await response.text();
+        console.error("Error al registrar información de empresa:", msg);
+        alert("No se pudo registrar la información de la empresa.");
+        return;
+      }
+  
+      console.log("Información de empresa registrada con éxito");
+      navigate("/launchProducto");
+    } catch (err) {
+      console.error("Error de red:", err);
+      alert("Error de red o del servidor.");
+    }
+  };
 
     const userId = await getUserId();
     if (!userId) {
