@@ -10,8 +10,6 @@ import BlueButton from "../components/BlueButton";
 export default function LaunchEmpresa() {
   const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzQ5MjI4MTIwfQ.ysOpkiGz9d07Dm-d1og-xAoSFIf-V7laT8xWp4COPfc";
 
-  const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzQ5MjI4MTIwfQ.ysOpkiGz9d07Dm-d1og-xAoSFIf-V7laT8xWp4COPfc";
-
   const industrias: string[] = ["Manufactura", "Moda", "Alimentos", "Tecnología", "Salud"];
   const opcionesColabs: string[] = ["10 o menos", 
     "Entre 11 y 50", 
