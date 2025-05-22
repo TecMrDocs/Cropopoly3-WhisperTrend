@@ -1,5 +1,6 @@
 pub use user::{User, Credentials, BusinessData};
 pub use resource::Resource;
+pub use sale::Sale;
 
 use crate::database::Database;
 
@@ -8,6 +9,7 @@ use diesel::prelude::*;
 
 mod user;
 mod resource;
+mod sale;
 
 use crate::schema::resources::dsl::*;
 
@@ -19,4 +21,14 @@ impl Database {
                 .load::<Resource>(conn)
         }).await
     }
+
+    pub async fn get_resource_sales(resource_id_value: i32) -> anyhow::Result<Vec<Sale>> {
+        Self::query_wrapper(move |conn| {
+            schema::sales::table
+                .filter(schema::sales::resource_id.eq(resource_id_value))
+                .load::<Sale>(conn)
+        }).await
+    }
+
+
 }
