@@ -15,6 +15,7 @@ pub struct InstagramPost {
     pub url: String,
     pub caption: String,
     pub likes: Option<u32>,
+    pub comments: Option<u32>,
 }
 
 pub struct InstagramScraper;
@@ -70,32 +71,66 @@ impl InstagramScraper {
         Ok(browser)
     }
 
-    pub async fn get_one_post() -> anyhow::Result<InstagramPost> {
-        let browser = Self::login().await?;
-        let page = browser
-            .new_page("https://www.instagram.com/reels/DIaAh_WSuMN/")
-            .await?;
-        page.wait_for_navigation().await?;
-        sleep(Duration::from_secs(5)).await;
+   pub async fn get_one_post() -> anyhow::Result<InstagramPost> {
+    let browser = Self::login().await?;
+    let page = browser
+        .new_page("https://www.instagram.com/reels/DIaAh_WSuMN/")
+        .await?;
+    page.wait_for_navigation().await?;
+    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
 
-        let caption_el = page.find_element("meta[property='og:title']").await?;
-        let js_result: CallFunctionOnReturns = caption_el
-            .call_js_fn("function() { return this.getAttribute('content'); }", false)
-            .await?;
+    // === Caption ===
+    let caption_el = page.find_element("meta[property='og:title']").await?;
+    let js_result: CallFunctionOnReturns = caption_el
+        .call_js_fn("function() { return this.getAttribute('content'); }", false)
+        .await?;
 
-        let caption_text = js_result
-            .result
-            .value
-            .and_then(|v| v.as_str().map(|s| s.to_string()))
-            .unwrap_or_default();
+    let caption_text = js_result
+        .result
+        .value
+        .and_then(|v| v.as_str().map(|s| s.to_string()))
+        .unwrap_or_default();
 
-        Ok(InstagramPost {
-            url: page.url().await?.unwrap_or_default(),
-            caption: caption_text,
-            likes: None,
-        })
-    }
+    // === Likes ===
+    let like_el = page.find_element("svg[aria-label='Like']").await?;
+    let like_result = like_el
+        .call_js_fn("function() { return this.closest('div').querySelector('span')?.innerText; }", false)
+        .await?;
+
+    let likes = like_result
+        .result
+        .value
+        .and_then(|v| v.as_str().map(|s| {
+            let clean = s.replace(",", "").replace("K", "000");
+            clean.trim().parse::<u32>().ok()
+        }))
+        .flatten();
+
+    // === Comments ===
+    let comment_el = page.find_element("svg[aria-label='Comment']").await?;
+    let comment_result = comment_el
+        .call_js_fn("function() { return this.closest('div').querySelector('span')?.innerText; }", false)
+        .await?;
+
+    let comments = comment_result
+        .result
+        .value
+        .and_then(|v| v.as_str().map(|s| {
+            let clean = s.replace(",", "").replace("K", "000");
+            clean.trim().parse::<u32>().ok()
+        }))
+        .flatten();
+
+    Ok(InstagramPost {
+        url: page.url().await?.unwrap_or_default(),
+        caption: caption_text,
+        likes,
+        comments,
+    })
 }
+
+}
+
 
 // =========================
 // Cookies: guardar y cargar
