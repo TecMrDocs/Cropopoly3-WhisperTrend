@@ -182,7 +182,7 @@ export default function Registro() {
           setApiError(data.message || `Error en el registro (${response.status})`);
         }
 
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error en el registro:", error);
         // Si hay error de red pero el registro pudo haberse completado
         if (error.message.includes("Failed to fetch")) {
@@ -213,11 +213,11 @@ export default function Registro() {
       )}
 
       <form onSubmit={handleSubmit}>
-        <div className='flex flex-row gap-6 justify-center'>
-          <div>
+        <div className='flex flex-row gap-6 justify-center max-w-3xl mx-auto w-full'>
+          <div className="w-full">
             <TextFieldWHolder
               label="Nombre(s)"
-              width="300px"
+              width="100%"
               name="name"
               value={formData.name}
               onChange={handleChange}
@@ -228,10 +228,10 @@ export default function Registro() {
               <p className="text-red-500 text-sm mt-1">{errors.name}</p>
             )}
           </div>
-          <div>
+          <div className="w-full">
             <TextFieldWHolder
               label="Apellido(s)"
-              width="300px"
+              width="100%"
               name="last_name"
               value={formData.last_name}
               onChange={handleChange}
@@ -246,11 +246,11 @@ export default function Registro() {
 
         <br />
 
-        <div className="flex flex-col gap-5 items-center justify-center">
-          <div className="w-[600px]">
+        <div className="flex flex-col gap-5 items-center justify-center max-w-2xl mx-auto w-full">
+          <div className="w-full">
             <TextFieldWHolder
               label="Correo electrónico"
-              width="600px"
+              width="100%"
               name="email"
               value={formData.email}
               onChange={handleChange}
@@ -262,10 +262,10 @@ export default function Registro() {
             )}
           </div>
 
-          <div className="w-[600px]">
+          <div className="w-full">
             <TextFieldWHolder
               label="Número telefónico"
-              width="600px"
+              width="100%"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
@@ -277,10 +277,10 @@ export default function Registro() {
             )}
           </div>
 
-          <div className="w-[600px]">
+          <div className="w-full">
             <TextFieldWHolder
               label="Puesto o cargo en la empresa"
-              width="600px"
+              width="100%"
               name="position"
               value={formData.position}
               onChange={handleChange}
@@ -292,10 +292,10 @@ export default function Registro() {
             )}
           </div>
 
-          <div className="w-[600px]">
+          <div className="w-full">
             <TextFieldWHolder
               label="Contraseña"
-              width="600px"
+              width="100%"
               type="password"
               name="password"
               value={formData.password}
@@ -308,10 +308,10 @@ export default function Registro() {
             )}
           </div>
 
-          <div className="w-[600px]">
+          <div className="w-full">
             <TextFieldWHolder
               label="Confirma tu contraseña"
-              width="600px"
+              width="100%"
               type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
