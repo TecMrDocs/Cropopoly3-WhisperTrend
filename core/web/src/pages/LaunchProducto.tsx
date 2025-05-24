@@ -44,6 +44,26 @@ export default function LaunchProducto() {
     }
   };
 
+  const getUserId = async (): Promise<number | null> => {
+    try {
+      const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
+        headers: {
+          // Authorization: `Bearer ${token}`,
+          token: token,
+        },
+      });
+  
+      if (!res.ok) throw new Error("Error al verificar usuario");
+  
+      const data = await res.json();
+      return data.id;
+    } catch (err) {
+      console.error("Error obteniendo user_id:", err);
+      return null;
+    }
+  };
+
+  /*
   const handleSubmit = () => {
     if (!validarFormulario()) return;
 
