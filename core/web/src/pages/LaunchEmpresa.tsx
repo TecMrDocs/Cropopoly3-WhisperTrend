@@ -130,7 +130,9 @@ export default function LaunchEmpresa() {
       }
   
       console.log("Información de empresa registrada con éxito");
-      navigate("/launchProducto");
+      const prompt = promptBuilder1();
+      console.log("Prompt: ", prompt);
+      navigate("/launchProducto", { state: { prompt } });
     } catch (err) {
       console.error("Error de red:", err);
       alert("Error de red o del servidor.");

@@ -111,6 +111,18 @@ export default function LaunchProducto() {
       alert("Error de red o del servidor.");
     }
   };
+
+  const promptBuilder2 = () => {
+    const t1 = "Ofrezco un " + pors.toLowerCase() + " llamado " + nombreProducto + ". ";
+    const t2 = "Consiste en: " + descripcion;
+
+    if (palabrasAsociadas.length > 0) {
+      const palabras = palabrasAsociadas.join(", ");
+      return promptAnterior + t1 + t2 + ", y se asocia con: " + palabras + ".";
+    } else {
+      return promptAnterior + t1 + t2 + ".";
+    }
+  }
   
 
   const handleSubmit = async () => {
