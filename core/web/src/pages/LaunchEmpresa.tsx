@@ -23,6 +23,7 @@ export default function LaunchEmpresa() {
   const [alcance, setAlcance] = useState("");
   const [operaciones, setOperaciones] = useState("");
   const [sucursales, setSucursales] = useState("");
+  const [prompt1, setPrompt1] = useState("");
   const navigate = useNavigate();
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -110,12 +111,28 @@ export default function LaunchEmpresa() {
       }
   
       console.log("Información de empresa registrada con éxito");
-      navigate("/launchProducto");
+      const prompt = promptBuilder1();
+      console.log("Prompt: ", prompt);
+      navigate("/launchProducto", { state: { prompt } });
     } catch (err) {
       console.error("Error de red:", err);
       alert("Error de red o del servidor.");
     }
   };
+
+  const promptBuilder1 = () => {
+    let ne = "";
+    if (numEmpleados === "10 o menos") ne = "micro empresa";
+    else if (numEmpleados === "Entre 11 y 50") ne = "pequeña empresa";
+    else if (numEmpleados === "Entre 51 y 250") ne = "empresa mediana";
+    else if (numEmpleados === "Más de 250") ne = "empresa grande";
+
+    const t1 = "Me dedico a la industria de " + industria + ". ";
+    const t2 = "Tengo una " + ne + " con alcance " + alcance + " y " + sucursales + " sucursales. ";
+    const t3 = "Desarrollo mis operaciones en " + operaciones + ". ";
+
+    return t1 + t2 + t3;
+  }
 
   return(
     <div className="flex flex-col items-center h-screen bg-white">
