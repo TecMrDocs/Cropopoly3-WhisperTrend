@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import ProgressBar from "../components/ProgressBar";
 import SelectField from "../components/SelectField";
 import TextFieldWHolder from "../components/TextFieldWHolder";
@@ -10,6 +10,9 @@ import WordAdder from "../components/WordAdder";
 import EnclosedWord from "../components/EnclosedWord";
 
 export default function LaunchProducto() {
+  const location = useLocation();
+  const promptAnterior = location.state?.prompt || "";
+
   const prodOrServ: string[] = ["Producto", "Servicio"];
 
   const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzQ5MjI4MTIwfQ.ysOpkiGz9d07Dm-d1og-xAoSFIf-V7laT8xWp4COPfc";
@@ -28,6 +31,7 @@ export default function LaunchProducto() {
     if (!pors.trim()) nuevosErrores.pors = "Este campo es obligatorio";
     if (!nombreProducto.trim()) nuevosErrores.nombreProducto = "Este campo es obligatorio";
     if (!descripcion.trim()) nuevosErrores.descripcion = "Este campo es obligatorio";
+    if (palabrasAsociadas.length === 0) nuevosErrores.palabrasAsociadas = "Añadir al menos una palabra asociada";
   
     setErrors(nuevosErrores);
   
@@ -48,7 +52,6 @@ export default function LaunchProducto() {
     try {
       const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
         headers: {
-          // Authorization: `Bearer ${token}`,
           token: token,
         },
       });
@@ -62,24 +65,6 @@ export default function LaunchProducto() {
       return null;
     }
   };
-
-  /*
-  const handleSubmit = () => {
-    if (!validarFormulario()) return;
-
-    const palabrasJoin = palabrasAsociadas.join(", ");
-
-    const data = {
-      pors,
-      nombreProducto,
-      descripcion,
-      palabrasJoin,
-    };
-
-    console.log("Formulario válido:", data);
-    navigate("/launchVentas");
-  };
-  */
 
   const handleSubmit = async () => {
     if (!validarFormulario()) return;
@@ -119,12 +104,28 @@ export default function LaunchProducto() {
   
       const nuevoRecurso = await response.json();
       console.log("Recurso creado:", nuevoRecurso);
+
+      const prompt = promptBuilder2();
+      console.log("Prompt: ", prompt);
+
       navigate("/launchVentas");
     } catch (err) {
       console.error("Error de red:", err);
       alert("Error de red o del servidor.");
     }
   };
+
+  const promptBuilder2 = () => {
+    const t1 = "Ofrezco un " + pors.toLowerCase() + " llamado " + nombreProducto + ". ";
+    const t2 = "Consiste en: " + descripcion;
+
+    if (palabrasAsociadas.length > 0) {
+      const palabras = palabrasAsociadas.join(", ");
+      return promptAnterior + t1 + t2 + ", y se asocia con: " + palabras + ".";
+    } else {
+      return promptAnterior + t1 + t2 + ".";
+    }
+  }
   
 
   return(
@@ -158,6 +159,9 @@ export default function LaunchProducto() {
       <p className="text-xl mt-3 text-center">Indica palabras asociadas con tu producto o servicio (máximo 10)</p>
       <div className="mt-3">
         <WordAdder onAdd={handleAddPalabra} />
+        {errors.palabrasAsociadas && (
+          <p className="text-red-500 text-sm mt-1">{errors.palabrasAsociadas}</p>
+        )}
       </div>
 
       {palabrasAsociadas.length > 0 && (
