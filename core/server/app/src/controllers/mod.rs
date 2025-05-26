@@ -4,3 +4,4 @@ pub mod chat;
 pub mod recurso;
 pub mod user;
 pub mod sale;
+pub mod admin;

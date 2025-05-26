@@ -1,6 +1,20 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    admins (id) {
+        id -> Int4,
+        #[max_length = 50]
+        email -> Varchar,
+        #[max_length = 50]
+        nombres -> Varchar,
+        #[max_length = 50]
+        apellidos -> Varchar,
+        #[max_length = 150]
+        contrasena -> Varchar,
+    }
+}
+
+diesel::table! {
     resources (id) {
         id -> Int4,
         user_id -> Int4,
@@ -61,6 +75,7 @@ diesel::joinable!(resources -> users (user_id));
 diesel::joinable!(sales -> resources (resource_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    admins,
     resources,
     sales,
     users,
