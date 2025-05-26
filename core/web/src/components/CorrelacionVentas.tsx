@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend
+  PieChart, Pie, Cell, Legend, LineChart, Line, CartesianGrid
 } from 'recharts';
 
 interface CorrelacionVentasProps {
@@ -98,8 +98,44 @@ const datosImpactoVentas = [
   { periodo: 'Abr', sinHashtags: 1250, conHashtags: 2890 }
 ];
 
+// Datos de viralidad por post
+const datosViralidadPosts = [
+  {
+    post: "A",
+    viralidad: 3.0,
+    viralidad_normalizada: 0.0,
+    color: '#ef4444',
+    impacto: 'Bajo',
+    tendencia: 'down'
+  },
+  {
+    post: "B",
+    viralidad: 7.0,
+    viralidad_normalizada: 0.571,
+    color: '#f59e0b',
+    impacto: 'Medio',
+    tendencia: 'stable'
+  },
+  {
+    post: "C",
+    viralidad: 10.0,
+    viralidad_normalizada: 1.0,
+    color: '#10b981',
+    impacto: 'Alto',
+    tendencia: 'up'
+  },
+  {
+    post: "D",
+    viralidad: 8.5,
+    viralidad_normalizada: 0.85,
+    color: '#3b82f6',
+    impacto: 'Alto',
+    tendencia: 'up'
+  }
+];
+
 const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({ hashtagSeleccionado }) => {
-  const [vistaActiva, setVistaActiva] = useState<'correlacion' | 'impacto' | 'insights'>('correlacion');
+  const [vistaActiva, setVistaActiva] = useState<'correlacion' | 'impacto' | 'insights' | 'posts'>('correlacion');
 
   // Obtener el insight destacado basado en la selección
   const getInsightDestacado = () => {
@@ -181,7 +217,8 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({ hashtagSelecciona
           {[
             { id: 'correlacion', label: '📊 Correlaciones', icon: '📊' },
             { id: 'impacto', label: '💰 Impacto en Ventas', icon: '💰' },
-            { id: 'insights', label: '💡 Insights Clave', icon: '💡' }
+            { id: 'insights', label: '💡 Insights Clave', icon: '💡' },
+            { id: 'posts', label: '📝 Análisis de Posts', icon: '📝' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -270,6 +307,7 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({ hashtagSelecciona
         </div>
       )}
 
+      {/* Vista de impacto en ventas */}
       {vistaActiva === 'impacto' && (
         <div className="space-y-6">
           {/* Métricas de impacto */}
@@ -320,6 +358,7 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({ hashtagSelecciona
         </div>
       )}
 
+      {/* Vista de insights destacados */}
       {vistaActiva === 'insights' && (
         <div className="space-y-6">
           {/* Insight destacado */}
@@ -403,6 +442,202 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({ hashtagSelecciona
               <div className="flex items-start">
                 <span className="text-purple-500 mr-2">🎯</span>
                 <span className="text-sm text-amber-700">Combinar #SustainableFashion con imágenes de productos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vista de análisis de posts */}
+      {vistaActiva === 'posts' && (
+        <div className="space-y-6">
+          {/* Métricas generales de posts */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+              <div className="text-sm text-green-600 font-medium">Post más viral</div>
+              <div className="text-2xl font-bold text-green-700">Post C</div>
+              <div className="text-xs text-green-500">10.0 puntos de viralidad</div>
+            </div>
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+              <div className="text-sm text-blue-600 font-medium">Promedio viralidad</div>
+              <div className="text-2xl font-bold text-blue-700">6.7</div>
+              <div className="text-xs text-blue-500">puntos promedio</div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
+              <div className="text-sm text-purple-600 font-medium">Rango normalizado</div>
+              <div className="text-2xl font-bold text-purple-700">0.0-1.0</div>
+              <div className="text-xs text-purple-500">escala normalizada</div>
+            </div>
+            <div className="bg-gradient-to-br from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4">
+              <div className="text-sm text-orange-600 font-medium">Variación</div>
+              <div className="text-2xl font-bold text-orange-700">7.0</div>
+              <div className="text-xs text-orange-500">diferencia max-min</div>
+            </div>
+          </div>
+
+          {/* Cards individuales por post */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {datosViralidadPosts.map((post, index) => (
+              <div key={post.post} className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center">
+                    <div
+                      className="w-3 h-3 rounded-full mr-2"
+                      style={{ backgroundColor: post.color }}
+                    ></div>
+                    <span className="font-semibold text-gray-800 text-sm">Post {post.post}</span>
+                  </div>
+                  <div className="flex items-center">
+                    {post.tendencia === 'up' && <span className="text-green-500 text-xs">📈</span>}
+                    {post.tendencia === 'down' && <span className="text-red-500 text-xs">📉</span>}
+                    {post.tendencia === 'stable' && <span className="text-yellow-500 text-xs">📊</span>}
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-3">
+                  <div>
+                    <div className="text-lg font-bold text-gray-900">{post.viralidad}</div>
+                    <div className="text-xs text-gray-500">viralidad bruta</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-blue-600">{post.viralidad_normalizada}</div>
+                    <div className="text-xs text-gray-500">viralidad normalizada</div>
+                  </div>
+                </div>
+
+                <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                  <div
+                    className="h-2 rounded-full transition-all duration-1000"
+                    style={{
+                      width: `${post.viralidad_normalizada * 100}%`,
+                      backgroundColor: post.color
+                    }}
+                  ></div>
+                </div>
+
+                <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${post.impacto === 'Alto'
+                    ? 'bg-green-100 text-green-700'
+                    : post.impacto === 'Medio'
+                      ? 'bg-yellow-100 text-yellow-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                  Impacto {post.impacto}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Gráfico de barras - Viralidad bruta */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h4 className="font-semibold text-gray-800 mb-4">📊 Comparativa de viralidad bruta por post</h4>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={datosViralidadPosts} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <XAxis dataKey="post" />
+                  <YAxis domain={[0, 'dataMax']} />
+                  <Tooltip
+                    formatter={(value: number) => [value, "Viralidad"]}
+                    labelStyle={{ color: '#374151' }}
+                  />
+                  <Bar dataKey="viralidad" radius={[4, 4, 0, 0]}>
+                    {datosViralidadPosts.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Gráfico de barras - Viralidad normalizada */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h4 className="font-semibold text-gray-800 mb-4">📈 Comparativa de viralidad normalizada por post</h4>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={datosViralidadPosts} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <XAxis dataKey="post" />
+                  <YAxis domain={[0, 1]} tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
+                  <Tooltip
+                    formatter={(value: number) => [`${(value * 100).toFixed(1)}%`, "Viralidad Normalizada"]}
+                    labelStyle={{ color: '#374151' }}
+                  />
+                  <Bar dataKey="viralidad_normalizada" radius={[4, 4, 0, 0]}>
+                    {datosViralidadPosts.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Gráfico combinado - Líneas */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <h4 className="font-semibold text-gray-800 mb-4">📋 Vista combinada - Evolución de viralidad</h4>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={datosViralidadPosts} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="post" />
+                  <YAxis yAxisId="left" orientation="left" />
+                  <YAxis yAxisId="right" orientation="right" domain={[0, 1]} tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
+                  <Tooltip
+                    formatter={(value: number, name: string) => [
+                      name === 'viralidad' ? value : `${(value * 100).toFixed(1)}%`,
+                      name === 'viralidad' ? 'Viralidad Bruta' : 'Viralidad Normalizada'
+                    ]}
+                  />
+                  <Legend />
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="viralidad"
+                    stroke="#3b82f6"
+                    strokeWidth={3}
+                    dot={{ r: 6 }}
+                    name="Viralidad Bruta"
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="viralidad_normalizada"
+                    stroke="#10b981"
+                    strokeWidth={3}
+                    dot={{ r: 6 }}
+                    name="Viralidad Normalizada"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Análisis y recomendaciones */}
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-4">
+            <h4 className="font-semibold text-indigo-800 mb-3">🎯 Análisis de rendimiento de posts</h4>
+            <div className="space-y-2">
+              <div className="flex items-start">
+                <span className="text-green-500 mr-2">⭐</span>
+                <span className="text-sm text-indigo-700">
+                  <strong>Post C</strong> lidera con la mayor viralidad (10.0) y normalización perfecta (1.0)
+                </span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-yellow-500 mr-2">📊</span>
+                <span className="text-sm text-indigo-700">
+                  <strong>Post B</strong> muestra rendimiento medio equilibrado con potencial de mejora
+                </span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-red-500 mr-2">⚠️</span>
+                <span className="text-sm text-indigo-700">
+                  <strong>Post A</strong> necesita optimización urgente - menor viralidad registrada
+                </span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-blue-500 mr-2">💡</span>
+                <span className="text-sm text-indigo-700">
+                  Replicar elementos exitosos del Post C en futuras publicaciones
+                </span>
               </div>
             </div>
           </div>
