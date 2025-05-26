@@ -41,21 +41,21 @@ export default function EditarDatos() {
         <div className="flex border rounded-md overflow-hidden">
           <button
             className={`px-6 py-2 font-semibold ${
-              location.pathname === "/editarproducto"
+              location.pathname === "/editarProducto"
                 ? "bg-gradient-to-r from-[#00BFB3] to-[#0091D5] text-white"
                 : "bg-white text-black"
             }`}
-            onClick={() => navigate("/editarproducto")}
+            onClick={() => navigate("/editarProducto")}
           >
             Editar información del producto
           </button>
           <button
             className={`px-6 py-2 font-semibold ${
-              location.pathname === "/editardatos"
+              location.pathname === "/editarDatos"
                 ? "bg-gradient-to-r from-[#00BFB3] to-[#0091D5] text-white"
                 : "bg-white text-black"
             }`}
-            onClick={() => navigate("/editardatos")}
+            onClick={() => navigate("/editarDatos")}
           >
             Editar datos de ventas
           </button>
