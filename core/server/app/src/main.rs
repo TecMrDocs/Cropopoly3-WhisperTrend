@@ -39,6 +39,7 @@ impl Application for AppServer {
                         .service(controllers::recurso::routes())
                         .service(controllers::user::routes())
                         .service(controllers::sale::routes())
+                        .service(controllers::admin::routes())
                 )
         });
 
