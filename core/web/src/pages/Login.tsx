@@ -5,7 +5,9 @@ import Container from "../components/Container";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import { useNavigate } from "react-router-dom";
 
+// Maneja el inicio de sesión del usuario
 export default function Login() {
+  // Define estados para el formulario
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({
@@ -13,9 +15,10 @@ export default function Login() {
     password: "",
   });
   const [apiError, setApiError] = useState("");
-  const [token, setToken] = useState("");
+  // const [token, setToken] = useState("");
   const navigate = useNavigate();
 
+  // Valida el formulario antes de enviarlo	
   const validateForm = () => {
     let valid = true;
     const newErrors = {
@@ -30,27 +33,33 @@ export default function Login() {
     } else if (!email.includes("@")) {
       newErrors.email = "El correo debe contener @";
       valid = false;
+    } else if (!/^[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$/.test(email)) {
+      newErrors.email = "El correo no tiene un formato válido";
+      valid = false;
     }
 
     if (!password) {
       newErrors.password = "La contraseña es requerida";
       valid = false;
     }
-    // else if (password.length < 8) {
-    //   newErrors.password = "La contraseña debe tener mínimo 8 caracteres";
-    //   valid = false;
-    // }
+    else if (password.length < 8) {
+      newErrors.password = "La contraseña debe tener mínimo 8 caracteres";
+      valid = false;
+    }
+
 
     setErrors(newErrors);
     return valid;
   };
 
+  // Maneja el envío del formulario
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setApiError("");
 
     if (!validateForm()) return;
 
+    //Si el formulario es válido, manda la solicitud de inicio de sesión, si se procesa correctamente, guarda el token en localStorage, y redirige al usuario a la página para su autenticación.
     try {
       const response = await fetch("http://127.0.0.1:8080/api/v1/auth/signin", {
         method: "POST",
@@ -63,7 +72,8 @@ export default function Login() {
       }
 
       const data = await response.json();
-      setToken(data.token);
+      // setToken(data.token);
+      localStorage.setItem("token", data.token);
       console.log("Token recibido:", data.token);
       navigate("/HolaDeNuevo");
     } catch (error: any) {
@@ -72,6 +82,7 @@ export default function Login() {
     }
   };
 
+  // Página de inicio de sesión con formulario y mensajes de error
   return (
     <LogoBackground>
       <div className="flex flex-1 justify-center items-center p-8">
@@ -84,7 +95,7 @@ export default function Login() {
               {apiError}
             </div>
           )}
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="max-w-[271px]">
             <Container>
               <div className="mb-4">
                 <label htmlFor="email-input" className="block mb-2">Correo</label>
@@ -118,7 +129,7 @@ export default function Login() {
               </div>
             </Container>
 
-            <GenericButton type="submit" text="Iniciar sesión"/>
+            <GenericButton type="submit" text="Iniciar sesión" />
           </form>
 
           <div className="text-center mt-12 text-sm">
