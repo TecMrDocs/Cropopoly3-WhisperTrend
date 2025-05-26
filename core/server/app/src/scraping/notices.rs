@@ -3,6 +3,8 @@ use lazy_static::lazy_static;
 use reqwest::Client;
 use scraper::{Html, Selector};
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
+use tokio::time::timeout;
 use url::Url;
 
 lazy_static! {
@@ -117,8 +119,10 @@ impl NoticesScraper {
             let article_url = article.url.clone();
 
             async move {
-                match client.get(&article_url).send().await {
-                    Ok(response) => match response.text().await {
+                let request_future = client.get(&article_url).send();
+                
+                match timeout(Duration::from_secs(3), request_future).await {
+                    Ok(Ok(response)) => match response.text().await {
                         Ok(body) => {
                             let document = Html::parse_document(&body);
 
@@ -149,6 +153,7 @@ impl NoticesScraper {
                         }
                         Err(_) => {}
                     },
+                    Ok(Err(_)) => {},
                     Err(_) => {}
                 }
                 None
