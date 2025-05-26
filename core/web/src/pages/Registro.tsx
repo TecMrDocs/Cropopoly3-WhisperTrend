@@ -3,6 +3,7 @@ import WhiteButton from "../components/WhiteButton";
 import BlueButton from "../components/BlueButton";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import { useNavigate } from "react-router-dom";
+import user, { User } from "../utils/api/user";
 
 // Maneja el registro de un usuario nuevo
 export default function Registro() {
@@ -145,7 +146,9 @@ export default function Registro() {
     // Si el formulario es válido, envía los datos a la API
 
     if (validateForm()) {
-      const dataToSend = {
+      setLoading(true);
+
+      const dataToSend: User = {
         email: formData.email,
         name: formData.name,
         last_name: formData.last_name,
@@ -164,67 +167,27 @@ export default function Registro() {
       // console.log("Datos válidos:", JSON.stringify(dataToSend, null, 2));
       // console.log("Enviando datos a la API...");
       try {
-        const response = await fetch("http://localhost:8080/api/v1/auth/register", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(dataToSend)
-        });
-
-        // console.log("Respuesta de la API:", response);
-        // Primero intentamos leer la respuesta como texto
-
-        const responseText = await response.text();
-
-        let data;
-        try {
-          data = responseText ? JSON.parse(responseText) : {};
-        } catch (parseError) {
-          // console.warn("La respuesta no es JSON válido:", responseText);
-
-          if (response.ok) {
-            console.log("Registro exitoso (respuesta no JSON)");
-            return navigate("/confirmacionCorreo");
-          }
-          throw new Error("Respuesta del servidor no válida");
-        }
-
-        // Manejo de respuestas exitosas
-        if (response.ok) {
-          console.log("Registro exitoso:", data);
-          return navigate("/confirmacionCorreo");
-        }
-
-        // Manejo de errores 
-
-        if (response.status === 400) {
-          setApiError(data.message || "Datos de registro inválidos");
-        } else if (response.status === 409) {
-          setApiError(data.message || "El usuario ya existe");
-        } else {
-          setApiError(data.message || `Error en el registro (${response.status})`);
-        }
+        await user.user.register(dataToSend);
+        console.log("Registro exitoso");
+        navigate("/login");
 
       } catch (error: any) {
-        console.error("Error en el registro:", error);
-        // Si hay error de red pero el registro pudo haberse completado
-        // if (error.message.includes("Failed to fetch")) {
-        //   setApiError("No se pudo verificar la respuesta del servidor. El registro pudo haberse completado.");
-        // } else {
-        //   setApiError("Ocurrió un error inesperado. Verifique si el registro se completó.");
-        // }
-        if (error instanceof Error) {
-          // Si hay error de red pero el registro pudo haberse completado
-          if (error.message.includes("Failed to fetch")) {
-            setApiError("No se pudo verificar la respuesta del servidor. El registro pudo haberse completado.");
-          } else {
-            setApiError("Ocurrió un error inesperado. Verifique si el registro se completó.");
-          }
-        } else {
-          // Si no es un Error estándar, manejamos el caso
-          setApiError("Ocurrió un error inesperado de tipo desconocido.");
+        console.error("Error al registrar el usuario:", error);
 
+        if(error.response){
+          const { status , data} = error.response;
+          if (status === 400){
+            setApiError(data.message || "Datos de registro inválidos");
+
+          } else if (status === 409) {
+            setApiError(data.message || "El usuario ya existe");
+          } else {
+            setApiError(data.message || "Error al registrar el usuario");
+          }
+        } else if (error.message?.includes("Failed to fetch")) {
+          setApiError("No se puede conectar con el servidor")
+        } else {
+          setApiError("Error inesperado")
         }
       } finally {
         setLoading(false);
