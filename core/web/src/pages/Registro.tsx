@@ -43,6 +43,7 @@ export default function Registro() {
   const [apiError, setApiError] = useState("");
 
   // Función para validar el formulario
+
   const validateForm = () => {
     let valid = true;
     const newErrors = {
@@ -70,6 +71,7 @@ export default function Registro() {
       valid = false;
     } else if (!/^[a-zA-Z\s]+$/.test(formData.last_name)) {
       newErrors.last_name = "El apellido solo puede contener letras y espacios";
+
       valid = false;
     }
 
@@ -135,11 +137,13 @@ export default function Registro() {
   };
 
   // Maneja el envío del formulario
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setApiError("");
 
     // Si el formulario es válido, envía los datos a la API
+
     if (validateForm()) {
       const dataToSend = {
         email: formData.email,
@@ -160,8 +164,6 @@ export default function Registro() {
       // console.log("Datos válidos:", JSON.stringify(dataToSend, null, 2));
       // console.log("Enviando datos a la API...");
       try {
-
-
         const response = await fetch("http://localhost:8080/api/v1/auth/register", {
           method: "POST",
           headers: {
@@ -171,6 +173,8 @@ export default function Registro() {
         });
 
         // console.log("Respuesta de la API:", response);
+        // Primero intentamos leer la respuesta como texto
+
         const responseText = await response.text();
 
         let data;
@@ -178,6 +182,7 @@ export default function Registro() {
           data = responseText ? JSON.parse(responseText) : {};
         } catch (parseError) {
           // console.warn("La respuesta no es JSON válido:", responseText);
+
           if (response.ok) {
             console.log("Registro exitoso (respuesta no JSON)");
             return navigate("/confirmacionCorreo");
@@ -192,6 +197,7 @@ export default function Registro() {
         }
 
         // Manejo de errores 
+
         if (response.status === 400) {
           setApiError(data.message || "Datos de registro inválidos");
         } else if (response.status === 409) {
@@ -218,6 +224,7 @@ export default function Registro() {
         } else {
           // Si no es un Error estándar, manejamos el caso
           setApiError("Ocurrió un error inesperado de tipo desconocido.");
+
         }
       } finally {
         setLoading(false);
@@ -231,6 +238,7 @@ export default function Registro() {
   }
 
   // Renderiza el formulario de registro
+
   return (
     <div>
       <div className='flex items-center justify-center'>
@@ -251,6 +259,7 @@ export default function Registro() {
             </label>
             <TextFieldWHolder
               id="name-field"
+
               width="100%"
               name="name"
               value={formData.name}
@@ -268,6 +277,7 @@ export default function Registro() {
             </label>
             <TextFieldWHolder
               id="last-name-field"
+
               width="100%"
               name="last_name"
               value={formData.last_name}
@@ -290,6 +300,7 @@ export default function Registro() {
             </label>
             <TextFieldWHolder
               id="email-field"
+
               width="100%"
               name="email"
               value={formData.email}
@@ -308,6 +319,7 @@ export default function Registro() {
             </label>
             <TextFieldWHolder
               id="phone-field"
+
               width="100%"
               name="phone"
               value={formData.phone}
@@ -326,6 +338,7 @@ export default function Registro() {
             </label>
             <TextFieldWHolder
               id="position-field"
+
               width="100%"
               name="position"
               value={formData.position}
@@ -344,6 +357,7 @@ export default function Registro() {
             </label>
             <TextFieldWHolder
               id="password-field"
+
               width="100%"
               type="password"
               name="password"
@@ -363,6 +377,7 @@ export default function Registro() {
             </label>
             <TextFieldWHolder
               id="confirm-password-field"
+
               width="100%"
               type="password"
               name="confirmPassword"
@@ -384,12 +399,14 @@ export default function Registro() {
           <WhiteButton
             text="Cancelar"
             // width="20%"
+
             width="300px"
             onClick={handleCancel}
           />
           <BlueButton
             text={loading ? "Registrando..." : "Crear cuenta"}
             // width="100%"
+
             width="300px"
             type="submit"
           />

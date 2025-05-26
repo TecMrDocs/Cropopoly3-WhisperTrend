@@ -14,6 +14,9 @@ regex = "1.11.1"
 rig-core = "0.12.0"
 reqwest = {version = "0.12.15", features = ["json"]}
 url = "2.5.4"
+futures = "0.3.31"
+fake = "4.3.0"
+rand = "0.9.1"
 
 macros = { workspace = true }
 auth = { workspace = true }
@@ -30,3 +33,7 @@ derive_builder = { workspace = true }
 once_cell = { workspace = true }
 lazy_static = { workspace = true }
 chrono = { workspace = true }
+
+chromiumoxide = { version = "0.5", features = ["tokio-runtime"] }
+tokio = { version = "1", features = ["full"] }
+futures-util = "0.3"

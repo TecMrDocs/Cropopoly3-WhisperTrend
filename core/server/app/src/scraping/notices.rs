@@ -1,9 +1,22 @@
+use futures::future::join_all;
+use lazy_static::lazy_static;
 use reqwest::Client;
+use scraper::{Html, Selector};
 use serde::{Deserialize, Serialize};
 use url::Url;
 
+lazy_static! {
+    static ref TITLE_SELECTOR: Selector = Selector::parse("h1").unwrap();
+    static ref KEYWORD_SELECTOR: Selector = Selector::parse("meta[name='keywords']").unwrap();
+    static ref DESCRIPTION_SELECTOR: Selector =
+        Selector::parse("meta[name='description']").unwrap();
+}
+
+const BASE_URL: &str = "https://api.gdeltproject.org/api/v2/doc/doc";
 const MODE: &str = "artlist";
 const FORMAT: &str = "JSON";
+
+pub type Details = Vec<Info>;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ApiResponse {
@@ -20,6 +33,14 @@ pub struct Articles {
     pub domain: String,
     pub language: String,
     pub sourcecountry: String,
+}
+
+#[derive(Deserialize, Serialize, Debug, Default)]
+pub struct Info {
+    pub title: String,
+    pub url: String,
+    pub description: String,
+    pub keywords: Vec<String>,
 }
 
 pub struct Params {
@@ -56,11 +77,12 @@ pub struct NoticesScraper;
 
 impl NoticesScraper {
     pub async fn get_articles(params: Params) -> anyhow::Result<Vec<Articles>> {
-        let base_url = "https://api.gdeltproject.org/api/v2/doc/doc";
-        let mut url = Url::parse(base_url)?;
+        let mut url = Url::parse(BASE_URL)?;
+
+        let full_query = format!("{} sourcelang:{}", params.query, params.language);
 
         url.query_pairs_mut()
-            .append_pair("query", &params.query)
+            .append_pair("query", &full_query)
             .append_pair("mode", params.mode)
             .append_pair("startdatetime", &params.startdatetime)
             .append_pair("enddatetime", &params.enddatetime)
@@ -84,5 +106,77 @@ impl NoticesScraper {
         };
 
         Ok(articles)
+    }
+
+    pub async fn get_details(params: Params) -> anyhow::Result<Details> {
+        let articles = Self::get_articles(params).await?;
+        let client = Client::new();
+
+        let futures = articles.into_iter().map(|article| {
+            let client = client.clone();
+            let article_url = article.url.clone();
+
+            async move {
+                match client.get(&article_url).send().await {
+                    Ok(response) => match response.text().await {
+                        Ok(body) => {
+                            let document = Html::parse_document(&body);
+
+                            if let Some(element) = document.select(&TITLE_SELECTOR).next() {
+                                let title = element.text().collect::<Vec<_>>().join(" ");
+
+                                if let Some(element) = document.select(&KEYWORD_SELECTOR).next() {
+                                    let keywords_str = element.attr("content").unwrap_or_default();
+
+                                    if let Some(element) =
+                                        document.select(&DESCRIPTION_SELECTOR).next()
+                                    {
+                                        let description =
+                                            element.attr("content").unwrap_or_default().to_string();
+
+                                        return Some(Info {
+                                            title,
+                                            url: article_url,
+                                            description,
+                                            keywords: keywords_str
+                                                .split(',')
+                                                .map(|s| s.trim().to_string())
+                                                .collect(),
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        Err(_) => {}
+                    },
+                    Err(_) => {}
+                }
+                None
+            }
+        });
+
+        let results = join_all(futures).await;
+        let mut details: Vec<Info> = results.into_iter().filter_map(|result| result).collect();
+        details.sort_by(|a, b| b.keywords.len().cmp(&a.keywords.len()));
+        details = details.into_iter().take(5).collect();
+
+        for detail in &mut details {
+            detail.keywords.sort_by_key(|keyword| keyword.split(" ").count());
+            detail.keywords = detail.keywords.clone().into_iter().take(3).collect();
+            detail.keywords = detail.keywords.iter().map(|keyword| {
+                keyword.to_lowercase().split(' ')
+                    .filter(|s| !s.is_empty())
+                    .map(|word| {
+                        let mut chars = word.chars();
+                        match chars.next() {
+                            None => String::new(),
+                            Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                        }
+                    })
+                    .collect::<String>()
+            }).collect();
+        }
+
+        Ok(details)
     }
 }

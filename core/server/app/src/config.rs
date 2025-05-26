@@ -79,6 +79,8 @@ pub struct Config {
     pub token_expiration: usize,
     #[builder(default = "None")]
     pub browserless_ws: Option<String>,
+    #[builder(default = "10")]
+    pub workers_scraper: i64,
 }
 
 impl ApplicationConfig for Config {
@@ -122,5 +124,9 @@ impl Config {
 
     pub fn get_browserless_ws() -> Option<&'static str> {
         CONFIG.browserless_ws.as_deref()
+    }
+
+    pub fn get_workers_scraper() -> i64 {
+        CONFIG.workers_scraper
     }
 }

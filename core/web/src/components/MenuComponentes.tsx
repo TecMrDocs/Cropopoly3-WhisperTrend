@@ -71,6 +71,28 @@ const opcionesTasas = [
   { id: 'intReddit', nombre: 'Tasa de interacción en Reddit', correlacion: 45, color: '#ffc658', datos: resultadoRedditCalc.datosInteraccion || resultadoRedditCalcFallback.datosInteraccion },
 ];
 
+// Definición de hashtags para noticias
+const hashtagsNoticias = [
+  { id: 'pielesSinteticas', nombre: '#PielesSinteticas', correlacion: 82, color: '#a855f7', datos: [
+    { fecha: "01/01/25 - 31/01/25", tasa: 45.2 },
+    { fecha: "1/02/25 - 28/02/25", tasa: 62.8 },
+    { fecha: "1/03/25 - 31/03/25", tasa: 71.3 },
+    { fecha: "1/04/25 - 19/04/25", tasa: 88.5 }
+  ]},
+  { id: 'milan', nombre: '#Milan', correlacion: 70, color: '#a855f7', datos: [
+    { fecha: "01/01/25 - 31/01/25", tasa: 32.1 },
+    { fecha: "1/02/25 - 28/02/25", tasa: 48.7 },
+    { fecha: "1/03/25 - 31/03/25", tasa: 55.9 },
+    { fecha: "1/04/25 - 19/04/25", tasa: 67.4 }
+  ]},
+  { id: 'modaSustentable', nombre: '#ModaSustentable', correlacion: 76, color: '#a855f7', datos: [
+    { fecha: "01/01/25 - 31/01/25", tasa: 38.9 },
+    { fecha: "1/02/25 - 28/02/25", tasa: 55.3 },
+    { fecha: "1/03/25 - 31/03/25", tasa: 69.1 },
+    { fecha: "1/04/25 - 19/04/25", tasa: 82.7 }
+  ]}
+];
+
 // Componente de Consolidación extraído de MenuComponentes para usarlo independientemente
 const Consolidacion = () => {
   const [seleccionadas, setSeleccionadas] = useState<string[]>(['xcalc']); // Por defecto muestra XCalc
@@ -164,6 +186,7 @@ type MenuComponentesProps = {
   onEcoFriendlyClick: () => void;
   hashtagSeleccionado: string;
   onTasasSeleccionadas?: (tasasIds: string[]) => void;
+  onHashtagsNoticiasSeleccionados?: (hashtagsIds: string[]) => void;
 };
 
 const MenuComponentes: React.FC<MenuComponentesProps> = ({ 
@@ -173,14 +196,19 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
   onSeleccionItem,
   onEcoFriendlyClick,
   hashtagSeleccionado,
-  onTasasSeleccionadas
+  onTasasSeleccionadas,
+  onHashtagsNoticiasSeleccionados
 }) => {
   // Estado para controlar la visibilidad del componente de Consolidación
   const [mostrarConsolidacion, setMostrarConsolidacion] = useState<boolean>(false);
   // Estado para controlar la visualización del desglose de tasas
   const [mostrarDesgloseTasas, setMostrarDesgloseTasas] = useState<boolean>(false);
+  // Estado para controlar la visualización del desglose de hashtags de noticias
+  const [mostrarDesgloseNoticias, setMostrarDesgloseNoticias] = useState<boolean>(false);
   // Estado para guardar las tasas seleccionadas (ahora es un array)
   const [tasasSeleccionadas, setTasasSeleccionadas] = useState<string[]>(['intReddit']); // Por defecto seleccionamos una tasa
+  // Estado para guardar los hashtags de noticias seleccionados
+  const [hashtagsNoticiasSeleccionados, setHashtagsNoticiasSeleccionados] = useState<string[]>(['pielesSinteticas']);
 
   const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 'normalizado') => {
     setHashtagSeleccionado(itemId);
@@ -188,9 +216,17 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
     // Si es #EcoFriendly, mostrar el desglose de tasas
     if (itemId === '#EcoFriendly') {
       setMostrarDesgloseTasas(true);
+      setMostrarDesgloseNoticias(false);
       onEcoFriendlyClick();
-    } else {
+    } 
+    // Si es Noticia1, mostrar el desglose de hashtags de noticias
+    else if (itemId === 'Noticia1') {
+      setMostrarDesgloseNoticias(true);
       setMostrarDesgloseTasas(false);
+    } 
+    else {
+      setMostrarDesgloseTasas(false);
+      setMostrarDesgloseNoticias(false);
       
       if (nuevoModo) {
         setModoVisualizacion(nuevoModo);
@@ -201,6 +237,30 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
     setMostrarConsolidacion(false);
     
     onSeleccionItem(itemId);
+  };
+
+  // Modificado para alternar hashtags de noticias seleccionados
+  const handleHashtagNoticiaClick = (hashtagId: string) => {
+    setHashtagsNoticiasSeleccionados(prev => {
+      // Si ya está seleccionado, lo eliminamos
+      if (prev.includes(hashtagId)) {
+        const nuevaSeleccion = prev.filter(id => id !== hashtagId);
+        // Aseguramos que siempre haya al menos un hashtag seleccionado
+        if (nuevaSeleccion.length === 0) {
+          return prev;
+        }
+        return nuevaSeleccion;
+      } 
+      // Si no está seleccionado, lo añadimos
+      else {
+        const nuevaSeleccion = [...prev, hashtagId];
+        // Informamos al componente padre sobre el cambio
+        if (onHashtagsNoticiasSeleccionados) {
+          onHashtagsNoticiasSeleccionados(nuevaSeleccion);
+        }
+        return nuevaSeleccion;
+      }
+    });
   };
 
   // Modificado para alternar tasas seleccionadas en lugar de seleccionar solo una
@@ -242,8 +302,16 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
     }
   }, [tasasSeleccionadas, onTasasSeleccionadas]);
 
+  // Efecto para notificar al padre cuando cambian los hashtags de noticias seleccionados
+  React.useEffect(() => {
+    if (onHashtagsNoticiasSeleccionados) {
+      onHashtagsNoticiasSeleccionados(hashtagsNoticiasSeleccionados);
+    }
+  }, [hashtagsNoticiasSeleccionados, onHashtagsNoticiasSeleccionados]);
+
   const isActive = (value: string) => value === hashtagSeleccionado;
   const isTasaActive = (value: string) => tasasSeleccionadas.includes(value);
+  const isHashtagNoticiaActive = (value: string) => hashtagsNoticiasSeleccionados.includes(value);
 
   const getButtonStyle = (value: string) => {
     return isActive(value)
@@ -268,14 +336,12 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
       return `${baseStyle} ${isActive(hashtag) ? 'bg-amber-600 ring-2 ring-offset-2 ring-amber-500' : 'bg-amber-500'}`;
     } else if (hashtag === 'Noticia3') {
       return `${baseStyle} ${isActive(hashtag) ? 'bg-teal-600 ring-2 ring-offset-2 ring-teal-500' : 'bg-teal-500'}`;
-    } else if (hashtag === 'Consolidacion') {
-      return `${baseStyle} ${mostrarConsolidacion ? 'bg-purple-800 ring-2 ring-offset-2 ring-purple-700' : 'bg-purple-700'}`;
     }
 
     return baseStyle;
   };
 
-  // Lista para mostrar debajo de Noticias
+  // Lista para mostrar debajo de Noticias (ya no se usa, pero mantengo por si acaso)
   const opcionesRedesSociales = ['Ventas', '#EcoFriendly', '#SustainableFashion', '#NuevosMateriales'];
 
   return (
@@ -305,34 +371,58 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
           </div>
         </div>
 
-        {/* Sección de Tendencia Global */}
-        <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-green-50 to-teal-50">
-          <h2 className="text-xl font-bold text-navy-900">Tendencia global</h2>
-          <div className="mt-3 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div
-                  className={getCircleStyle('#EcoFriendly')}
-                  onClick={() => handleItemClick('#EcoFriendly', 'original')}
-                ></div>
-                <span className={`text-gray-800 ${isActive('#EcoFriendly') ? 'font-bold' : 'font-medium'}`}>
-                  #EcoFriendly - Correlación: 91%
-                </span>
-              </div>
+        {/* Sección de desglose de hashtags de noticias - Aparece solo cuando Noticia1 está seleccionado */}
+        {mostrarDesgloseNoticias && (
+          <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-purple-50 to-pink-50">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xl font-bold text-navy-900">A la alza pieles sintéticas en Milán - Correlación: 76%</h2>
               <button
-                className={getButtonStyle('#EcoFriendly')}
-                onClick={() => handleItemClick('#EcoFriendly')}
+                className="px-4 py-1 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition"
+                onClick={() => {
+                  setMostrarDesgloseNoticias(false);
+                  setHashtagSeleccionado('');
+                  onSeleccionItem('');
+                }}
               >
-                {isActive('#EcoFriendly') ? 'Regresar' : 'Ver más'}
+                Regresar
               </button>
             </div>
+            <div className="space-y-3">
+              {hashtagsNoticias.map((hashtag) => (
+                <div key={hashtag.id} className="flex items-center">
+                  <div 
+                    className={`w-6 h-6 rounded-full mr-3 cursor-pointer ${isHashtagNoticiaActive(hashtag.id) ? 'ring-2 ring-offset-2 ring-gray-600' : ''}`}
+                    style={{ 
+                      backgroundColor: isHashtagNoticiaActive(hashtag.id) ? hashtag.color : 'transparent',
+                      border: `2px solid ${hashtag.color}`,
+                    }}
+                    onClick={() => handleHashtagNoticiaClick(hashtag.id)}
+                  ></div>
+                  <span className={`text-gray-800 ${isHashtagNoticiaActive(hashtag.id) ? 'font-bold' : 'font-medium'}`}>
+                    {hashtag.nombre} - Correlación: {hashtag.correlacion}%
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Sección de desglose de tasas (NUEVO) - Aparece solo cuando #EcoFriendly está seleccionado */}
+        {/* Sección de desglose de tasas - Aparece solo cuando #EcoFriendly está seleccionado */}
         {mostrarDesgloseTasas && (
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-blue-50 to-purple-50">
-            <h2 className="text-xl font-bold text-navy-900 mb-3">Desglose de tasas</h2>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xl font-bold text-navy-900">Desglose de tasas</h2>
+              <button
+                className="px-4 py-1 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition"
+                onClick={() => {
+                  setMostrarDesgloseTasas(false);
+                  setHashtagSeleccionado('');
+                  onSeleccionItem('');
+                }}
+              >
+                Regresar
+              </button>
+            </div>
             <div className="space-y-3">
               {opcionesTasas.map((tasa) => (
                 <div key={tasa.id} className="flex items-center">
@@ -353,8 +443,8 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
           </div>
         )}
 
-        {/* Sección de Hashtags - Solo se muestra si no está mostrando el desglose de tasas */}
-        {!mostrarDesgloseTasas && (
+        {/* Sección de Hashtags - Solo se muestra si no está mostrando ningún desglose */}
+        {!mostrarDesgloseTasas && !mostrarDesgloseNoticias && (
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50">
             <h2 className="text-xl font-bold text-navy-900">Hashtags</h2>
             <div className="mt-3 space-y-4">
@@ -414,8 +504,8 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
           </div>
         )}
 
-        {/* Sección de Noticias - Solo se muestra si no está mostrando el desglose de tasas */}
-        {!mostrarDesgloseTasas && (
+        {/* Sección de Noticias - Solo se muestra si no está mostrando ningún desglose */}
+        {!mostrarDesgloseTasas && !mostrarDesgloseNoticias && (
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-purple-50 to-pink-50">
             <h2 className="text-xl font-bold text-navy-900">Noticias</h2>
             <div className="mt-3 space-y-4">
@@ -426,7 +516,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                     onClick={() => handleItemClick('Noticia1', 'original')}
                   ></div>
                   <span className={`text-gray-800 ${isActive('Noticia1') ? 'font-bold' : 'font-medium'}`}>
-                    Moda sostenible en auge
+                    A la alza pieles sintéticas en Milán - Correlación: 76%
                   </span>
                 </div>
                 <button
@@ -474,54 +564,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
           </div>
         )}
 
-        {/* Sección de Análisis de Redes - Solo se muestra si no está mostrando el desglose de tasas */}
-        {!mostrarDesgloseTasas && (
-          <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50">
-            <h2 className="text-xl font-bold text-navy-900">Análisis de Redes</h2>
-            <div className="mt-3 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div
-                    className={getCircleStyle('Consolidacion')}
-                    onClick={toggleConsolidacion}
-                  ></div>
-                  <span className={`text-gray-800 ${mostrarConsolidacion ? 'font-bold' : 'font-medium'}`}>
-                    Consolidación de Tendencias
-                  </span>
-                </div>
-                <button
-                  className={`px-4 py-1 rounded-full font-semibold transition ${
-                    mostrarConsolidacion ? 'bg-blue-700 text-white shadow-md' : 'bg-blue-500 text-white hover:bg-blue-600'
-                  }`}
-                  onClick={toggleConsolidacion}
-                >
-                  {mostrarConsolidacion ? 'Ocultar' : 'Ver más'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Lista de botones para redes sociales - Solo se muestra si no está mostrando el desglose de tasas */}
-        {!mostrarDesgloseTasas && (
-          <div className="p-4 border rounded-xl bg-gradient-to-r from-cyan-50 to-blue-50">
-            <h2 className="text-xl font-bold text-navy-900">Redes Sociales</h2>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {opcionesRedesSociales.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => handleItemClick(item)}
-                  className={`px-3 py-1 rounded-full font-semibold transition ${
-                    isActive(item) ? 'bg-blue-700 text-white shadow-md' : 'bg-blue-400 text-white hover:bg-blue-600'
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Contenedor para mostrar el componente de Consolidación */}
         {mostrarConsolidacion && (
           <div className="mt-6 border-t pt-6">
@@ -534,3 +576,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
 };
 
 export default MenuComponentes;
+
+// Exportar los datos de hashtags de noticias para uso en Dashboard
+export { hashtagsNoticias };
