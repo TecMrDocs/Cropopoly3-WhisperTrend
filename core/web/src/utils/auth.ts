@@ -1,15 +1,16 @@
 interface Config {
   withCredentials: boolean;
   headers: {
-    Authorization: string;
+    token: string;
   };
 }
 
 export function getConfig(): Config {
+  const token = localStorage.getItem('token');
   return {
     withCredentials: true,
     headers: {
-      Authorization: 'Bearer ' + localStorage.getItem('token'),
+      token: token || "",
     }
   }
 }

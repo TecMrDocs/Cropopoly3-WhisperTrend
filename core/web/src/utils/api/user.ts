@@ -26,19 +26,19 @@ export interface UserCredentials {
 export default {
   user: {
     check: (): Promise<void> => {
-      return get("auth/check")
+      return get("auth/check", true)
     }, 
 
     register: (
       user: User
     ): Promise<void> => {
-      return post("auth/register", user)
+      return post("auth/register", user, false)
     }, 
 
     signIn: (
       user_credentials: UserCredentials
-    ): Promise<void> => {
-      return post("auth/signin", user_credentials)
+    ): Promise<{token: string}> => {
+      return post("auth/signin", user_credentials, false)
     }
   }
 }

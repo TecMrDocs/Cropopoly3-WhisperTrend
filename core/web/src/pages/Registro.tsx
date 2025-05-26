@@ -169,7 +169,7 @@ export default function Registro() {
       try {
         await user.user.register(dataToSend);
         console.log("Registro exitoso");
-        navigate("/login");
+        navigate("/confirmacionCorreo");
 
       } catch (error: any) {
         console.error("Error al registrar el usuario:", error);

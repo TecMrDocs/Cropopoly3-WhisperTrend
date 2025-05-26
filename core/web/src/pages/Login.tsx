@@ -4,6 +4,7 @@ import LogoBackground from "../components/LogoBackground";
 import Container from "../components/Container";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 // Maneja el inicio de sesión del usuario
 export default function Login() {
@@ -17,6 +18,8 @@ export default function Login() {
   const [apiError, setApiError] = useState("");
   // const [token, setToken] = useState("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
 
   // Valida el formulario antes de enviarlo	
   const validateForm = () => {
@@ -58,28 +61,21 @@ export default function Login() {
     setApiError("");
 
     if (!validateForm()) return;
+    setLoading(true);
 
-    //Si el formulario es válido, manda la solicitud de inicio de sesión, si se procesa correctamente, guarda el token en localStorage, y redirige al usuario a la página para su autenticación.
     try {
-      const response = await fetch("http://127.0.0.1:8080/api/v1/auth/signin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password: password }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Email o contraseña incorrectos");
+      await signIn(email, password);
+      navigate("/dashboard");
+    } catch(error: any){
+      if(error.response?.status === 401){
+        setApiError("Email o contraseña incorrectos");
+      } else {
+        setApiError("Error al iniciar sesión")
       }
-
-      const data = await response.json();
-      // setToken(data.token);
-      localStorage.setItem("token", data.token);
-      console.log("Token recibido:", data.token);
-      navigate("/HolaDeNuevo");
-    } catch (error: any) {
-      console.error("Error al iniciar sesión:", error);
-      setApiError(error.message || "Ocurrió un error al iniciar sesión");
+    } finally {
+      setLoading(false);
     }
+
   };
 
   // Página de inicio de sesión con formulario y mensajes de error
