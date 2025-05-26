@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AdminCredentials {
     pub email: String,
-    pub contrasena: String,
+    pub password: String,
 }
 
 #[derive(Validate, Clone)]
@@ -20,10 +20,10 @@ pub struct Admin {
     #[validate(length(min = 1, max = 255))]
     pub email: String,
     #[validate(length(min = 1, max = 20))]
-    pub nombres: String,
+    pub name: String,
     #[validate(length(min = 1, max = 20))]
-    pub apellidos: String,
+    pub last_name: String,
     #[validate(length(min = 1, max = 150))]
     #[serde(skip_serializing)]
-    pub contrasena: String, 
+    pub password: String, 
 }

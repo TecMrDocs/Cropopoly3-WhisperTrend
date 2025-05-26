@@ -6,11 +6,11 @@ diesel::table! {
         #[max_length = 50]
         email -> Varchar,
         #[max_length = 50]
-        nombres -> Varchar,
+        name -> Varchar,
         #[max_length = 50]
-        apellidos -> Varchar,
+        last_name -> Varchar,
         #[max_length = 150]
-        contrasena -> Varchar,
+        password -> Varchar,
     }
 }
 
