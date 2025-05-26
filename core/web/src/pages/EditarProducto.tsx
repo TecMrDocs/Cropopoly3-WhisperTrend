@@ -19,6 +19,15 @@ interface ProductoState {
   related_words: string;
 }
 
+// Interfaz para el estado recibido
+interface ProductoState {
+  id: number;
+  name: string;
+  description: string;
+  r_type: string;
+  related_words: string;
+}
+
 export default function EditarProducto() {
   const [palabra, setPalabra] = useState("");
   const [palabras, setPalabras] = useState<string[]>([]);
@@ -141,6 +150,47 @@ export default function EditarProducto() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzQ5MjI4MTIwfQ.ysOpkiGz9d07Dm-d1og-xAoSFIf-V7laT8xWp4COPfc";
+
+  // Cargar los datos del producto
+  useEffect(() => {
+    const state = location.state as ProductoState;
+    if (state) {
+      const { name, description, r_type, related_words } = state;
+      setNombre(name || "");
+      setDescripcion(description || "");
+      setTipo(r_type || "");
+      setPalabras(related_words ? related_words.split(",").map(p => p.trim()) : []);
+    }
+  }, [location.state]);
+
+  // Obtener el user_id
+  const getUserId = async (): Promise<number | null> => {
+    try {
+      const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
+        headers: {
+          token: token,
+        },
+      });
+
+      if (!res.ok) throw new Error("Error al verificar usuario");
+
+      const data = await res.json();
+      return data.id;
+    } catch (err) {
+      console.error("Error obteniendo user_id:", err);
+      return null;
+    }
+  };
+
+  const validar = () => {
+    if (!tipo.trim() || !nombre.trim() || !descripcion.trim()) {
+      alert("Todos los campos son obligatorios.");
+      return false;
+    }
+    return true;
+  };
+
   const handleAgregar = () => {
     const nueva = palabra.trim();
     if (nueva && !palabras.includes(nueva) && palabras.length < 10) {
@@ -151,6 +201,58 @@ export default function EditarProducto() {
 
   const eliminarPalabra = (palabraAEliminar: string) => {
     setPalabras(palabras.filter((p) => p !== palabraAEliminar));
+  };
+
+  const handleSubmit = async () => {
+    if (!validar()) return;
+
+    const state = location.state as ProductoState;
+    const productId = state?.id;
+    if (!productId) {
+      alert("No se encontró el ID del producto.");
+      return;
+    }
+
+    const userId = await getUserId();
+    if (!userId) {
+      alert("No se pudo obtener el usuario.");
+      return;
+    }
+
+    const payload = {
+      r_type: tipo,
+      name: nombre,
+      description: descripcion,
+      related_words: palabras.join(", "),
+    };
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8080/api/v1/resource/${userId}/${productId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            token: token,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        const msg = await response.text();
+        console.error("Error al actualizar el recurso:", msg);
+        alert("No se pudo actualizar el recurso.");
+        return;
+      }
+
+      const actualizado = await response.json();
+      console.log("Recurso actualizado:", actualizado);
+      navigate("/launchVentas");
+    } catch (err) {
+      console.error("Error de red:", err);
+      alert("Error de red o del servidor.");
+    }
   };
 
   return (
