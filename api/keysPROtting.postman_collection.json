@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "c9e65c75-d476-405b-a681-0c3fff02f147",
+		"_postman_id": "cdb59f60-bea0-47c2-9b12-c6ca8b2c4f0f",
 		"name": "keysPROtting",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31321817"
@@ -13,7 +13,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"zam1@gmail.com\",\n    \"username\": \"zam1\",\n    \"password\": \"awdrqwer12\"\n}",
+					"raw": "{\n    \"email\": \"test1@gmail.com\",\n    \"name\": \"Testing test\",\n    \"last_name\": \"tostado flaco\",\n    \"phone\": \"123456789\",\n    \"position\": \"jefazo\",\n    \"password\": \"test\",\n    \"plan\": \"tracker\",\n    \"business_name\": \"test\",\n    \"industry\": \"test\",\n    \"company_size\": \"1234\",\n    \"scope\": \"internacional\",\n    \"locations\": \"test\",\n    \"num_branches\": \"1234\"\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -47,7 +47,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"zam1@gmail.com\",\n    \"password\": \"awdrqwer12\"\n}",
+					"raw": "{\n    \"email\": \"test1@gmail.com\",\n    \"password\": \"test\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -136,9 +136,21 @@
 		},
 		{
 			"name": "Scraping - Reddit - Get Simple Posts",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
 				"method": "GET",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
 					"raw": "http://localhost:8080/api/v1/web/reddit/get-simple-posts/tesla",
 					"protocol": "http",
@@ -159,13 +171,40 @@
 			"response": []
 		},
 		{
+			"name": "Scraping - Reddit - Get SImple Posts With Members",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/web/reddit/get-simple-posts-with-members/tesla",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"web",
+						"reddit",
+						"get-simple-posts-with-members",
+						"tesla"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Chat",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"message\": \"Hola\"\n}",
+					"raw": "{\n    \"model\": \"deepseek-r1-distill-llama-70b\",\n    \"message\": \"Hola\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -183,6 +222,135 @@
 						"api",
 						"v1",
 						"chat"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Recurso",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/api/v1/recurso",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"recurso"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Notices",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"tesla\",\n    \"startdatetime\": \"2024-11-03\",\n    \"enddatetime\": \"2024-11-04\",\n    \"language\": \"English\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/web/notices/get-notices",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"web",
+						"notices",
+						"get-notices"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Details",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"tesla\",\n    \"startdatetime\": \"2024-11-03\",\n    \"enddatetime\": \"2024-11-04\",\n    \"language\": \"English\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/web/notices/get-details",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"web",
+						"notices",
+						"get-details"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Trends",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"query\": \"tesla\",\n    \"startdatetime\": \"2024-11-03\",\n    \"enddatetime\": \"2024-11-04\",\n    \"language\": \"English\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/web/trends/get-trends",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"web",
+						"trends",
+						"get-trends"
 					]
 				}
 			},

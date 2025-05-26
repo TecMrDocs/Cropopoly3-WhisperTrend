@@ -81,3 +81,14 @@ GROQ_API_KEY=gsk_...
 
 BROWSERLESS_WS=ws://browserless-chrome:3000
 ```
+
+# Frontend
+- Create a `.env` file inside the web folder and add the following environment variables:
+
+```bash
+#core/web/.env
+VITE_APP_SERVER_PROTOCOL = "http"
+VITE_APP_SERVER_PORT = "5173"
+VITE_APP_SERVER_HOST = "localhost"
+VITE_APP_API_ROUTE = "api/v1"
+```
