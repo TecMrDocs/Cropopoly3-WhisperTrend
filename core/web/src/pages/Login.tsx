@@ -15,7 +15,7 @@ export default function Login() {
     password: "",
   });
   const [apiError, setApiError] = useState("");
-  const [token, setToken] = useState("");
+  // const [token, setToken] = useState("");
   const navigate = useNavigate();
 
   // Valida el formulario antes de enviarlo	
@@ -36,7 +36,7 @@ export default function Login() {
     } else if (!/^[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$/.test(email)) {
       newErrors.email = "El correo no tiene un formato válido";
       valid = false;
-    } 
+    }
 
     if (!password) {
       newErrors.password = "La contraseña es requerida";
@@ -58,6 +58,7 @@ export default function Login() {
 
     if (!validateForm()) return;
 
+    //Si el formulario es válido, manda la solicitud de inicio de sesión, si se procesa correctamente, guarda el token en localStorage, y redirige al usuario a la página para su autenticación.
     try {
       const response = await fetch("http://127.0.0.1:8080/api/v1/auth/signin", {
         method: "POST",
@@ -70,7 +71,7 @@ export default function Login() {
       }
 
       const data = await response.json();
-      setToken(data.token);
+      // setToken(data.token);
       localStorage.setItem("token", data.token);
       console.log("Token recibido:", data.token);
       navigate("/HolaDeNuevo");
@@ -127,7 +128,7 @@ export default function Login() {
               </div>
             </Container>
 
-            <GenericButton type="submit" text="Iniciar sesión"/>
+            <GenericButton type="submit" text="Iniciar sesión" />
           </form>
 
           <div className="text-center mt-12 text-sm">

@@ -4,6 +4,7 @@ import TextFieldWHolder from "../components/TextFieldWHolder";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+//Función que administra la página de verificación de código del usuario
 export default function HolaDeNuevo() {
   const [verify, setVerify] = useState("");
   const [error, setError] = useState("");
@@ -25,6 +26,7 @@ export default function HolaDeNuevo() {
     alert('Código nuevo enviado');
   };
 
+  //Renderiza la página de verificación de código
   return (
     <div className='flex flex-col items-center justify-center w-full px-4'>
       <div className="w-full max-w-md">
