@@ -4,21 +4,34 @@ import BlueButton from "../components/BlueButton";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import { useNavigate } from "react-router-dom";
 
+// Maneja el registro de un usuario nuevo
 export default function Registro() {
+  // Define estados necesarios para el formulario
   const navigate = useNavigate();
+
+  // Estructura de datos completos para el formulario
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
+    last_name: "",
     email: "",
     phone: "",
     position: "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    // Valores por defecto para campos de empresa y plan
+    plan: "tracker",
+    business_name: "test",
+    industry: "test",
+    company_size: "1234",
+    scope: "internacional",
+    locations: "test",
+    num_branches: "1234"
   });
 
+  // Estructura de errores para cada campo del formulario
   const [errors, setErrors] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
+    last_name: "",
     email: "",
     phone: "",
     position: "",
@@ -26,11 +39,15 @@ export default function Registro() {
     confirmPassword: ""
   });
 
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+
+  // Función para validar el formulario
   const validateForm = () => {
     let valid = true;
     const newErrors = {
-      firstName: "",
-      lastName: "",
+      name: "",
+      last_name: "",
       email: "",
       phone: "",
       position: "",
@@ -38,28 +55,37 @@ export default function Registro() {
       confirmPassword: ""
     };
 
-    // Validate firstName
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "El nombre es requerido";
+    // Valida el nombre
+    if (!formData.name.trim()) {
+      newErrors.name = "El nombre es requerido";
+      valid = false;
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.name)) {
+      newErrors.name = "El nombre solo puede contener letras y espacios";
       valid = false;
     }
 
-    // Validate lastName
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "El apellido es requerido";
+    // Valida el apellido
+    if (!formData.last_name.trim()) {
+      newErrors.last_name = "El apellido es requerido";
+      valid = false;
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.last_name)) {
+      newErrors.last_name = "El apellido solo puede contener letras y espacios";
       valid = false;
     }
 
-    // Validate email
+    // Valida estructura del correo
     if (!formData.email) {
       newErrors.email = "El correo es requerido";
       valid = false;
     } else if (!formData.email.includes("@")) {
       newErrors.email = "El correo debe contener @";
       valid = false;
+    } else if (!/^[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$/.test(formData.email)) {
+      newErrors.email = "El correo no tiene un formato válido";
+      valid = false;
     }
 
-    // Validate phone
+    // Valida teléfono
     if (!formData.phone) {
       newErrors.phone = "El número telefónico es requerido";
       valid = false;
@@ -68,13 +94,16 @@ export default function Registro() {
       valid = false;
     }
 
-    // Validate position
+    // Valida puesto o cargo
     if (!formData.position.trim()) {
       newErrors.position = "El puesto o cargo es requerido";
       valid = false;
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.position)) {
+      newErrors.position = "El puesto o cargo solo puede contener letras y espacios";
+      valid = false;
     }
 
-    // Validate password
+    // Valida contraseña
     if (!formData.password) {
       newErrors.password = "La contraseña es requerida";
       valid = false;
@@ -83,7 +112,7 @@ export default function Registro() {
       valid = false;
     }
 
-    // Validate confirmPassword
+    // Validata la confirmación de contraseña
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Por favor confirma tu contraseña";
       valid = false;
@@ -96,6 +125,7 @@ export default function Registro() {
     return valid;
   };
 
+  // Maneja el cambio de valor en los campos del formulario
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -104,64 +134,163 @@ export default function Registro() {
     }));
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  // Maneja el envío del formulario
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setApiError("");
+
+    // Si el formulario es válido, envía los datos a la API
     if (validateForm()) {
-      console.log("Datos válidos:", JSON.stringify(formData, null, 2));
-      navigate("/confirmacionCorreo")
-      // Aquí iría la lógica para enviar los datos al servidor
+      const dataToSend = {
+        email: formData.email,
+        name: formData.name,
+        last_name: formData.last_name,
+        phone: formData.phone,
+        position: formData.position,
+        password: formData.password,
+        plan: formData.plan,
+        business_name: formData.business_name,
+        industry: formData.industry,
+        company_size: formData.company_size,
+        scope: formData.scope,
+        locations: formData.locations,
+        num_branches: formData.num_branches
+      };
+
+      // console.log("Datos válidos:", JSON.stringify(dataToSend, null, 2));
+      // console.log("Enviando datos a la API...");
+      try {
+
+
+        const response = await fetch("http://localhost:8080/api/v1/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(dataToSend)
+        });
+
+        // console.log("Respuesta de la API:", response);
+        const responseText = await response.text();
+
+        let data;
+        try {
+          data = responseText ? JSON.parse(responseText) : {};
+        } catch (parseError) {
+          // console.warn("La respuesta no es JSON válido:", responseText);
+          if (response.ok) {
+            console.log("Registro exitoso (respuesta no JSON)");
+            return navigate("/confirmacionCorreo");
+          }
+          throw new Error("Respuesta del servidor no válida");
+        }
+
+        // Manejo de respuestas exitosas
+        if (response.ok) {
+          console.log("Registro exitoso:", data);
+          return navigate("/confirmacionCorreo");
+        }
+
+        // Manejo de errores 
+        if (response.status === 400) {
+          setApiError(data.message || "Datos de registro inválidos");
+        } else if (response.status === 409) {
+          setApiError(data.message || "El usuario ya existe");
+        } else {
+          setApiError(data.message || `Error en el registro (${response.status})`);
+        }
+
+      } catch (error: any) {
+        console.error("Error en el registro:", error);
+        // Si hay error de red pero el registro pudo haberse completado
+        // if (error.message.includes("Failed to fetch")) {
+        //   setApiError("No se pudo verificar la respuesta del servidor. El registro pudo haberse completado.");
+        // } else {
+        //   setApiError("Ocurrió un error inesperado. Verifique si el registro se completó.");
+        // }
+        if (error instanceof Error) {
+          // Si hay error de red pero el registro pudo haberse completado
+          if (error.message.includes("Failed to fetch")) {
+            setApiError("No se pudo verificar la respuesta del servidor. El registro pudo haberse completado.");
+          } else {
+            setApiError("Ocurrió un error inesperado. Verifique si el registro se completó.");
+          }
+        } else {
+          // Si no es un Error estándar, manejamos el caso
+          setApiError("Ocurrió un error inesperado de tipo desconocido.");
+        }
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
+  // Maneja la cancelación del registro
   const handleCancel = () => {
     navigate("/Login");
   }
 
-  return(
+  // Renderiza el formulario de registro
+  return (
     <div>
       <div className='flex items-center justify-center'>
         <h1 className="text-center mb-4 text-[#141652] text-2xl font-semibold">Registro de usuario</h1>
       </div>
-      
+
+      {apiError && (
+        <div className="flex justify-center mb-4">
+          <p className="text-red-500 text-sm">{apiError}</p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
-        <div className='flex flex-row gap-6 justify-center'>
-          <div>
-            <TextFieldWHolder 
-              label="Nombre(s)" 
-              width="300px"
-              name="firstName"
-              value={formData.firstName}
+        <div className='flex flex-row gap-6 justify-center max-w-3xl mx-auto w-full'>
+          <div className="w-full">
+            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+              Nombre(s):
+            </label>
+            <TextFieldWHolder
+              id="name-field"
+              width="100%"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
-              hasError={!!errors.firstName}
+              hasError={!!errors.name}
               placeholder="Ingrese su nombre"
             />
-            {errors.firstName && (
-              <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
             )}
           </div>
-          <div>
-            <TextFieldWHolder 
-              label="Apellido(s)" 
-              width="300px"
-              name="lastName"
-              value={formData.lastName}
+          <div className="w-full">
+            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+              Apellido(s):
+            </label>
+            <TextFieldWHolder
+              id="last-name-field"
+              width="100%"
+              name="last_name"
+              value={formData.last_name}
               onChange={handleChange}
-              hasError={!!errors.lastName}
+              hasError={!!errors.last_name}
               placeholder="Ingrese su apellido"
             />
-            {errors.lastName && (
-              <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+            {errors.last_name && (
+              <p className="text-red-500 text-sm mt-1">{errors.last_name}</p>
             )}
           </div>
         </div>
-        
+
         <br />
-        
-        <div className="flex flex-col gap-5 items-center justify-center">
-          <div className="w-[600px]">
-            <TextFieldWHolder 
-              label="Correo electrónico" 
-              width="600px"
+
+        <div className="flex flex-col gap-5 items-center justify-center max-w-3xl mx-auto w-full">
+          <div className="w-full">
+            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+              Correo electrónico:
+            </label>
+            <TextFieldWHolder
+              id="email-field"
+              width="100%"
               name="email"
               value={formData.email}
               onChange={handleChange}
@@ -172,11 +301,14 @@ export default function Registro() {
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
             )}
           </div>
-          
-          <div className="w-[600px]">
-            <TextFieldWHolder 
-              label="Número telefónico" 
-              width="600px"
+
+          <div className="w-full">
+            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+              Número telefónico:
+            </label>
+            <TextFieldWHolder
+              id="phone-field"
+              width="100%"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
@@ -187,11 +319,14 @@ export default function Registro() {
               <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
             )}
           </div>
-          
-          <div className="w-[600px]">
-            <TextFieldWHolder 
-              label="Puesto o cargo en la empresa" 
-              width="600px"
+
+          <div className="w-full">
+            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+              Puesto o cargo en la empresa:
+            </label>
+            <TextFieldWHolder
+              id="position-field"
+              width="100%"
               name="position"
               value={formData.position}
               onChange={handleChange}
@@ -202,11 +337,14 @@ export default function Registro() {
               <p className="text-red-500 text-sm mt-1">{errors.position}</p>
             )}
           </div>
-          
-          <div className="w-[600px]">
-            <TextFieldWHolder 
-              label="Contraseña" 
-              width="600px"
+
+          <div className="w-full">
+            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+              Contraseña:
+            </label>
+            <TextFieldWHolder
+              id="password-field"
+              width="100%"
               type="password"
               name="password"
               value={formData.password}
@@ -218,11 +356,14 @@ export default function Registro() {
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
             )}
           </div>
-          
-          <div className="w-[600px]">
-            <TextFieldWHolder 
-              label="Confirma tu contraseña" 
-              width="600px"
+
+          <div className="w-full">
+            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+              Confirma tu contraseña:
+            </label>
+            <TextFieldWHolder
+              id="confirm-password-field"
+              width="100%"
               type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
@@ -237,10 +378,21 @@ export default function Registro() {
         </div>
 
         <br />
+        <br />
 
         <div className="flex flex-row justify-center gap-10">
-          <WhiteButton text="Cancelar" width="300px" onClick={handleCancel}/>
-          <BlueButton text="Crear cuenta" width="300px" type="submit" />
+          <WhiteButton
+            text="Cancelar"
+            // width="20%"
+            width="300px"
+            onClick={handleCancel}
+          />
+          <BlueButton
+            text={loading ? "Registrando..." : "Crear cuenta"}
+            // width="100%"
+            width="300px"
+            type="submit"
+          />
         </div>
       </form>
     </div>
