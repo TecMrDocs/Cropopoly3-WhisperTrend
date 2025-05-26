@@ -4,16 +4,16 @@ use validator::Validate;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Credentials {
+pub struct AdminCredentials {
     pub email: String,
     pub contrasena: String,
 }
 
 #[derive(Validate, Clone)]
-#[macros::diesel_default(schema::users)]
+#[macros::diesel_default(schema::admins)]
 #[diesel(primary_key(id))]
 #[macros::database(create, update(id), delete(id), get(email, id))]
-pub struct User {
+pub struct Admin {
     #[serde(skip_deserializing)]
     #[diesel(deserialize_as = i32)]
     pub id: Option<i32>,
