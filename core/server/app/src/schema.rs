@@ -1,17 +1,41 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    recursos (id) {
+    admins (id) {
         id -> Int4,
-        id_usuario -> Int4,
         #[max_length = 50]
-        tipo -> Varchar,
+        email -> Varchar,
         #[max_length = 50]
-        nombre -> Varchar,
+        nombres -> Varchar,
+        #[max_length = 50]
+        apellidos -> Varchar,
+        #[max_length = 150]
+        contrasena -> Varchar,
+    }
+}
+
+diesel::table! {
+    resources (id) {
+        id -> Int4,
+        user_id -> Int4,
+        #[max_length = 50]
+        r_type -> Varchar,
+        #[max_length = 50]
+        name -> Varchar,
         #[max_length = 300]
-        descripcion -> Varchar,
+        description -> Varchar,
         #[max_length = 300]
-        palabras_rel -> Varchar,
+        related_words -> Varchar,
+    }
+}
+
+diesel::table! {
+    sales (id) {
+        id -> Int4,
+        resource_id -> Int4,
+        month -> Int4,
+        year -> Int4,
+        units_sold -> Int4,
     }
 }
 
@@ -21,33 +45,38 @@ diesel::table! {
         #[max_length = 50]
         email -> Varchar,
         #[max_length = 50]
-        nombres -> Varchar,
+        name -> Varchar,
         #[max_length = 50]
-        apellidos -> Varchar,
+        last_name -> Varchar,
         #[max_length = 50]
-        telefono -> Varchar,
+        phone -> Varchar,
         #[max_length = 50]
-        puesto -> Varchar,
+        position -> Varchar,
         #[max_length = 150]
-        contrasena -> Varchar,
+        password -> Varchar,
         #[max_length = 50]
         plan -> Varchar,
         #[max_length = 50]
-        razon_social -> Varchar,
+        business_name -> Varchar,
         #[max_length = 50]
-        sector -> Varchar,
+        industry -> Varchar,
         #[max_length = 50]
-        tamano_empresa -> Varchar,
+        company_size -> Varchar,
         #[max_length = 50]
-        alcance -> Varchar,
+        scope -> Varchar,
         #[max_length = 250]
-        localidades -> Varchar,
+        locations -> Varchar,
         #[max_length = 50]
-        num_sucursales -> Varchar,
+        num_branches -> Varchar,
     }
 }
 
+diesel::joinable!(resources -> users (user_id));
+diesel::joinable!(sales -> resources (resource_id));
+
 diesel::allow_tables_to_appear_in_same_query!(
-    recursos,
+    admins,
+    resources,
+    sales,
     users,
 );
