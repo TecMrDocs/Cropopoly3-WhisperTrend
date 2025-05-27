@@ -3,14 +3,31 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
-// Nuevo formato de datos
+// Importar datos desde archivo JSON
+import xDataRaw from '../dataSets/data-x.json';
+
+// Definir el tipo para los datos de X
+interface XData {
+  hashtag: string;
+  fechas: string[];
+  likes: number[];
+  repost: number[];
+  comentarios: number[];
+  vistas: number[];
+  seguidores: number[];
+}
+
+// Hacer type assertion para TypeScript
+const xData = xDataRaw as XData;
+
+// Convertir al formato que necesitan las funciones existentes
 const datos = {
-  fechas: ["01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
-  likes: [25, 25, 90, 178],
-  repost: [0, 6, 51, 48],
-  comentarios: [0, 1, 7, 5],
-  vistas: [721, 3665, 6825, 3226],
-  seguidores: [61643, 513589, 207664, 176927],
+  fechas: xData.fechas,
+  likes: xData.likes,
+  repost: xData.repost,
+  comentarios: xData.comentarios,
+  vistas: xData.vistas,
+  seguidores: xData.seguidores,
 };
 
 // Función que calcula la tasa de interacción
@@ -43,6 +60,9 @@ function generadorTasaViralidad(datos: any) {
 export const resultadoXCalc = {
   datosInteraccion: generadorTasaInteraccion(datos),
   datosViralidad: generadorTasaViralidad(datos),
+  // Exportar también los datos raw y el hashtag
+  datosRaw: datos,
+  hashtag: xData.hashtag
 };
 
 // Componente React
@@ -52,6 +72,12 @@ const XCalc: React.FC = () => {
   
   return (
     <div style={{ width: '100%' }}>
+      <div className="text-center mb-4">
+        <h1 className="text-2xl font-bold text-blue-700">
+          🐦 X (Twitter) Analytics - {xData.hashtag}
+        </h1>
+      </div>
+
       <h2 style={{ textAlign: 'center' }}>Tasa de Interacción (%)</h2>
       <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
@@ -61,10 +87,11 @@ const XCalc: React.FC = () => {
             <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
             <Tooltip formatter={(value) => `${value}%`} />
             <Legend />
-            <Line type="monotone" dataKey="tasa" stroke="#8884d8" name="Tasa de Interacción" />
+            <Line type="monotone" dataKey="tasa" stroke="#1da1f2" name="Tasa de Interacción" />
           </LineChart>
         </ResponsiveContainer>
       </div>
+      
       <h2 style={{ textAlign: 'center', marginTop: 40 }}>Tasa de Viralidad (%)</h2>
       <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
@@ -74,7 +101,7 @@ const XCalc: React.FC = () => {
             <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
             <Tooltip formatter={(value) => `${value}%`} />
             <Legend />
-            <Line type="monotone" dataKey="tasa" stroke="#82ca9d" name="Tasa de Viralidad" />
+            <Line type="monotone" dataKey="tasa" stroke="#1da1f2" name="Tasa de Viralidad" />
           </LineChart>
         </ResponsiveContainer>
       </div>

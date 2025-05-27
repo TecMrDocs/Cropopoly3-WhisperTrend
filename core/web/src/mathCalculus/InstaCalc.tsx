@@ -3,15 +3,32 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
-const datos = {
-  fechas: ["01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
-  likes: [46822, 423520, 153642, 14964],
-  comentarios: [940, 44062, 1277, 296],
-  vistas: [1428400, 4672900, 2488200, 390800],
-  seguidores: [636298, 2192196, 391213, 705736],
-  compartidos: [37, 68136, 41645, 1112],
-};
+// Importar datos desde archivo JSON
+import instagramDataRaw from '../dataSets/data-instagram.json';
 
+// Definir el tipo para los datos de Instagram
+interface InstagramData {
+  hashtag: string;
+  fechas: string[];
+  likes: number[];
+  comentarios: number[];
+  vistas: number[];
+  seguidores: number[];
+  compartidos: number[];
+}
+
+// Hacer type assertion para TypeScript
+const instagramData = instagramDataRaw as InstagramData;
+
+// Los datos ya vienen en el formato que necesitamos
+const datos = {
+  fechas: instagramData.fechas,
+  likes: instagramData.likes,
+  comentarios: instagramData.comentarios,
+  vistas: instagramData.vistas,
+  seguidores: instagramData.seguidores,
+  compartidos: instagramData.compartidos,
+};
 
 // Función que calcula la tasa de interacción
 function generadorTasaInteraccion(data: typeof datos) {
@@ -47,15 +64,24 @@ function generadorTasaViralidad(data: typeof datos) {
 export const resultadoInstaCalc = {
   datosInteraccion: generadorTasaInteraccion(datos),
   datosViralidad: generadorTasaViralidad(datos),
+  // Exportar también los datos raw y el hashtag
+  datosRaw: datos,
+  hashtag: instagramData.hashtag
 };
 
-// Componente con dos gráficos (si quieres seguir usándolo directamente)
+// Componente con dos gráficos (mantenemos el diseño original simplificado)
 const InstaCalc: React.FC = () => {
   const datosInteraccion = resultadoInstaCalc.datosInteraccion;
   const datosViralidad = resultadoInstaCalc.datosViralidad;
 
   return (
     <div style={{ width: '100%' }}>
+      <div className="text-center mb-4">
+        <h1 className="text-2xl font-bold text-purple-700">
+          📸 Instagram Analytics - {instagramData.hashtag}
+        </h1>
+      </div>
+
       <h2 style={{ textAlign: 'center' }}>Tasa de Interacción (%)</h2>
       <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>

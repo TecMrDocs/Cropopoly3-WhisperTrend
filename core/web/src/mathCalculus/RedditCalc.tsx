@@ -3,12 +3,29 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
+// Importar datos desde archivo JSON
+import redditDataRaw from '../dataSets/data-reddit.json';
+
+// Definir el tipo para los datos de Reddit
+interface RedditData {
+  hashtag: string;
+  fechas: string[];
+  upVotes: number[];
+  comentarios: number[];
+  suscriptores: number[];
+  horas: number[];
+}
+
+// Hacer type assertion para TypeScript
+const redditData = redditDataRaw as RedditData;
+
+// Convertir al formato que necesitan las funciones existentes
 const datos = {
-  fechas: ["01/01/25 - 31/01/25", "1  /02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
-  upVotes: [2836, 844, 284, 405],
-  comentarios: [1001, 747, 323, 103],
-  suscriptores: [4234000, 914000, 3533000, 950000],
-  horas: [10905, 6415, 2712, 1416],
+  fechas: redditData.fechas,
+  upVotes: redditData.upVotes,
+  comentarios: redditData.comentarios,
+  suscriptores: redditData.suscriptores,
+  horas: redditData.horas,
 };
 
 // Calcula la tasa de interacción: (upVotes + comentarios) / suscriptores * 100
@@ -45,6 +62,12 @@ const RedditCalc: React.FC = () => {
 
   return (
     <div style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '20px' }}>
+      <div className="text-center mb-4">
+        <h1 className="text-2xl font-bold text-orange-600">
+          🔴 Reddit Analytics - {redditData.hashtag}
+        </h1>
+      </div>
+
       <h2 style={{ textAlign: 'center', color: '#3b3b98', fontWeight: '700', marginBottom: 20 }}>
         Tasa de Interacción (%)
       </h2>
@@ -56,7 +79,7 @@ const RedditCalc: React.FC = () => {
             <YAxis domain={[0, 'dataMax']} tickFormatter={(value) => `${value}%`} />
             <Tooltip formatter={(value: number) => `${value.toFixed(3)}%`} />
             <Legend verticalAlign="top" height={36} />
-            <Line type="monotone" dataKey="tasa" stroke="#3b3b98" name="Tasa de Interacción" strokeWidth={3} dot={{ r: 5 }} />
+            <Line type="monotone" dataKey="tasa" stroke="#ff4500" name="Tasa de Interacción" strokeWidth={3} dot={{ r: 5 }} />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -72,7 +95,7 @@ const RedditCalc: React.FC = () => {
             <YAxis domain={[0, 'dataMax']} tickFormatter={(value) => `${value}%`} />
             <Tooltip formatter={(value: number) => `${value.toFixed(3)}%`} />
             <Legend verticalAlign="top" height={36} />
-            <Line type="monotone" dataKey="tasa" stroke="#22a6b3" name="Tasa de Viralidad" strokeWidth={3} dot={{ r: 5 }} />
+            <Line type="monotone" dataKey="tasa" stroke="#ff4500" name="Tasa de Viralidad" strokeWidth={3} dot={{ r: 5 }} />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -84,6 +107,9 @@ const RedditCalc: React.FC = () => {
 export const resultadoRedditCalc = {
   datosInteraccion: generadorTasaInteraccion(datos),
   datosViralidad: generadorTasaViralidad(datos),
+  // Exportar también los datos raw y el hashtag
+  datosRaw: datos,
+  hashtag: redditData.hashtag
 };
 
 export default RedditCalc;
