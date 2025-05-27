@@ -333,7 +333,11 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
   const [hashtagsNoticiasSeleccionados, setHashtagsNoticiasSeleccionados] = useState<string[]>(['pielesSinteticas']);
 
   // 🔥 LISTA DE HASHTAGS DINÁMICOS - ESTA ES LA CLAVE DEL FIX
-  const hashtagsDinamicosLista = ['#EcoFriendly', '#SustainableFashion', '#NuevosMateriales'];
+  const hashtagsDinamicosLista = [
+  ...resultadoXCalc.hashtags,
+  ...resultadoInstaCalc.hashtags,
+  ...resultadoRedditCalc.hashtags
+].map(h => h.nombre);
 
   // 🚀 FUNCIÓN CORREGIDA QUE MANEJA TODOS LOS HASHTAGS
   const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 'normalizado') => {
@@ -477,7 +481,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
     <div className="w-full h-full mx-auto rounded-3xl overflow-hidden border border-gray-200 bg-white">
       <div className="p-6 bg-white">
 
-        {/* Sección de Ventas */}
         <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50">
           <h2 className="text-xl font-bold text-navy-900">Ventas</h2>
           <div className="mt-3 space-y-4">
@@ -500,7 +503,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
             </div>
           </div>
         </div>
-        
+
         {!mostrarDesgloseTasas && !mostrarDesgloseNoticias && !mostrarConsolidacion && (
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-green-50 to-emerald-50">
             <div className="flex items-center justify-between mb-3">
