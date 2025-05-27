@@ -106,7 +106,6 @@ const periodos = [
 ];
 
 const TendenciaUniforme: React.FC<TendenciaUniformeProps> = ({ tipo = 'hashtag1' }) => {
-  // Obtener los datos correspondientes al tipo
   const datosActuales = datosPorTipo[tipo];
   
   const calcularPromedioGeneral = (): PromedioPorPeriodo[] => {
