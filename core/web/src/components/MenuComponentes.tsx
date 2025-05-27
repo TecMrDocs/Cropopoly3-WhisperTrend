@@ -33,7 +33,7 @@ const calcularCorrelacion = (datos: any[]): number => {
 // 🎨 COLORES AUTOMÁTICOS PARA CADA HASHTAG
 const coloresHashtags = ['#16a34a', '#3b82f6', '#94a3b8', '#e91e63', '#8b5cf6', '#f59e0b'];
 
-// 🧙‍♂️ GENERADOR DINÁMICO DE HASHTAGS
+// 🧙‍♂️ GENERADOR DINÁMICO DE HASHTAGS - AGRUPADO POR HASHTAG, NO POR PLATAFORMA
 const generarHashtagsDinamicos = () => {
   const calculadoras = [
     { 
@@ -56,79 +56,145 @@ const generarHashtagsDinamicos = () => {
     }
   ];
 
-  return calculadoras.map((calc, index) => {
-    const correlacionInteraccion = calcularCorrelacion(calc.resultado.datosInteraccion);
-    const correlacionViralidad = calcularCorrelacion(calc.resultado.datosViralidad);
-    const correlacionPromedio = Math.round((correlacionInteraccion + correlacionViralidad) / 2);
+  // 🔥 OBTENER HASHTAGS ÚNICOS (NO REPETIR POR PLATAFORMA)
+  const hashtagsUnicos = new Set<string>();
+  const hashtagsMap = new Map<string, any>();
 
-    return {
-      id: calc.resultado.hashtag, // ¡EL HASHTAG VIENE DEL JSON! 🔥
-      nombre: `${calc.plataforma} ${calc.resultado.hashtag}`,
-      correlacion: correlacionPromedio,
-      plataforma: calc.nombre,
-      color: coloresHashtags[index],
-      insights: {
-        mejorDia: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'][Math.floor(Math.random() * 5)],
-        mejorHora: ['09:00-11:00', '12:00-14:00', '14:00-16:00', '18:00-20:00'][Math.floor(Math.random() * 4)],
-        engagement: `+${Math.round(correlacionPromedio * 0.5)}%`,
-        recomendacion: `Incrementar contenido con ${calc.resultado.hashtag} en ${calc.nombre}`
-      },
-      datos: {
-        interaccion: calc.resultado.datosInteraccion,
-        viralidad: calc.resultado.datosViralidad
-      }
-    };
+  calculadoras.forEach((calc, calcIndex) => {
+    if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
+      calc.resultado.hashtags.forEach((hashtag: any) => {
+        const hashtagNombre = hashtag.nombre;
+        
+        if (!hashtagsUnicos.has(hashtagNombre)) {
+          hashtagsUnicos.add(hashtagNombre);
+          
+          // Calcular correlación promedio combinando todas las plataformas para este hashtag
+          let totalCorrelacionInteraccion = 0;
+          let totalCorrelacionViralidad = 0;
+          let contadorPlataformas = 0;
+          
+          // Buscar este hashtag en todas las plataformas para calcular correlación promedio
+          calculadoras.forEach(calcTmp => {
+            if (calcTmp.resultado.hashtags && Array.isArray(calcTmp.resultado.hashtags)) {
+              const hashtagEncontrado = calcTmp.resultado.hashtags.find((h: any) => h.nombre === hashtagNombre);
+              if (hashtagEncontrado) {
+                totalCorrelacionInteraccion += calcularCorrelacion(hashtagEncontrado.datosInteraccion);
+                totalCorrelacionViralidad += calcularCorrelacion(hashtagEncontrado.datosViralidad);
+                contadorPlataformas++;
+              }
+            }
+          });
+          
+          const correlacionPromedio = Math.round(
+            ((totalCorrelacionInteraccion + totalCorrelacionViralidad) / 2) / Math.max(contadorPlataformas, 1)
+          );
+
+          hashtagsMap.set(hashtagNombre, {
+            id: hashtagNombre, // Usar el nombre del hashtag como ID único
+            nombre: hashtagNombre,
+            correlacion: correlacionPromedio,
+            plataforma: `${contadorPlataformas} plataformas`, // Mostrar cuántas plataformas lo tienen
+            color: coloresHashtags[hashtagsMap.size % coloresHashtags.length],
+            hashtag: hashtagNombre,
+            hashtagId: hashtag.id,
+            insights: {
+              mejorDia: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'][Math.floor(Math.random() * 5)],
+              mejorHora: ['09:00-11:00', '12:00-14:00', '14:00-16:00', '18:00-20:00'][Math.floor(Math.random() * 4)],
+              engagement: `+${Math.round(correlacionPromedio * 0.5)}%`,
+              recomendacion: `Incrementar contenido con ${hashtagNombre} en todas las plataformas`
+            },
+            datos: {
+              // Para datos combinados, usamos los del primer resultado encontrado
+              interaccion: hashtag.datosInteraccion,
+              viralidad: hashtag.datosViralidad
+            }
+          });
+        }
+      });
+    }
   });
+
+  return Array.from(hashtagsMap.values());
 };
 
-// Definición de las opciones de tasas (DINÁMICAS) - ARREGLADO
+// 🔥 DEFINICIÓN DE TASAS 100% DINÁMICAS - LEE AUTOMÁTICAMENTE DE LOS JSONs
 const generarOpcionesTasas = () => {
   const calculadoras = [
     { 
       id: 'insta', 
       nombre: 'Instagram', 
       resultado: resultadoInstaCalc,
-      plataforma: '📸',
-      color: '#16a34a'
+      plataforma: resultadoInstaCalc.emoji || '📸',
+      color: resultadoInstaCalc.color || '#16a34a'
     },
     { 
       id: 'x', 
       nombre: 'X (Twitter)', 
       resultado: resultadoXCalc,
-      plataforma: '🐦',
-      color: '#3b82f6'
+      plataforma: resultadoXCalc.emoji || '🐦',
+      color: resultadoXCalc.color || '#3b82f6'
     },
     { 
       id: 'reddit', 
       nombre: 'Reddit', 
       resultado: resultadoRedditCalc,
-      plataforma: '🔴',
-      color: '#94a3b8'
+      plataforma: resultadoRedditCalc.emoji || '🔴',
+      color: resultadoRedditCalc.color || '#94a3b8'
     }
   ];
 
   const opcionesTasas: any[] = [];
 
+  // 🚀 PROCESAMIENTO 100% DINÁMICO - SE ADAPTA A CUALQUIER CANTIDAD DE HASHTAGS
   calculadoras.forEach((calc) => {
-    // Tasa de interacción
-    opcionesTasas.push({
-      id: `int_${calc.id}`,
-      nombre: `Tasa de interacción ${calc.plataforma} ${calc.resultado.hashtag}`,
-      correlacion: calcularCorrelacion(calc.resultado.datosInteraccion),
-      color: calc.color,
-      datos: calc.resultado.datosInteraccion,
-      plataforma: calc.nombre
-    });
+    // Verificar que la calculadora tenga hashtags
+    if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
+      // Para cada hashtag en cada plataforma
+      calc.resultado.hashtags.forEach((hashtag: any) => {
+        // Tasa de interacción
+        opcionesTasas.push({
+          id: `int_${calc.id}_${hashtag.id}`,
+          nombre: `Tasa de interacción ${calc.plataforma} ${hashtag.nombre}`,
+          correlacion: calcularCorrelacion(hashtag.datosInteraccion),
+          color: calc.color,
+          datos: hashtag.datosInteraccion,
+          plataforma: calc.nombre,
+          hashtag: hashtag.nombre,
+          hashtagId: hashtag.id
+        });
 
-    // Tasa de viralidad
-    opcionesTasas.push({
-      id: `vir_${calc.id}`,
-      nombre: `Tasa de viralidad ${calc.plataforma} ${calc.resultado.hashtag}`,
-      correlacion: calcularCorrelacion(calc.resultado.datosViralidad),
-      color: calc.color,
-      datos: calc.resultado.datosViralidad,
-      plataforma: calc.nombre
-    });
+        // Tasa de viralidad
+        opcionesTasas.push({
+          id: `vir_${calc.id}_${hashtag.id}`,
+          nombre: `Tasa de viralidad ${calc.plataforma} ${hashtag.nombre}`,
+          correlacion: calcularCorrelacion(hashtag.datosViralidad),
+          color: calc.color,
+          datos: hashtag.datosViralidad,
+          plataforma: calc.nombre,
+          hashtag: hashtag.nombre,
+          hashtagId: hashtag.id
+        });
+      });
+    } else {
+      // 🔥 COMPATIBILIDAD CON ESTRUCTURA ANTERIOR
+      opcionesTasas.push({
+        id: `int_${calc.id}`,
+        nombre: `Tasa de interacción ${calc.plataforma} ${calc.resultado.hashtag}`,
+        correlacion: calcularCorrelacion(calc.resultado.datosInteraccion),
+        color: calc.color,
+        datos: calc.resultado.datosInteraccion,
+        plataforma: calc.nombre
+      });
+
+      opcionesTasas.push({
+        id: `vir_${calc.id}`,
+        nombre: `Tasa de viralidad ${calc.plataforma} ${calc.resultado.hashtag}`,
+        correlacion: calcularCorrelacion(calc.resultado.datosViralidad),
+        color: calc.color,
+        datos: calc.resultado.datosViralidad,
+        plataforma: calc.nombre
+      });
+    }
   });
 
   return opcionesTasas;
@@ -244,6 +310,24 @@ const Consolidacion = () => {
   );
 };
 
+// 🔥 FUNCIÓN HELPER PARA OBTENER TASAS POR HASHTAG ESPECÍFICO
+const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
+  const hashtagMap: { [key: string]: string } = {
+    '#EcoFriendly': 'eco',
+    '#SustainableFashion': 'sustainable', 
+    '#NuevosMateriales': 'materiales'
+  };
+  
+  const tag = hashtagMap[hashtagId];
+  if (!tag) return ['int_insta_eco']; // Fallback
+  
+  return [
+    `int_insta_${tag}`, `vir_insta_${tag}`,
+    `int_x_${tag}`, `vir_x_${tag}`,
+    `int_reddit_${tag}`, `vir_reddit_${tag}`
+  ];
+};
+
 type MenuComponentesProps = {
   modoVisualizacion: 'original' | 'logaritmo' | 'normalizado';
   setModoVisualizacion: React.Dispatch<React.SetStateAction<'original' | 'logaritmo' | 'normalizado'>>;
@@ -275,26 +359,39 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
   const [mostrarDesgloseTasas, setMostrarDesgloseTasas] = useState<boolean>(false);
   // Estado para controlar la visualización del desglose de hashtags de noticias
   const [mostrarDesgloseNoticias, setMostrarDesgloseNoticias] = useState<boolean>(false);
-  // Estado para guardar las tasas seleccionadas (ahora es un array) - ARREGLADO
-  const [tasasSeleccionadas, setTasasSeleccionadas] = useState<string[]>(['int_insta']); // Por defecto seleccionamos Instagram
+  // Estado para guardar las tasas seleccionadas - ACTUALIZADO CON NUEVOS IDs
+  const [tasasSeleccionadas, setTasasSeleccionadas] = useState<string[]>(['int_insta_eco']); // Por defecto Instagram EcoFriendly
   // Estado para guardar los hashtags de noticias seleccionados
   const [hashtagsNoticiasSeleccionados, setHashtagsNoticiasSeleccionados] = useState<string[]>(['pielesSinteticas']);
 
+  // 🔥 LISTA DE HASHTAGS DINÁMICOS - ESTA ES LA CLAVE DEL FIX
+  const hashtagsDinamicosLista = ['#EcoFriendly', '#SustainableFashion', '#NuevosMateriales'];
+
+  // 🚀 FUNCIÓN CORREGIDA QUE MANEJA TODOS LOS HASHTAGS
   const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 'normalizado') => {
     setHashtagSeleccionado(itemId);
     
-    // Si es un hashtag dinámico que contiene "EcoFriendly", mostrar el desglose de tasas
-    if (itemId.includes('EcoFriendly')) {
+    // 🔥 VERIFICAR SI ES CUALQUIER HASHTAG DINÁMICO
+    if (hashtagsDinamicosLista.includes(itemId)) {
       setMostrarDesgloseTasas(true);
       setMostrarDesgloseNoticias(false);
-      setMostrarConsolidacion(false); // AGREGADO: Ocultar consolidación
-      onEcoFriendlyClick();
+      setMostrarConsolidacion(false);
+      
+      // 🚀 NUEVO: Cambiar las tasas seleccionadas al hashtag correspondiente
+      const nuevasTasas = obtenerTasasPorHashtag(itemId);
+      setTasasSeleccionadas(nuevasTasas);
+      if (onTasasSeleccionadas) {
+        onTasasSeleccionadas(nuevasTasas);
+      }
+      
+      onEcoFriendlyClick(); // Mantener esta función para compatibilidad
+      return; // Salir temprano para evitar ocultar la gráfica
     } 
     // Si es Noticia1, mostrar el desglose de hashtags de noticias
     else if (itemId === 'Noticia1') {
       setMostrarDesgloseNoticias(true);
       setMostrarDesgloseTasas(false);
-      setMostrarConsolidacion(false); // AGREGADO: Ocultar consolidación
+      setMostrarConsolidacion(false);
     } 
     else {
       setMostrarDesgloseTasas(false);
@@ -311,6 +408,28 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
     onSeleccionItem(itemId);
   };
 
+  // Función para manejar toggle de tasas con callback al padre
+  const handleTasaToggle = (tasaId: string) => {
+    setTasasSeleccionadas(prev => {
+      let nuevaSeleccion;
+      if (prev.includes(tasaId)) {
+        nuevaSeleccion = prev.filter(id => id !== tasaId);
+        if (nuevaSeleccion.length === 0) {
+          return prev; // No permitir selección vacía
+        }
+      } else {
+        nuevaSeleccion = [...prev, tasaId];
+      }
+      
+      // Llamar al callback del padre
+      if (onTasasSeleccionadas) {
+        onTasasSeleccionadas(nuevaSeleccion);
+      }
+      
+      return nuevaSeleccion;
+    });
+  };
+
   // Modificado para alternar hashtags de noticias seleccionados
   const handleHashtagNoticiaClick = (hashtagId: string) => {
     setHashtagsNoticiasSeleccionados(prev => {
@@ -325,26 +444,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
         const nuevaSeleccion = [...prev, hashtagId];
         if (onHashtagsNoticiasSeleccionados) {
           onHashtagsNoticiasSeleccionados(nuevaSeleccion);
-        }
-        return nuevaSeleccion;
-      }
-    });
-  };
-
-  // Modificado para alternar tasas seleccionadas en lugar de seleccionar solo una
-  const handleTasaClick = (tasaId: string) => {
-    setTasasSeleccionadas(prev => {
-      if (prev.includes(tasaId)) {
-        const nuevaSeleccion = prev.filter(id => id !== tasaId);
-        if (nuevaSeleccion.length === 0) {
-          return prev;
-        }
-        return nuevaSeleccion;
-      } 
-      else {
-        const nuevaSeleccion = [...prev, tasaId];
-        if (onTasasSeleccionadas) {
-          onTasasSeleccionadas(nuevaSeleccion);
         }
         return nuevaSeleccion;
       }
@@ -394,7 +493,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
   return (
     <div className="w-full h-full mx-auto rounded-3xl overflow-hidden border border-gray-200 bg-white">
       <div className="p-6 bg-white">
-
 
         {/* Sección de Ventas */}
         <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -462,38 +560,96 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
           </div>
         )}
 
-        {/* Sección de desglose de tasas - Aparece cuando se selecciona un hashtag con EcoFriendly */}
+        {/* 🔍 DESGLOSE DINÁMICO DE TASAS - 🔥 FILTRADO POR HASHTAG SELECCIONADO */}
         {mostrarDesgloseTasas && (
-          <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-blue-50 to-purple-50">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xl font-bold text-navy-900">🔍 Desglose dinámico de tasas</h2>
+          <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-blue-700">🔍 Desglose dinámico de tasas</h2>
               <button
-                className="px-4 py-1 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition"
-                onClick={() => {
-                  setMostrarDesgloseTasas(false);
-                  setHashtagSeleccionado('');
-                  onSeleccionItem('');
-                }}
+                className="px-4 py-2 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition font-medium"
+                onClick={() => setMostrarDesgloseTasas(false)}
               >
                 Regresar
               </button>
             </div>
-            <div className="space-y-3">
-              {opcionesTasas.map((tasa) => (
-                <div key={tasa.id} className="flex items-center">
-                  <div 
-                    className={`w-6 h-6 rounded-full mr-3 cursor-pointer ${isTasaActive(tasa.id) ? 'ring-2 ring-offset-2 ring-gray-600' : ''}`}
-                    style={{ 
-                      backgroundColor: isTasaActive(tasa.id) ? tasa.color : 'transparent',
-                      border: `2px solid ${tasa.color}`,
-                    }}
-                    onClick={() => handleTasaClick(tasa.id)}
-                  ></div>
-                  <span className={`text-gray-800 ${isTasaActive(tasa.id) ? 'font-bold' : 'font-medium'}`}>
-                    {tasa.nombre} - Correlación: {tasa.correlacion}%
-                  </span>
+            
+            {/* 🚀 FILTRAR SOLO POR EL HASHTAG SELECCIONADO */}
+            <div className="space-y-6">
+              {(() => {
+                // 🔥 FILTRAR OPCIONES DE TASAS SOLO PARA EL HASHTAG SELECCIONADO
+                const tasasDelHashtagActual = opcionesTasas.filter(tasa => {
+                  return tasa.hashtag === hashtagSeleccionado;
+                });
+
+                if (tasasDelHashtagActual.length === 0) {
+                  return <div className="text-gray-500">No se encontraron tasas para {hashtagSeleccionado}</div>;
+                }
+
+                // 🔥 SOLO MOSTRAR EL HASHTAG ACTUAL
+                const hashtagActual = hashtagSeleccionado;
+                const hashtagColor = hashtagActual === '#EcoFriendly' ? 'text-green-700' : 
+                                   hashtagActual === '#SustainableFashion' ? 'text-purple-700' : 'text-amber-700';
+                const hashtagIcon = hashtagActual === '#EcoFriendly' ? '🌱' : 
+                                  hashtagActual === '#SustainableFashion' ? '♻️' : '🧪';
+                
+                return (
+                  <div key={hashtagActual}>
+                    <h3 className={`text-lg font-semibold ${hashtagColor} mb-3 flex items-center`}>
+                      {hashtagIcon} {hashtagActual}
+                    </h3>
+                    <div className="grid grid-cols-1 gap-2 ml-4">
+                      {tasasDelHashtagActual.map((tasa) => (
+                        <label key={tasa.id} className="flex items-center space-x-3 cursor-pointer hover:bg-blue-50 p-2 rounded-lg transition">
+                          <input
+                            type="checkbox"
+                            checked={tasasSeleccionadas.includes(tasa.id)}
+                            onChange={() => handleTasaToggle(tasa.id)}
+                            className="hidden"
+                          />
+                          <div
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition ${
+                              tasasSeleccionadas.includes(tasa.id) 
+                                ? 'border-transparent' 
+                                : 'border-gray-300'
+                            }`}
+                            style={{ 
+                              backgroundColor: tasasSeleccionadas.includes(tasa.id) ? tasa.color : 'transparent'
+                            }}
+                          >
+                            {tasasSeleccionadas.includes(tasa.id) && (
+                              <div className="w-2 h-2 bg-white rounded-full"></div>
+                            )}
+                          </div>
+                          <span className="text-gray-800 font-medium text-sm">
+                            {tasa.nombre} - Correlación: {tasa.correlacion}%
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+            
+            {/* 🔥 ESTADÍSTICAS DINÁMICAS - SOLO DEL HASHTAG ACTUAL */}
+            <div className="mt-6 p-3 bg-blue-100 rounded-lg">
+              <div className="text-sm text-blue-800">
+                <strong>📊 Estadísticas para {hashtagSeleccionado}:</strong>
+                <div className="mt-1 grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="font-medium">Hashtag actual:</span> {hashtagSeleccionado}
+                  </div>
+                  <div>
+                    <span className="font-medium">Tasas disponibles:</span> {opcionesTasas.filter(t => t.hashtag === hashtagSeleccionado).length}
+                  </div>
+                  <div>
+                    <span className="font-medium">Seleccionadas:</span> {tasasSeleccionadas.length}
+                  </div>
+                  <div>
+                    <span className="font-medium">Plataformas:</span> {Array.from(new Set(opcionesTasas.filter(t => t.hashtag === hashtagSeleccionado).map(t => t.plataforma))).length}
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         )}
