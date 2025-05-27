@@ -3,10 +3,8 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
-// 🔥 NUEVO: Importar datos con múltiples hashtags
 import xDataRaw from '../dataSets/data-x.json';
 
-// 🔥 NUEVO: Tipos actualizados para múltiples hashtags
 interface HashtagData {
   hashtag: string;
   id: string;
@@ -21,11 +19,8 @@ interface HashtagData {
 interface XData {
   hashtags: HashtagData[];
 }
-
-// Hacer type assertion para TypeScript
 const xData = xDataRaw as XData;
 
-// 🔥 FUNCIÓN PARA PROCESAR UN HASHTAG INDIVIDUAL
 function procesarHashtag(hashtagData: HashtagData) {
   const datos = {
     fechas: hashtagData.fechas,
@@ -36,7 +31,6 @@ function procesarHashtag(hashtagData: HashtagData) {
     seguidores: hashtagData.seguidores,
   };
 
-  // Función que calcula la tasa de interacción
   function generadorTasaInteraccion(data: any) {
     return data.fechas.map((fecha: string, i: number) => {
       const interacciones = data.likes[i] + data.repost[i] + data.comentarios[i];
@@ -49,7 +43,6 @@ function procesarHashtag(hashtagData: HashtagData) {
     });
   }
 
-  // Función que calcula la tasa de viralidad
   function generadorTasaViralidad(data: any) {
     return data.fechas.map((fecha: string, i: number) => {
       const interacciones = data.likes[i] + data.repost[i] + data.comentarios[i];
@@ -71,26 +64,21 @@ function procesarHashtag(hashtagData: HashtagData) {
   };
 }
 
-// 🚀 PROCESAMIENTO DINÁMICO DE TODOS LOS HASHTAGS
 const procesarTodosLosHashtags = () => {
   return xData.hashtags.map(hashtagData => procesarHashtag(hashtagData));
 };
 
-// 🎯 NUEVO RESULTADO DINÁMICO
 export const resultadoXCalc = {
   plataforma: "X (Twitter)",
   emoji: "🐦",
   color: "#3b82f6",
   hashtags: procesarTodosLosHashtags(),
-  
-  // 🔥 MANTENER COMPATIBILIDAD CON CÓDIGO ANTERIOR (primer hashtag por defecto)
   datosInteraccion: procesarTodosLosHashtags()[0]?.datosInteraccion || [],
   datosViralidad: procesarTodosLosHashtags()[0]?.datosViralidad || [],
   datosRaw: procesarTodosLosHashtags()[0]?.datosRaw || {},
   hashtag: xData.hashtags[0]?.hashtag || "#EcoFriendly"
 };
 
-// 🎉 FUNCIONES HELPER PARA OBTENER DATOS ESPECÍFICOS
 export const obtenerDatosHashtag = (hashtagId: string) => {
   return resultadoXCalc.hashtags.find(h => h.id === hashtagId);
 };
@@ -102,9 +90,7 @@ export const obtenerListaHashtags = () => {
   }));
 };
 
-// Componente React
 const XCalc: React.FC = () => {
-  // Por defecto muestra el primer hashtag
   const primerHashtag = resultadoXCalc.hashtags[0];
   
   if (!primerHashtag) {
@@ -120,7 +106,6 @@ const XCalc: React.FC = () => {
         <h1 className="text-2xl font-bold text-blue-700">
           🐦 X (Twitter) Analytics - {primerHashtag.nombre}
         </h1>
-        {/* 🔥 NUEVO: Mostrar cantidad de hashtags disponibles */}
         <p className="text-sm text-gray-600 mt-2">
           {resultadoXCalc.hashtags.length} hashtags disponibles
         </p>
@@ -153,8 +138,6 @@ const XCalc: React.FC = () => {
           </LineChart>
         </ResponsiveContainer>
       </div>
-
-      {/* 🔥 NUEVO: Lista de hashtags disponibles */}
       <div className="mt-8 p-4 bg-gray-50 rounded-lg">
         <h3 className="text-lg font-semibold mb-2">Hashtags disponibles:</h3>
         <div className="flex flex-wrap gap-2">

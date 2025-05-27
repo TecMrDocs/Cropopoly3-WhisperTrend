@@ -3,37 +3,28 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 
-// Importamos los resultados de las calculadoras (¡CON LOS HASHTAGS!)
 import { resultadoXCalc } from '../mathCalculus/XCalc';
 import { resultadoRedditCalc } from '../mathCalculus/RedditCalc';
 import { resultadoInstaCalc } from '../mathCalculus/InstaCalc';
 
-// 🔥 FUNCIÓN DIABÓLICA QUE CALCULA CORRELACIONES AUTOMÁTICAMENTE
 const calcularCorrelacion = (datos: any[]): number => {
-  // Simulamos correlación basada en tendencia de los datos
   if (!datos || datos.length === 0) return 0;
-  
   const tasas = datos.map(d => d.tasa || 0);
   const promedio = tasas.reduce((sum, val) => sum + val, 0) / tasas.length;
-  
-  // Calculamos variabilidad y tendencia
   let tendenciaPositiva = 0;
   for (let i = 1; i < tasas.length; i++) {
     if (tasas[i] > tasas[i-1]) tendenciaPositiva++;
   }
-  
-  // Fórmula mágica de correlación 😈
+
   const factorTendencia = (tendenciaPositiva / (tasas.length - 1)) * 100;
   const factorPromedio = Math.min(promedio * 10, 100);
   const correlacion = Math.round((factorTendencia * 0.6 + factorPromedio * 0.4));
   
-  return Math.min(Math.max(correlacion, 45), 95); // Entre 45% y 95%
+  return Math.min(Math.max(correlacion, 45), 95);
 };
 
-// 🎨 COLORES AUTOMÁTICOS PARA CADA HASHTAG
 const coloresHashtags = ['#16a34a', '#3b82f6', '#94a3b8', '#e91e63', '#8b5cf6', '#f59e0b'];
 
-// 🧙‍♂️ GENERADOR DINÁMICO DE HASHTAGS - AGRUPADO POR HASHTAG, NO POR PLATAFORMA
 const generarHashtagsDinamicos = () => {
   const calculadoras = [
     { 
@@ -56,7 +47,7 @@ const generarHashtagsDinamicos = () => {
     }
   ];
 
-  // 🔥 OBTENER HASHTAGS ÚNICOS (NO REPETIR POR PLATAFORMA)
+
   const hashtagsUnicos = new Set<string>();
   const hashtagsMap = new Map<string, any>();
 
@@ -68,12 +59,10 @@ const generarHashtagsDinamicos = () => {
         if (!hashtagsUnicos.has(hashtagNombre)) {
           hashtagsUnicos.add(hashtagNombre);
           
-          // Calcular correlación promedio combinando todas las plataformas para este hashtag
           let totalCorrelacionInteraccion = 0;
           let totalCorrelacionViralidad = 0;
           let contadorPlataformas = 0;
           
-          // Buscar este hashtag en todas las plataformas para calcular correlación promedio
           calculadoras.forEach(calcTmp => {
             if (calcTmp.resultado.hashtags && Array.isArray(calcTmp.resultado.hashtags)) {
               const hashtagEncontrado = calcTmp.resultado.hashtags.find((h: any) => h.nombre === hashtagNombre);
@@ -90,10 +79,10 @@ const generarHashtagsDinamicos = () => {
           );
 
           hashtagsMap.set(hashtagNombre, {
-            id: hashtagNombre, // Usar el nombre del hashtag como ID único
+            id: hashtagNombre, 
             nombre: hashtagNombre,
             correlacion: correlacionPromedio,
-            plataforma: `${contadorPlataformas} plataformas`, // Mostrar cuántas plataformas lo tienen
+            plataforma: `${contadorPlataformas} plataformas`, 
             color: coloresHashtags[hashtagsMap.size % coloresHashtags.length],
             hashtag: hashtagNombre,
             hashtagId: hashtag.id,
@@ -104,7 +93,6 @@ const generarHashtagsDinamicos = () => {
               recomendacion: `Incrementar contenido con ${hashtagNombre} en todas las plataformas`
             },
             datos: {
-              // Para datos combinados, usamos los del primer resultado encontrado
               interaccion: hashtag.datosInteraccion,
               viralidad: hashtag.datosViralidad
             }
@@ -117,7 +105,6 @@ const generarHashtagsDinamicos = () => {
   return Array.from(hashtagsMap.values());
 };
 
-// 🔥 DEFINICIÓN DE TASAS 100% DINÁMICAS - LEE AUTOMÁTICAMENTE DE LOS JSONs
 const generarOpcionesTasas = () => {
   const calculadoras = [
     { 
@@ -145,13 +132,9 @@ const generarOpcionesTasas = () => {
 
   const opcionesTasas: any[] = [];
 
-  // 🚀 PROCESAMIENTO 100% DINÁMICO - SE ADAPTA A CUALQUIER CANTIDAD DE HASHTAGS
   calculadoras.forEach((calc) => {
-    // Verificar que la calculadora tenga hashtags
     if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
-      // Para cada hashtag en cada plataforma
       calc.resultado.hashtags.forEach((hashtag: any) => {
-        // Tasa de interacción
         opcionesTasas.push({
           id: `int_${calc.id}_${hashtag.id}`,
           nombre: `Tasa de interacción ${calc.plataforma} ${hashtag.nombre}`,
@@ -163,7 +146,6 @@ const generarOpcionesTasas = () => {
           hashtagId: hashtag.id
         });
 
-        // Tasa de viralidad
         opcionesTasas.push({
           id: `vir_${calc.id}_${hashtag.id}`,
           nombre: `Tasa de viralidad ${calc.plataforma} ${hashtag.nombre}`,
@@ -176,7 +158,6 @@ const generarOpcionesTasas = () => {
         });
       });
     } else {
-      // 🔥 COMPATIBILIDAD CON ESTRUCTURA ANTERIOR
       opcionesTasas.push({
         id: `int_${calc.id}`,
         nombre: `Tasa de interacción ${calc.plataforma} ${calc.resultado.hashtag}`,
@@ -200,27 +181,7 @@ const generarOpcionesTasas = () => {
   return opcionesTasas;
 };
 
-// Datos de hashtags para noticias (mantenemos algunos estáticos para demo)
-const hashtagsNoticias = [
-  { id: 'pielesSinteticas', nombre: '#PielesSinteticas', correlacion: 82, color: '#a855f7', datos: [
-    { fecha: "01/01/25 - 31/01/25", tasa: 45.2 },
-    { fecha: "1/02/25 - 28/02/25", tasa: 62.8 },
-    { fecha: "1/03/25 - 31/03/25", tasa: 71.3 },
-    { fecha: "1/04/25 - 19/04/25", tasa: 88.5 }
-  ]},
-  { id: 'milan', nombre: '#Milan', correlacion: 70, color: '#a855f7', datos: [
-    { fecha: "01/01/25 - 31/01/25", tasa: 32.1 },
-    { fecha: "1/02/25 - 28/02/25", tasa: 48.7 },
-    { fecha: "1/03/25 - 31/03/25", tasa: 55.9 },
-    { fecha: "1/04/25 - 19/04/25", tasa: 67.4 }
-  ]},
-  { id: 'modaSustentable', nombre: '#ModaSustentable', correlacion: 76, color: '#a855f7', datos: [
-    { fecha: "01/01/25 - 31/01/25", tasa: 38.9 },
-    { fecha: "1/02/25 - 28/02/25", tasa: 55.3 },
-    { fecha: "1/03/25 - 31/03/25", tasa: 69.1 },
-    { fecha: "1/04/25 - 19/04/25", tasa: 82.7 }
-  ]}
-];
+
 
 // 🔥 FUNCIÓN HELPER PARA OBTENER TASAS POR HASHTAG ESPECÍFICO
 const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
@@ -539,14 +500,12 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
             </div>
           </div>
         </div>
-
-        {/* 🧙‍♂️ SECCIÓN DE HASHTAGS DINÁMICOS */}
+        
         {!mostrarDesgloseTasas && !mostrarDesgloseNoticias && !mostrarConsolidacion && (
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-green-50 to-emerald-50">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h2 className="text-xl font-bold text-navy-900">🚀 Hashtags Dinámicos</h2>
-                <p className="text-sm text-gray-600">Generados automáticamente desde los JSONs</p>
               </div>
             </div>
             <div className="mt-3 space-y-4">
@@ -576,7 +535,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
           </div>
         )}
 
-        {/* 🔍 DESGLOSE DINÁMICO DE TASAS - 🔥 FILTRADO POR HASHTAG SELECCIONADO */}
+
         {mostrarDesgloseTasas && (
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50">
             <div className="flex items-center justify-between mb-4">
@@ -586,17 +545,15 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                 onClick={() => {
                   setMostrarDesgloseTasas(false);
                   setHashtagSeleccionado('');
-                  onSeleccionItem(''); // Importante: notificar al padre
+                  onSeleccionItem(''); 
                 }}
               >
                 Regresar
               </button>
             </div>
             
-            {/* 🚀 FILTRAR SOLO POR EL HASHTAG SELECCIONADO */}
             <div className="space-y-6">
               {(() => {
-                // 🔥 FILTRAR OPCIONES DE TASAS SOLO PARA EL HASHTAG SELECCIONADO
                 const tasasDelHashtagActual = opcionesTasas.filter(tasa => {
                   return tasa.hashtag === hashtagSeleccionado;
                 });
@@ -604,8 +561,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                if (tasasDelHashtagActual.length === 0) {
                   return <div className="text-gray-500">No se encontraron tasas para {hashtagSeleccionado}</div>;
                 }
-
-                // 🔥 SOLO MOSTRAR EL HASHTAG ACTUAL
                 const hashtagActual = hashtagSeleccionado;
                 const hashtagColor = hashtagActual === '#EcoFriendly' ? 'text-green-700' : 
                                    hashtagActual === '#SustainableFashion' ? 'text-purple-700' : 'text-amber-700';
@@ -651,7 +606,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
               })()}
             </div>
             
-            {/* 🔥 ESTADÍSTICAS DINÁMICAS - SOLO DEL HASHTAG ACTUAL */}
             <div className="mt-6 p-3 bg-blue-100 rounded-lg">
               <div className="text-sm text-blue-800">
                 <strong>📊 Estadísticas para {hashtagSeleccionado}:</strong>
@@ -674,7 +628,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
           </div>
         )}
 
-        {/* Sección de desglose de hashtags de noticias */}
         {mostrarDesgloseNoticias && (
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-purple-50 to-pink-50">
             <div className="flex items-center justify-between mb-3">
@@ -691,26 +644,11 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
               </button>
             </div>
             <div className="space-y-3">
-              {hashtagsNoticias.map((hashtag) => (
-                <div key={hashtag.id} className="flex items-center">
-                  <div 
-                    className={`w-6 h-6 rounded-full mr-3 cursor-pointer ${isHashtagNoticiaActive(hashtag.id) ? 'ring-2 ring-offset-2 ring-gray-600' : ''}`}
-                    style={{ 
-                      backgroundColor: isHashtagNoticiaActive(hashtag.id) ? hashtag.color : 'transparent',
-                      border: `2px solid ${hashtag.color}`,
-                    }}
-                    onClick={() => handleHashtagNoticiaClick(hashtag.id)}
-                  ></div>
-                  <span className={`text-gray-800 ${isHashtagNoticiaActive(hashtag.id) ? 'font-bold' : 'font-medium'}`}>
-                    {hashtag.nombre} - Correlación: {hashtag.correlacion}%
-                  </span>
-                </div>
-              ))}
+
             </div>
           </div>
         )}
 
-        {/* Sección de Noticias - Solo se muestra si no está mostrando ningún desglose */}
         {!mostrarDesgloseTasas && !mostrarDesgloseNoticias && !mostrarConsolidacion && (
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-purple-50 to-pink-50">
             <h2 className="text-xl font-bold text-navy-900">Noticias</h2>
@@ -770,7 +708,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
           </div>
         )}
 
-        {/* Contenedor para mostrar el componente de Consolidación DINÁMICO */}
         {mostrarConsolidacion && (
           <div className="mt-6 border-t pt-6">
             <Consolidacion />
@@ -783,5 +720,4 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
 
 export default MenuComponentes;
 
-// Exportar los datos de hashtags de noticias para uso en Dashboard
-export { hashtagsNoticias };
+

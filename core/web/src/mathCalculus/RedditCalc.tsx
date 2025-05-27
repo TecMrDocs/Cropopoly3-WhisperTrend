@@ -3,10 +3,7 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
-// 🔥 NUEVO: Importar datos con múltiples hashtags
 import redditDataRaw from '../dataSets/data-reddit.json';
-
-// 🔥 NUEVO: Tipos actualizados para múltiples hashtags
 interface HashtagData {
   hashtag: string;
   id: string;
@@ -20,11 +17,7 @@ interface HashtagData {
 interface RedditData {
   hashtags: HashtagData[];
 }
-
-// Hacer type assertion para TypeScript
 const redditData = redditDataRaw as RedditData;
-
-// 🔥 FUNCIÓN PARA PROCESAR UN HASHTAG INDIVIDUAL
 function procesarHashtag(hashtagData: HashtagData) {
   const datos = {
     fechas: hashtagData.fechas,
@@ -34,7 +27,6 @@ function procesarHashtag(hashtagData: HashtagData) {
     horas: hashtagData.horas,
   };
 
-  // Calcula la tasa de interacción: (upVotes + comentarios) / suscriptores * 100
   function generadorTasaInteraccion(data: typeof datos) {
     const { fechas, upVotes, comentarios, suscriptores } = data;
     return fechas.map((fecha: string, i: number) => {
@@ -43,12 +35,11 @@ function procesarHashtag(hashtagData: HashtagData) {
       const tasa = suscriptoresActuales > 0 ? (interacciones / suscriptoresActuales) * 100 : 0;
       return {
         fecha,
-        tasa: parseFloat(tasa.toFixed(3)), // un decimal más para precisión
+        tasa: parseFloat(tasa.toFixed(3)), 
       };
     });
   }
 
-  // Calcula la tasa de viralidad: (upVotes + comentarios) / horas * 100
   function generadorTasaViralidad(data: typeof datos) {
     const { fechas, upVotes, comentarios, horas } = data;
     return fechas.map((fecha: string, i: number) => {
@@ -71,26 +62,21 @@ function procesarHashtag(hashtagData: HashtagData) {
   };
 }
 
-// 🚀 PROCESAMIENTO DINÁMICO DE TODOS LOS HASHTAGS
 const procesarTodosLosHashtags = () => {
   return redditData.hashtags.map(hashtagData => procesarHashtag(hashtagData));
 };
 
-// 🎯 NUEVO RESULTADO DINÁMICO
 export const resultadoRedditCalc = {
   plataforma: "Reddit",
   emoji: "🔴",
   color: "#94a3b8",
   hashtags: procesarTodosLosHashtags(),
-  
-  // 🔥 MANTENER COMPATIBILIDAD CON CÓDIGO ANTERIOR (primer hashtag por defecto)
   datosInteraccion: procesarTodosLosHashtags()[0]?.datosInteraccion || [],
   datosViralidad: procesarTodosLosHashtags()[0]?.datosViralidad || [],
   datosRaw: procesarTodosLosHashtags()[0]?.datosRaw || {},
   hashtag: redditData.hashtags[0]?.hashtag || "#EcoFriendly"
 };
 
-// 🎉 FUNCIONES HELPER PARA OBTENER DATOS ESPECÍFICOS
 export const obtenerDatosHashtag = (hashtagId: string) => {
   return resultadoRedditCalc.hashtags.find(h => h.id === hashtagId);
 };
@@ -103,7 +89,6 @@ export const obtenerListaHashtags = () => {
 };
 
 const RedditCalc: React.FC = () => {
-  // Por defecto muestra el primer hashtag
   const primerHashtag = resultadoRedditCalc.hashtags[0];
   
   if (!primerHashtag) {
@@ -119,7 +104,6 @@ const RedditCalc: React.FC = () => {
         <h1 className="text-2xl font-bold text-orange-600">
           🔴 Reddit Analytics - {primerHashtag.nombre}
         </h1>
-        {/* 🔥 NUEVO: Mostrar cantidad de hashtags disponibles */}
         <p className="text-sm text-gray-600 mt-2">
           {resultadoRedditCalc.hashtags.length} hashtags disponibles
         </p>
@@ -156,8 +140,6 @@ const RedditCalc: React.FC = () => {
           </LineChart>
         </ResponsiveContainer>
       </div>
-
-      {/* 🔥 NUEVO: Lista de hashtags disponibles */}
       <div className="mt-8 p-4 bg-gray-50 rounded-lg">
         <h3 className="text-lg font-semibold mb-2">Hashtags disponibles:</h3>
         <div className="flex flex-wrap gap-2">
