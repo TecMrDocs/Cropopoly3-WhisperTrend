@@ -1,17 +1,24 @@
 import ProgressBar from "../components/ProgressBar";
 import WhiteButton from "../components/WhiteButton";
 import { useNavigate } from 'react-router-dom';
+import { usePrompt } from "../contexts/PromptContext";
 
 export default function LaunchConfirmacion() {
   const navigate = useNavigate();
+  const { prompt, empresa, producto, } = usePrompt();
+  const { business_name, industry, company_size, scope, locations, num_branches } = empresa || {};
+  const { r_type, name, description, related_words } = producto || {};
+
+  console.log("Prompt:", prompt);
+
   return(
     <div className="flex flex-col items-center h-screen bg-white">
       <ProgressBar activeStep={3} />
       <h1 className="text-4xl font-bold mt-2 text-center pt-10">Confirmación de tu información</h1>
       <p className="max-w-3xl text-lg text-black justify-center">
-        <span className="font-bold">[Nombre de empresa]</span> es una empresa que se dedica a la industria <span className="font-bold">[industria]</span>, en donde trabajan <span className="font-bold">[x]</span> personas,
-        con un alcance geográfico <span className="font-bold">[]</span>, con operaciones en <span className="font-bold">[]</span> y <span className="font-bold">[x]</span> número de sucursales o establecimientos. Además cuenta
-        con el producto/servicio <span className="font-bold">[]</span> que consiste en <span className="font-bold">[]</span> con palabras relacionadas como <span className="font-bold">[ , , ]</span>.
+        <span className="font-bold">{business_name}</span> es una <span className="font-bold">{company_size}</span> que se dedica a la industria de <span className="font-bold">{industry}</span>,
+        con un alcance geográfico <span className="font-bold">{scope}</span>, con operaciones en <span className="font-bold">{locations}</span> y <span className="font-bold">{num_branches}</span> sucursales. Además ofrece
+        el <span className="font-bold">{r_type}</span>: <span className="font-bold">{name}</span>, que consiste en: <span className="font-bold">{description}</span> y que se relaciona con: <span className="font-bold">{related_words}</span>.
       </p>
       <p className="text-lg text-black">Para este producto registraste información de ventas.</p>
       <p className="text-4xl font-bold mt-2 text-center pt-10">¡Ya podemos explorar las tendencias de tu mercado!</p>

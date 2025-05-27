@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { API_URL } from "@/utils/constants";
+import { getConfig } from "@/utils/auth";
+import { usePrompt } from "../contexts/PromptContext";
 import ProgressBar from "../components/ProgressBar";
 import SelectField from "../components/SelectField";
 import TextFieldWHolder from "../components/TextFieldWHolder";
@@ -11,11 +14,10 @@ import EnclosedWord from "../components/EnclosedWord";
 
 export default function LaunchProducto() {
   const location = useLocation();
+  const { setPrompt, setProducto, } = usePrompt();
   const promptAnterior = location.state?.prompt || "";
 
   const prodOrServ: string[] = ["Producto", "Servicio"];
-
-  const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzQ5MjI4MTIwfQ.ysOpkiGz9d07Dm-d1og-xAoSFIf-V7laT8xWp4COPfc";
 
   const [pors, setPors] = useState("");
   const [nombreProducto, setNombreProducto] = useState("");
@@ -50,11 +52,7 @@ export default function LaunchProducto() {
 
   const getUserId = async (): Promise<number | null> => {
     try {
-      const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
-        headers: {
-          token: token,
-        },
-      });
+      const res = await fetch(`${API_URL}auth/check`, getConfig());
   
       if (!res.ok) throw new Error("Error al verificar usuario");
   
@@ -84,16 +82,23 @@ export default function LaunchProducto() {
       description: descripcion,
       related_words: palabrasJoin,
     };
+
+    const payload2 = {
+      r_type: pors,
+      name: nombreProducto,
+      description: descripcion,
+      related_words: palabrasJoin,
+    }
   
     try {
-      const response = await fetch("http://127.0.0.1:8080/api/v1/resource", {
+      const response = await fetch(`${API_URL}resource`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          //Authorization: `Bearer ${token}`,
+          ...getConfig().headers,
         },
         body: JSON.stringify(payload),
-      });
+      });      
   
       if (!response.ok) {
         const msg = await response.text();
@@ -107,6 +112,8 @@ export default function LaunchProducto() {
 
       const prompt = promptBuilder2();
       console.log("Prompt: ", prompt);
+      setProducto(payload2);
+      setPrompt(prompt);
 
       navigate("/launchVentas");
     } catch (err) {

@@ -3,13 +3,17 @@ import WebRouter from './router/WebRouter';
 import ScrollToTop from './components/ScrollToTop';
 import DynamicTitle from './components/DynamicTitle';
 import UserAuthProvider from './provider/UserAuthProvider';
+import { PromptProvider } from "./contexts/PromptContext"
+
 function App() {
   return (
       <BrowserRouter>
         <UserAuthProvider>
-          <DynamicTitle />
-          <ScrollToTop />
-          <WebRouter />
+          <PromptProvider>
+            <DynamicTitle />
+            <ScrollToTop />
+            <WebRouter />
+          </PromptProvider>
         </UserAuthProvider>
       </BrowserRouter>
   );
