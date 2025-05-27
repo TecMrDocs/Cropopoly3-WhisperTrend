@@ -548,12 +548,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                 <h2 className="text-xl font-bold text-navy-900">🚀 Hashtags Dinámicos</h2>
                 <p className="text-sm text-gray-600">Generados automáticamente desde los JSONs</p>
               </div>
-              <button
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full hover:from-blue-600 hover:to-indigo-600 transition font-medium"
-                onClick={toggleConsolidacion}
-              >
-                Ver Consolidación
-              </button>
             </div>
             <div className="mt-3 space-y-4">
               {hashtagsDinamicos

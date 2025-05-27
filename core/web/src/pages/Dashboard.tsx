@@ -2,9 +2,6 @@ import { useState } from 'react';
 import MenuComponentes from '../components/MenuComponentes';
 import InterpretacionDashboard from '../components/InterpretacionDashboard';
 import CorrelacionVentas from '../components/CorrelacionVentas';
-import XCalc from '../mathCalculus/XCalc';
-import RedditCalc from '../mathCalculus/RedditCalc';
-import InstaCalc from '../mathCalculus/InstaCalc';
 import VentasCalc from '../mathCalculus/VentasCalc';
 import { 
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, 
@@ -639,7 +636,6 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              {/* Badge de información */}
               <div className="bg-gradient-to-r from-green-100/80 to-emerald-100/80 backdrop-blur-sm rounded-xl p-3 border border-green-200/50">
                 <div className="flex items-center">
                   <span className="text-green-600 mr-2">💡</span>
@@ -650,16 +646,13 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Contenedor del contenido con efecto glassmorphism */}
             <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-6 border border-white/40 shadow-inner">
               <InterpretacionDashboard />
             </div>
           </div>
         </div>
 
-        {/* Correlación con ventas - Nueva sección */}
         <div className="relative bg-gradient-to-br from-white via-purple-50/40 to-indigo-50/60 shadow-2xl rounded-3xl p-8 border-2 border-purple-200/30 backdrop-blur-lg overflow-hidden lg:col-span-2">
-          {/* Decoraciones de fondo */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-indigo-500/20 rounded-full blur-3xl -translate-y-16 translate-x-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-2xl translate-y-12 -translate-x-12"></div>
           
