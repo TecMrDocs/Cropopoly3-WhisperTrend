@@ -145,7 +145,7 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
               height={80}
             />
             <YAxis 
-              domain={[0, 'dataMax']} 
+              domain={[0, 100]} 
               tickFormatter={(value) => `${value}%`}
               tick={{ fontSize: 11 }}
             />
@@ -160,13 +160,6 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
                 border: '1px solid #e5e7eb',
                 borderRadius: '8px',
                 fontSize: '12px'
-              }}
-            />
-            <Legend 
-              wrapperStyle={{ fontSize: '12px' }}
-              formatter={(value) => {
-                const tasa = datosTasas[value as keyof typeof datosTasas];
-                return tasa?.nombre || value;
               }}
             />
             {tasasIds.map((id, index) => {
