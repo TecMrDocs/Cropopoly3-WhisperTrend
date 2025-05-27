@@ -19,10 +19,6 @@ import PlotTrend from '@/components/PlotTrend';
 import UniformTrendPlot from '@/components/UniformTrendPlot';
 import RatePlot from '@/components/RatePlot';
 
-
-
-
-
 const mapeoTipos = {
   'Ventas': 'ventas',
   '#EcoFriendly': 'hashtag1',
@@ -78,20 +74,23 @@ const datosTasas = generarDatosTasasDinamico();
 
 
 const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
-  const hashtagMap: { [key: string]: string } = {
-    '#EcoFriendly': 'eco',
-    '#SustainableFashion': 'sustainable', 
-    '#NuevosMateriales': 'materiales'
-  };
-  
-  const tag = hashtagMap[hashtagId];
-  if (!tag) return ['int_insta_eco']; 
-  return [
-    `int_insta_${tag}`, `vir_insta_${tag}`,
-    `int_x_${tag}`, `vir_x_${tag}`,
-    `int_reddit_${tag}`, `vir_reddit_${tag}`
+  const ids: string[] = [];
+  const calculadoras = [
+    { id: 'insta', resultado: resultadoInstaCalc },
+    { id: 'x', resultado: resultadoXCalc },
+    { id: 'reddit', resultado: resultadoRedditCalc }
   ];
+
+  calculadoras.forEach(calc => {
+    const hashtag = calc.resultado.hashtags.find(h => h.nombre === hashtagId);
+    if (hashtag) {
+      ids.push(`int_${calc.id}_${hashtag.id}`, `vir_${calc.id}_${hashtag.id}`);
+    }
+  });
+
+  return ids.length > 0 ? ids : [];
 };
+
 
 const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
   console.log("Renderizando TasasGraficaDinamica con tasasIds:", tasasIds);
@@ -183,7 +182,7 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
               return (
                 <Line 
                   key={id}
-                  type="monotone" 
+                  type="linear" 
                   dataKey={id} 
                   stroke={tasa.color} 
                   name={id}
@@ -332,7 +331,11 @@ export default function Dashboard() {
   const [hashtagsNoticiasSeleccionados, setHashtagsNoticiasSeleccionados] = useState<string[]>(['pielesSinteticas']); // Estado para hashtags de noticias
   const [mostrandoDesgloseTasas, setMostrandoDesgloseTasas] = useState<boolean>(false); // 🔥 NUEVO ESTADO
 
-  const hashtagsDinamicos = ['#EcoFriendly', '#SustainableFashion', '#NuevosMateriales'];
+const hashtagsDinamicos = [
+  ...resultadoXCalc.hashtags,
+  ...resultadoInstaCalc.hashtags,
+  ...resultadoRedditCalc.hashtags
+].map(h => h.nombre);
 
   const handleEcoFriendlyClick = () => {
     setMostrarTendenciaUniforme(true);
@@ -435,16 +438,12 @@ export default function Dashboard() {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Columna izquierda con gráficas principales */}
         <div className="flex flex-col gap-6">
-          {/* Gráfica de líneas o mensaje inicial */}
           <div className="relative bg-gradient-to-br from-white via-gray-50/40 to-blue-50/60 shadow-2xl rounded-3xl p-8 border-2 border-gray-200/30 backdrop-blur-lg overflow-hidden">
-            {/* Decoraciones de fondo */}
             <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-gray-400/20 to-blue-500/20 rounded-full blur-3xl -translate-y-16 -translate-x-16"></div>
             <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tr from-indigo-400/20 to-purple-400/20 rounded-full blur-2xl translate-y-12 translate-x-12"></div>
             
             <div className="relative z-10">
-              {/* Header elegante */}
               <div className="mb-6 pb-4 border-b border-gray-200/50">
                 <div className="flex items-center mb-3">
                   <div className="relative">
@@ -477,7 +476,6 @@ export default function Dashboard() {
                   </div>
                 </div>
                 
-                {/* Badge de información */}
                 <div className="bg-gradient-to-r from-gray-100/80 to-blue-100/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200/50">
                   <div className="flex items-center">
                     <span className="text-blue-600 mr-2">🔍</span>
@@ -493,7 +491,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Contenedor del contenido con efecto glassmorphism */}
               <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-6 border border-white/40 shadow-inner min-h-80">
                 {renderGraficaPrincipal()}
               </div>
@@ -501,14 +498,12 @@ export default function Dashboard() {
           </div>
         </div>
         
-        {/* Columna derecha con menú de componentes */}
+
         <div className="relative bg-gradient-to-br from-white via-blue-50/40 to-indigo-100/60 shadow-2xl rounded-3xl p-8 border-2 border-blue-200/30 backdrop-blur-lg overflow-hidden">
-          {/* Decoraciones de fondo */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-500/20 rounded-full blur-3xl -translate-y-16 translate-x-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-400/20 to-pink-400/20 rounded-full blur-2xl translate-y-12 -translate-x-12"></div>
           
           <div className="relative z-10">
-            {/* Header elegante */}
             <div className="mb-6 pb-4 border-b border-blue-200/50">
               <div className="flex items-center mb-3">
                 <div className="relative">
