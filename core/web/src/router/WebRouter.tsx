@@ -28,6 +28,8 @@ import EmailConfirmation from "../pages/EmailConfirmation";
 import ActualizarPlan from "../pages/ActualizarPlan";
 import Us from "../pages/Us";
 import HolaDeNuevo from "../pages/HolaDeNuevo";
+import Protected from "../components/Protected";
+import Unprotected from "../components/Unprotected";
 
 
 export default function WebRouter(){
@@ -41,31 +43,36 @@ export default function WebRouter(){
 
   return(
     <Routes>
-      <Route path="/" element={loadLayout(LandingLayout, Home)} />
-      <Route path="/nosotros" element={loadLayout(LandingLayout, Us)} />
+      {/* Rutas públicas/no protegidas */}
+      <Route path="/" element={<Unprotected>{loadLayout(LandingLayout, Home)}</Unprotected>} />
+      <Route path="/nosotros" element={<Unprotected>{loadLayout(LandingLayout, Us)}</Unprotected>} />
       <Route path="/avisoPrivacidad" element={loadLayout(MainLayout, PrivacyNotice)} />
-      <Route path="/login" element={loadLayout(MainLayout, Login)} />
-      <Route path="/RegistroU" element={loadLayout(MainLayout, Registro)} />
+      <Route path="/login" element={<Unprotected>{loadLayout(MainLayout, Login)}</Unprotected>} />
+      <Route path="/RegistroU" element={<Unprotected>{loadLayout(MainLayout, Registro)}</Unprotected>} />
       <Route path="/confirmacionCorreo" element={loadLayout(MainLayout, EmailConfirmation)} />
       <Route path="/holaDeNuevo" element={loadLayout(MainLayout, HolaDeNuevo)} />
-      <Route path="/dashboard" element={loadLayout(ProfileLayout, Dashboard)} />
-      <Route path="/acercaDe" element={loadLayout(ProfileLayout, AcercaDe)} />
-      <Route path="/actualizarPlan" element={loadLayout(MainLayout, ActualizarPlan)} />
-      <Route path="/editarProducto" element={loadLayout(ProfileLayout, EditarProducto)} />
-      <Route path="/editarDatos" element={loadLayout(ProfileLayout, EditarDatos)} />
-      <Route path="/empresa" element={loadLayout(ProfileLayout, Empresa)} />
-      <Route path="/perfil" element={loadLayout(ProfileLayout, Perfil)} />
-      <Route path="/productos" element={loadLayout(ProfileLayout, Productos)} />
       <Route path="/changePassword" element={loadLayout(MainLayout, ChangePassword)} />
-      <Route path="/launchConfirmacion" element={loadLayout(LaunchLayout, LaunchConfirmacion)} />
-      <Route path="/launchEmpresa" element={loadLayout(LaunchLayout, LaunchEmpresa)} />
-      <Route path="/launchPeriodo" element={loadLayout(LaunchLayout, LaunchPeriodo)} />
-      <Route path="/launchProcess" element={loadLayout(LaunchLayout, LaunchProcess)} />
-      <Route path="/launchProducto" element={loadLayout(LaunchLayout, LaunchProducto)} />
-      <Route path="/launchRegistroVentas" element={loadLayout(LaunchLayout, LaunchRegistroVentas)} />
-      <Route path="/launchVentas" element={loadLayout(LaunchLayout, LaunchVentas)} />
-      <Route path="/loading" element={loadLayout(LaunchLayout, Loading)} />
+      <Route path="/actualizarPlan" element={loadLayout(MainLayout, ActualizarPlan)} />
       <Route path="/resumen" element={loadLayout(MainLayout, Resumen)} />
+      
+      {/* Rutas protegidas - requieren autenticación */}
+      <Route path="/dashboard" element={<Protected>{loadLayout(ProfileLayout, Dashboard)}</Protected>} />
+      <Route path="/acercaDe" element={<Protected>{loadLayout(ProfileLayout, AcercaDe)}</Protected>} />
+      <Route path="/editarProducto" element={<Protected>{loadLayout(ProfileLayout, EditarProducto)}</Protected>} />
+      <Route path="/editarDatos" element={<Protected>{loadLayout(ProfileLayout, EditarDatos)}</Protected>} />
+      <Route path="/empresa" element={<Protected>{loadLayout(ProfileLayout, Empresa)}</Protected>} />
+      <Route path="/perfil" element={<Protected>{loadLayout(ProfileLayout, Perfil)}</Protected>} />
+      <Route path="/productos" element={<Protected>{loadLayout(ProfileLayout, Productos)}</Protected>} />
+      
+      {/* Rutas del proceso de lanzamiento - protegidas */}
+      <Route path="/launchConfirmacion" element={<Protected>{loadLayout(LaunchLayout, LaunchConfirmacion)}</Protected>} />
+      <Route path="/launchEmpresa" element={<Protected>{loadLayout(LaunchLayout, LaunchEmpresa)}</Protected>} />
+      <Route path="/launchPeriodo" element={<Protected>{loadLayout(LaunchLayout, LaunchPeriodo)}</Protected>} />
+      <Route path="/launchProcess" element={<Protected>{loadLayout(LaunchLayout, LaunchProcess)}</Protected>} />
+      <Route path="/launchProducto" element={<Protected>{loadLayout(LaunchLayout, LaunchProducto)}</Protected>} />
+      <Route path="/launchRegistroVentas" element={<Protected>{loadLayout(LaunchLayout, LaunchRegistroVentas)}</Protected>} />
+      <Route path="/launchVentas" element={<Protected>{loadLayout(LaunchLayout, LaunchVentas)}</Protected>} />
+      <Route path="/loading" element={<Protected>{loadLayout(LaunchLayout, Loading)}</Protected>} />
     </Routes>
   );
 }
