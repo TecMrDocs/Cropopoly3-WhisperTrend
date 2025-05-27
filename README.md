@@ -90,5 +90,5 @@ BROWSERLESS_WS=ws://browserless-chrome:3000
 VITE_APP_SERVER_PROTOCOL = "http"
 VITE_APP_SERVER_PORT = "5173"
 VITE_APP_SERVER_HOST = "localhost"
-VITE_APP_API_ROUTE = "api/v1"
+VITE_APP_API_ROUTE = "api/v1/"
 ```
