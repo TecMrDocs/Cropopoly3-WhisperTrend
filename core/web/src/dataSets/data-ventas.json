@@ -1,0 +1,34 @@
+{
+  "producto": "Bolso Marianne",
+  "ventas": [
+    {
+      "fecha": "01/01/25 - 31/01/25",
+      "unidades": 1250,
+      "ingresos": 62500,
+      "precio_promedio": 50
+    },
+    {
+      "fecha": "1/02/25 - 28/02/25",
+      "unidades": 1380,
+      "ingresos": 71760,
+      "precio_promedio": 52
+    },
+    {
+      "fecha": "1/03/25 - 31/03/25",
+      "unidades": 1520,
+      "ingresos": 82080,
+      "precio_promedio": 54
+    },
+    {
+      "fecha": "1/04/25 - 19/04/25",
+      "unidades": 980,
+      "ingresos": 52920,
+      "precio_promedio": 54
+    }
+  ],
+  "metricas": {
+    "crecimiento_promedio": "7.5%",
+    "mejor_mes": "Marzo 2025",
+    "proyeccion_anual": 18500
+  }
+}
