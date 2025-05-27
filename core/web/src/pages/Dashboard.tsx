@@ -86,6 +86,7 @@ const datosHashtagsNoticias = {
 
 // 🔥 FUNCIÓN PARA OBTENER TASAS POR HASHTAG ESPECÍFICO
 const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
+  // Mapeo de IDs de hashtags a sus códigos internos
   const hashtagMap: { [key: string]: string } = {
     '#EcoFriendly': 'eco',
     '#SustainableFashion': 'sustainable', 
@@ -93,8 +94,9 @@ const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
   };
   
   const tag = hashtagMap[hashtagId];
-  if (!tag) return ['int_insta_eco']; // Fallback
+  if (!tag) return ['int_insta_eco']; // Fallback a EcoFriendly
   
+  // Importante: devolver SOLO las tasas del hashtag seleccionado
   return [
     `int_insta_${tag}`, `vir_insta_${tag}`,
     `int_x_${tag}`, `vir_x_${tag}`,
@@ -103,7 +105,11 @@ const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
 };
 
 // 🔥 COMPONENTE MEJORADO QUE FUNCIONA CON LOS NUEVOS IDs
+// 🔥 COMPONENTE MEJORADO QUE FUNCIONA CON LOS NUEVOS IDs
 const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
+  // Añadir log para depuración
+  console.log("Renderizando TasasGraficaDinamica con tasasIds:", tasasIds);
+  
   if (!tasasIds || tasasIds.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
@@ -117,7 +123,7 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
 
   // Generamos los datos combinados para la gráfica
   const generarDatosCombinados = () => {
-    // Obtenemos todas las fechas de todos los conjuntos de datos seleccionados
+    // Obtener todas las fechas de todas las tasas seleccionadas
     const todasFechas = Array.from(
       new Set(
         tasasIds.flatMap(id => {
@@ -127,7 +133,7 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
       )
     );
 
-    // Para cada fecha, creamos un objeto con los valores de todas las tasas seleccionadas
+    // Para cada fecha, crear un objeto con los valores de las tasas seleccionadas
     return todasFechas.map(fecha => {
       const item: any = { fecha };
       
@@ -144,6 +150,7 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
   };
 
   const datosCombinados = generarDatosCombinados();
+  console.log("Datos combinados generados:", datosCombinados);
 
   return (
     <div className="w-full">
@@ -188,7 +195,10 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
             />
             {tasasIds.map((id, index) => {
               const tasa = datosTasas[id as keyof typeof datosTasas];
-              if (!tasa) return null;
+              if (!tasa) {
+                console.warn(`No se encontró tasa para ID: ${id}`);
+                return null;
+              }
               
               return (
                 <Line 
@@ -412,27 +422,31 @@ export default function Dashboard() {
     setMostrandoDesgloseTasas(true); // 🔥 ACTIVAR MODO DESGLOSE
   };
 
-  // 🔥 FUNCIÓN MEJORADA PARA MANEJAR CUALQUIER HASHTAG
-  const handleSeleccionItem = (itemId: string) => {
-    if (itemId === '') {
-      // Si el itemId está vacío, resetear todo para mostrar mensaje inicial
-      setMostrarTendenciaUniforme(false);
-      setHashtagSeleccionado('');
-      setMostrandoDesgloseTasas(false); // 🔥 DESACTIVAR MODO DESGLOSE
-    } else {
-      setMostrarTendenciaUniforme(true);
-      setHashtagSeleccionado(itemId);
-      // 🚀 NUEVA LÓGICA: Activar desglose para cualquier hashtag dinámico
-      const esHashtagDinamico = hashtagsDinamicos.includes(itemId);
-      setMostrandoDesgloseTasas(esHashtagDinamico);
-      
-      // 🔥 SI ES UN HASHTAG DINÁMICO, CAMBIAR LAS TASAS SELECCIONADAS
-      if (esHashtagDinamico) {
-        const nuevasTasas = obtenerTasasPorHashtag(itemId);
-        setTasasSeleccionadas(nuevasTasas);
-      }
+
+// En Dashboard.tsx, modifica la función handleSeleccionItem
+const handleSeleccionItem = (itemId: string) => {
+  if (itemId === '') {
+    // Si el itemId está vacío, resetear todo para mostrar mensaje inicial
+    setMostrarTendenciaUniforme(false);
+    setHashtagSeleccionado('');
+    setMostrandoDesgloseTasas(false); // 🔥 DESACTIVAR MODO DESGLOSE
+  } else {
+    setMostrarTendenciaUniforme(true);
+    setHashtagSeleccionado(itemId);
+    
+    // 🚀 NUEVA LÓGICA: Activar desglose para cualquier hashtag dinámico
+    const esHashtagDinamico = hashtagsDinamicos.includes(itemId);
+    setMostrandoDesgloseTasas(esHashtagDinamico);
+    
+    // 🔥 IMPORTANTE: SIEMPRE actualizar las tasas seleccionadas al cambiar de hashtag
+    if (esHashtagDinamico) {
+      // Obtener las tasas específicas SOLO para este hashtag
+      const nuevasTasas = obtenerTasasPorHashtag(itemId);
+      console.log(`Cambiando a hashtag ${itemId}, nuevas tasas:`, nuevasTasas);
+      setTasasSeleccionadas(nuevasTasas);
     }
-  };
+  }
+};
 
   // Función para manejar múltiples tasas seleccionadas
   const handleTasasSeleccionadas = (tasasIds: string[]) => {

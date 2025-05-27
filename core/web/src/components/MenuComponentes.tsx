@@ -222,6 +222,31 @@ const hashtagsNoticias = [
   ]}
 ];
 
+// 🔥 FUNCIÓN HELPER PARA OBTENER TASAS POR HASHTAG ESPECÍFICO
+const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
+  // Verificar que el hashtagId es exactamente como aparece en tus datos
+  console.log("MenuComponentes: Obteniendo tasas para hashtag:", hashtagId);
+  
+  const hashtagMap: { [key: string]: string } = {
+    '#EcoFriendly': 'eco',
+    '#SustainableFashion': 'sustainable', 
+    '#NuevosMateriales': 'materiales'
+  };
+  
+  const tag = hashtagMap[hashtagId];
+  if (!tag) {
+    console.warn(`MenuComponentes: No se encontró mapping para el hashtag: ${hashtagId}`);
+    return ['int_insta_eco']; // Fallback
+  }
+  
+  // Estos IDs deben coincidir exactamente con los que tienes en tus datos
+  return [
+    `int_insta_${tag}`, `vir_insta_${tag}`,
+    `int_x_${tag}`, `vir_x_${tag}`,
+    `int_reddit_${tag}`, `vir_reddit_${tag}`
+  ];
+};
+
 // Componente de Consolidación extraído de MenuComponentes para usarlo independientemente
 const Consolidacion = () => {
   const [seleccionadas, setSeleccionadas] = useState<string[]>(['insta']); // Por defecto muestra Instagram
@@ -310,24 +335,6 @@ const Consolidacion = () => {
   );
 };
 
-// 🔥 FUNCIÓN HELPER PARA OBTENER TASAS POR HASHTAG ESPECÍFICO
-const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
-  const hashtagMap: { [key: string]: string } = {
-    '#EcoFriendly': 'eco',
-    '#SustainableFashion': 'sustainable', 
-    '#NuevosMateriales': 'materiales'
-  };
-  
-  const tag = hashtagMap[hashtagId];
-  if (!tag) return ['int_insta_eco']; // Fallback
-  
-  return [
-    `int_insta_${tag}`, `vir_insta_${tag}`,
-    `int_x_${tag}`, `vir_x_${tag}`,
-    `int_reddit_${tag}`, `vir_reddit_${tag}`
-  ];
-};
-
 type MenuComponentesProps = {
   modoVisualizacion: 'original' | 'logaritmo' | 'normalizado';
   setModoVisualizacion: React.Dispatch<React.SetStateAction<'original' | 'logaritmo' | 'normalizado'>>;
@@ -369,6 +376,8 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
 
   // 🚀 FUNCIÓN CORREGIDA QUE MANEJA TODOS LOS HASHTAGS
   const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 'normalizado') => {
+    console.log("MenuComponentes: Clic en item:", itemId); // Para depuración
+    
     setHashtagSeleccionado(itemId);
     
     // 🔥 VERIFICAR SI ES CUALQUIER HASHTAG DINÁMICO
@@ -379,12 +388,17 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
       
       // 🚀 NUEVO: Cambiar las tasas seleccionadas al hashtag correspondiente
       const nuevasTasas = obtenerTasasPorHashtag(itemId);
+      console.log("MenuComponentes: Nuevas tasas para", itemId, ":", nuevasTasas);
+      
       setTasasSeleccionadas(nuevasTasas);
+      
+      // IMPORTANTE: Notificar al componente padre sobre las nuevas tasas seleccionadas
       if (onTasasSeleccionadas) {
         onTasasSeleccionadas(nuevasTasas);
       }
       
-      onEcoFriendlyClick(); // Mantener esta función para compatibilidad
+      // Llamar a la función del padre para actualizar la visualización
+      onSeleccionItem(itemId);
       return; // Salir temprano para evitar ocultar la gráfica
     } 
     // Si es Noticia1, mostrar el desglose de hashtags de noticias
@@ -405,6 +419,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
     // Ocultar la consolidación cuando se selecciona un elemento específico
     setMostrarConsolidacion(false);
     
+    // Llamar a la función del padre para actualizar la visualización
     onSeleccionItem(itemId);
   };
 
@@ -420,6 +435,8 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
       } else {
         nuevaSeleccion = [...prev, tasaId];
       }
+      
+      console.log("MenuComponentes: Toggle tasa, nuevas tasas:", nuevaSeleccion);
       
       // Llamar al callback del padre
       if (onTasasSeleccionadas) {
@@ -438,6 +455,10 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
         if (nuevaSeleccion.length === 0) {
           return prev;
         }
+        
+        if (onHashtagsNoticiasSeleccionados) {
+          onHashtagsNoticiasSeleccionados(nuevaSeleccion);
+        }
         return nuevaSeleccion;
       } 
       else {
@@ -454,6 +475,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
     setMostrarConsolidacion(!mostrarConsolidacion);
     if (!mostrarConsolidacion) {
       setHashtagSeleccionado('');
+      onSeleccionItem(''); // Importante: notificar al padre
     }
   };
 
@@ -567,7 +589,11 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
               <h2 className="text-xl font-bold text-blue-700">🔍 Desglose dinámico de tasas</h2>
               <button
                 className="px-4 py-2 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition font-medium"
-                onClick={() => setMostrarDesgloseTasas(false)}
+                onClick={() => {
+                  setMostrarDesgloseTasas(false);
+                  setHashtagSeleccionado('');
+                  onSeleccionItem(''); // Importante: notificar al padre
+                }}
               >
                 Regresar
               </button>
@@ -581,7 +607,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                   return tasa.hashtag === hashtagSeleccionado;
                 });
 
-                if (tasasDelHashtagActual.length === 0) {
+               if (tasasDelHashtagActual.length === 0) {
                   return <div className="text-gray-500">No se encontraron tasas para {hashtagSeleccionado}</div>;
                 }
 
