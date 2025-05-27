@@ -1,7 +1,7 @@
 import React from 'react';
 
 type ConsolidacionProps = {
-  data: any[]; // Puedes ajustar el tipo según los datos que manejes
+  data: any[]; 
   filtro: string;
   setFiltro: React.Dispatch<React.SetStateAction<string>>;
   onDetalleClick: (id: string) => void;
@@ -16,8 +16,6 @@ const Consolidacion: React.FC<ConsolidacionProps> = ({ data, filtro, setFiltro, 
   return (
     <div className="p-6 bg-white rounded-3xl border border-gray-200 w-full">
       <h2 className="text-2xl font-bold mb-4 text-navy-900">Consolidación de Datos</h2>
-
-      {/* Filtro */}
       <div className="mb-6 flex space-x-4">
         <button
           className={`px-4 py-2 rounded-full font-semibold ${
@@ -53,7 +51,6 @@ const Consolidacion: React.FC<ConsolidacionProps> = ({ data, filtro, setFiltro, 
         </button>
       </div>
 
-      {/* Lista de datos filtrados */}
       <ul className="space-y-4 max-h-96 overflow-auto">
         {filtrarDatos().map(item => (
           <li
