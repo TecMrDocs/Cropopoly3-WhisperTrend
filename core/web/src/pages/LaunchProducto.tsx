@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { API_URL } from "@/utils/constants";
+import { getConfig } from "@/utils/auth";
+import { usePrompt } from "../contexts/PromptContext";
 import ProgressBar from "../components/ProgressBar";
 import SelectField from "../components/SelectField";
 import TextFieldWHolder from "../components/TextFieldWHolder";
@@ -10,6 +13,10 @@ import WordAdder from "../components/WordAdder";
 import EnclosedWord from "../components/EnclosedWord";
 
 export default function LaunchProducto() {
+  const location = useLocation();
+  const { setPrompt, setProducto, } = usePrompt();
+  const promptAnterior = location.state?.prompt || "";
+
   const prodOrServ: string[] = ["Producto", "Servicio"];
 
   const [pors, setPors] = useState("");
@@ -26,6 +33,7 @@ export default function LaunchProducto() {
     if (!pors.trim()) nuevosErrores.pors = "Este campo es obligatorio";
     if (!nombreProducto.trim()) nuevosErrores.nombreProducto = "Este campo es obligatorio";
     if (!descripcion.trim()) nuevosErrores.descripcion = "Este campo es obligatorio";
+    if (palabrasAsociadas.length === 0) nuevosErrores.palabrasAsociadas = "Añadir al menos una palabra asociada";
   
     setErrors(nuevosErrores);
   
@@ -42,21 +50,90 @@ export default function LaunchProducto() {
     }
   };
 
-  const handleSubmit = () => {
+  const getUserId = async (): Promise<number | null> => {
+    try {
+      const res = await fetch(`${API_URL}auth/check`, getConfig());
+  
+      if (!res.ok) throw new Error("Error al verificar usuario");
+  
+      const data = await res.json();
+      return data.id;
+    } catch (err) {
+      console.error("Error obteniendo user_id:", err);
+      return null;
+    }
+  };  
+
+  const handleSubmit = async () => {
     if (!validarFormulario()) return;
-
+  
+    const userId = await getUserId();
+    if (!userId) {
+      alert("No se pudo obtener el usuario.");
+      return;
+    }
+  
     const palabrasJoin = palabrasAsociadas.join(", ");
-
-    const data = {
-      pors,
-      nombreProducto,
-      descripcion,
-      palabrasJoin,
+  
+    const payload = {
+      user_id: userId,
+      r_type: pors,
+      name: nombreProducto,
+      description: descripcion,
+      related_words: palabrasJoin,
     };
 
-    console.log("Formulario válido:", data);
-    navigate("/launchVentas");
+    const payload2 = {
+      r_type: pors,
+      name: nombreProducto,
+      description: descripcion,
+      related_words: palabrasJoin,
+    }
+  
+    try {
+      const response = await fetch(`${API_URL}resource`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getConfig().headers,
+        },
+        body: JSON.stringify(payload),
+      });      
+  
+      if (!response.ok) {
+        const msg = await response.text();
+        console.error("Error al crear el recurso:", msg);
+        alert("No se pudo crear el recurso.");
+        return;
+      }
+  
+      const nuevoRecurso = await response.json();
+      console.log("Recurso creado:", nuevoRecurso);
+
+      const prompt = promptBuilder2();
+      console.log("Prompt: ", prompt);
+      setProducto(payload2);
+      setPrompt(prompt);
+
+      navigate("/launchVentas");
+    } catch (err) {
+      console.error("Error de red:", err);
+      alert("Error de red o del servidor.");
+    }
   };
+
+  const promptBuilder2 = () => {
+    const t1 = "Ofrezco un " + pors.toLowerCase() + " llamado " + nombreProducto + ". ";
+    const t2 = "Consiste en: " + descripcion;
+
+    if (palabrasAsociadas.length > 0) {
+      const palabras = palabrasAsociadas.join(", ");
+      return promptAnterior + t1 + t2 + ", y se asocia con: " + palabras + ".";
+    } else {
+      return promptAnterior + t1 + t2 + ".";
+    }
+  }
+  
 
   return(
     <div className="flex flex-col items-center h-screen bg-white">
@@ -89,6 +166,9 @@ export default function LaunchProducto() {
       <p className="text-xl mt-3 text-center">Indica palabras asociadas con tu producto o servicio (máximo 10)</p>
       <div className="mt-3">
         <WordAdder onAdd={handleAddPalabra} />
+        {errors.palabrasAsociadas && (
+          <p className="text-red-500 text-sm mt-1">{errors.palabrasAsociadas}</p>
+        )}
       </div>
 
       {palabrasAsociadas.length > 0 && (

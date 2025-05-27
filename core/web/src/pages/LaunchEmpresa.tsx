@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "@/utils/constants";
+import { getConfig } from "@/utils/auth";
+import { usePrompt } from "../contexts/PromptContext";
 import ProgressBar from "../components/ProgressBar";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import SelectField from "../components/SelectField";
@@ -8,6 +11,9 @@ import WhiteButton from "../components/WhiteButton";
 import BlueButton from "../components/BlueButton";
 
 export default function LaunchEmpresa() {
+  const navigate = useNavigate();
+  const { setEmpresa } = usePrompt();
+
   const industrias: string[] = ["Manufactura", "Moda", "Alimentos", "Tecnología", "Salud"];
   const opcionesColabs: string[] = ["10 o menos", 
     "Entre 11 y 50", 
@@ -21,7 +27,8 @@ export default function LaunchEmpresa() {
   const [alcance, setAlcance] = useState("");
   const [operaciones, setOperaciones] = useState("");
   const [sucursales, setSucursales] = useState("");
-  const navigate = useNavigate();
+  //const [prompt1, setPrompt1] = useState("");
+  //const navigate = useNavigate();
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -49,21 +56,84 @@ export default function LaunchEmpresa() {
     navigate("/launchProcess");
   };
 
-  const handleSubmit = () => {
-    if (!validarFormulario()) return;
-  
-    const data = {
-      nombreEmpresa,
-      industria,
-      numEmpleados,
-      alcance,
-      operaciones,
-      sucursales,
-    };
-  
-    console.log("Formulario válido:", data);
-    navigate("/launchProducto");
+  const getUserId = async (): Promise<number | null> => {
+    try {
+      const res = await fetch(`${API_URL}auth/check`, getConfig());
+      if (!res.ok) throw new Error("Token inválido");
+      const data = await res.json();
+      return data.id;
+    } catch (err) {
+      console.error("Error obteniendo user_id:", err);
+      return null;
+    }
   };
+
+  const handleSubmit = async () => {
+    if (!validarFormulario()) return;
+
+    const userId = await getUserId();
+    if (!userId) {
+      alert("Token inválido. Inicia sesión de nuevo.");
+      return;
+    }
+
+    let ne = "";
+    if (numEmpleados === "10 o menos") ne = "micro empresa";
+    else if (numEmpleados === "Entre 11 y 50") ne = "pequeña empresa";
+    else if (numEmpleados === "Entre 51 y 250") ne = "empresa mediana";
+    else if (numEmpleados === "Más de 250") ne = "empresa grande";
+
+    const payload = {
+      business_name: nombreEmpresa,
+      industry: industria,
+      company_size: ne,
+      scope: alcance,
+      locations: operaciones,
+      num_branches: sucursales,
+    };
+
+    try {
+      const res = await fetch(`${API_URL}user/update/${userId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getConfig().headers,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const msg = await res.text();
+        console.error("Error al registrar empresa:", msg);
+        alert("No se pudo registrar la empresa.");
+        return;
+      }
+
+      //const prompt = `Me dedico a la industria de ${industria}. Tengo una ${ne} con alcance ${alcance} y ${sucursales} sucursales. Desarrollo mis operaciones en ${operaciones}.`;
+      const prompt = promptBuilder1();
+      console.log("Prompt: ", prompt);
+      setEmpresa(payload);
+
+      navigate("/launchProducto", { state: { prompt } });
+    } catch (err) {
+      console.error("Error de red:", err);
+      alert("Ocurrió un error inesperado.");
+    }
+  };
+
+  const promptBuilder1 = () => {
+    let ne = "";
+    if (numEmpleados === "10 o menos") ne = "micro empresa";
+    else if (numEmpleados === "Entre 11 y 50") ne = "pequeña empresa";
+    else if (numEmpleados === "Entre 51 y 250") ne = "empresa mediana";
+    else if (numEmpleados === "Más de 250") ne = "empresa grande";
+
+    const t1 = "Me dedico a la industria de " + industria + ". ";
+    const t2 = "Tengo una " + ne + " con alcance " + alcance + " y " + sucursales + " sucursales. ";
+    const t3 = "Desarrollo mis operaciones en " + operaciones + ". ";
+
+    return t1 + t2 + t3;
+  }
 
   return(
     <div className="flex flex-col items-center h-screen bg-white">
