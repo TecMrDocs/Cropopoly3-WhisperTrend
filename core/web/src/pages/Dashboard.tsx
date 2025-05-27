@@ -32,77 +32,74 @@ const mapeoTipos = {
   'Noticia3': 'noticia3'
 };
 
-// 🔥 DATOS DE TASAS ACTUALIZADOS PARA LOS NUEVOS IDs DINÁMICOS
-const datosTasas = {
-  // Nuevos IDs dinámicos
-  'int_insta': { 
-    nombre: 'Tasa de interacción Instagram', 
-    datos: resultadoInstaCalc.datosInteraccion, 
-    color: '#16a34a' 
-  },
-  'vir_insta': { 
-    nombre: 'Tasa de viralidad Instagram', 
-    datos: resultadoInstaCalc.datosViralidad, 
-    color: '#16a34a' 
-  },
-  'int_x': { 
-    nombre: 'Tasa de interacción X', 
-    datos: resultadoXCalc.datosInteraccion, 
-    color: '#3b82f6' 
-  },
-  'vir_x': { 
-    nombre: 'Tasa de viralidad X', 
-    datos: resultadoXCalc.datosViralidad, 
-    color: '#3b82f6' 
-  },
-  'int_reddit': { 
-    nombre: 'Tasa de interacción Reddit', 
-    datos: resultadoRedditCalc.datosInteraccion, 
-    color: '#94a3b8' 
-  },
-  'vir_reddit': { 
-    nombre: 'Tasa de viralidad Reddit', 
-    datos: resultadoRedditCalc.datosViralidad, 
-    color: '#94a3b8' 
-  },
-  // IDs antiguos para compatibilidad (por si acaso)
-  'virX': { 
-    nombre: 'Tasa de viralidad en X', 
-    datos: resultadoXCalc.datosViralidad, 
-    color: '#8884d8' 
-  },
-  'intX': { 
-    nombre: 'Tasa de interacción en X', 
-    datos: resultadoXCalc.datosInteraccion, 
-    color: '#8884d8' 
-  },
-  'virInsta': { 
-    nombre: 'Tasa de viralidad en Instagram', 
-    datos: resultadoInstaCalc.datosViralidad, 
-    color: '#82ca9d' 
-  },
-  'intInsta': { 
-    nombre: 'Tasa de interacción en Instagram', 
-    datos: resultadoInstaCalc.datosInteraccion, 
-    color: '#82ca9d' 
-  },
-  'virReddit': { 
-    nombre: 'Tasa de viralidad en Reddit', 
-    datos: resultadoRedditCalc.datosViralidad, 
-    color: '#ffc658' 
-  },
-  'intReddit': { 
-    nombre: 'Tasa de interacción en Reddit', 
-    datos: resultadoRedditCalc.datosInteraccion, 
-    color: '#ffc658' 
-  }
+// 🔥 FUNCIÓN DINÁMICA PARA GENERAR DATOS DE TASAS DESDE LAS CALCULADORAS
+const generarDatosTasasDinamico = () => {
+  const calculadoras = [
+    { id: 'insta', resultado: resultadoInstaCalc, color: '#16a34a' },
+    { id: 'x', resultado: resultadoXCalc, color: '#3b82f6' },
+    { id: 'reddit', resultado: resultadoRedditCalc, color: '#94a3b8' }
+  ];
+
+  const datosTasas: any = {};
+
+  calculadoras.forEach(calc => {
+    // Verificar que la calculadora tenga hashtags
+    if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
+      calc.resultado.hashtags.forEach((hashtag: any) => {
+        // Tasa de interacción
+        datosTasas[`int_${calc.id}_${hashtag.id}`] = {
+          nombre: `Tasa de interacción ${calc.resultado.emoji || ''} ${hashtag.nombre}`,
+          datos: hashtag.datosInteraccion,
+          color: calc.color
+        };
+
+        // Tasa de viralidad
+        datosTasas[`vir_${calc.id}_${hashtag.id}`] = {
+          nombre: `Tasa de viralidad ${calc.resultado.emoji || ''} ${hashtag.nombre}`,
+          datos: hashtag.datosViralidad,
+          color: calc.color
+        };
+      });
+    }
+  });
+
+  // 🔥 MANTENER COMPATIBILIDAD CON IDs ANTERIORES
+  datosTasas['int_insta'] = datosTasas['int_insta_eco'] || { nombre: 'Tasa de interacción Instagram', datos: [], color: '#16a34a' };
+  datosTasas['vir_insta'] = datosTasas['vir_insta_eco'] || { nombre: 'Tasa de viralidad Instagram', datos: [], color: '#16a34a' };
+  datosTasas['int_x'] = datosTasas['int_x_eco'] || { nombre: 'Tasa de interacción X', datos: [], color: '#3b82f6' };
+  datosTasas['vir_x'] = datosTasas['vir_x_eco'] || { nombre: 'Tasa de viralidad X', datos: [], color: '#3b82f6' };
+  datosTasas['int_reddit'] = datosTasas['int_reddit_eco'] || { nombre: 'Tasa de interacción Reddit', datos: [], color: '#94a3b8' };
+  datosTasas['vir_reddit'] = datosTasas['vir_reddit_eco'] || { nombre: 'Tasa de viralidad Reddit', datos: [], color: '#94a3b8' };
+
+  return datosTasas;
 };
+
+// 🚀 GENERAR DATOS DE TASAS DINÁMICAMENTE
+const datosTasas = generarDatosTasasDinamico();
 
 // Crear un mapeo similar para los hashtags de noticias
 const datosHashtagsNoticias = {
   'pielesSinteticas': hashtagsNoticias[0],
   'milan': hashtagsNoticias[1], 
   'modaSustentable': hashtagsNoticias[2]
+};
+
+// 🔥 FUNCIÓN PARA OBTENER TASAS POR HASHTAG ESPECÍFICO
+const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
+  const hashtagMap: { [key: string]: string } = {
+    '#EcoFriendly': 'eco',
+    '#SustainableFashion': 'sustainable', 
+    '#NuevosMateriales': 'materiales'
+  };
+  
+  const tag = hashtagMap[hashtagId];
+  if (!tag) return ['int_insta_eco']; // Fallback
+  
+  return [
+    `int_insta_${tag}`, `vir_insta_${tag}`,
+    `int_x_${tag}`, `vir_x_${tag}`,
+    `int_reddit_${tag}`, `vir_reddit_${tag}`
+  ];
 };
 
 // 🔥 COMPONENTE MEJORADO QUE FUNCIONA CON LOS NUEVOS IDs
@@ -401,9 +398,12 @@ export default function Dashboard() {
   const [hashtagSeleccionado, setHashtagSeleccionado] = useState<string>(''); // Cambié a string vacío para mostrar mensaje inicial
   const [mostrarTendenciaUniforme, setMostrarTendenciaUniforme] = useState<boolean>(false);
   const [mostrarConsolidacion, setMostrarConsolidacion] = useState<boolean>(true);
-  const [tasasSeleccionadas, setTasasSeleccionadas] = useState<string[]>(['int_insta']); // 🔥 ACTUALIZADO CON NUEVO ID
+  const [tasasSeleccionadas, setTasasSeleccionadas] = useState<string[]>(['int_insta_eco']); // 🔥 EMPEZAR CON ECOFRIENDLY
   const [hashtagsNoticiasSeleccionados, setHashtagsNoticiasSeleccionados] = useState<string[]>(['pielesSinteticas']); // Estado para hashtags de noticias
   const [mostrandoDesgloseTasas, setMostrandoDesgloseTasas] = useState<boolean>(false); // 🔥 NUEVO ESTADO
+
+  // 🔥 LISTA DE HASHTAGS DINÁMICOS
+  const hashtagsDinamicos = ['#EcoFriendly', '#SustainableFashion', '#NuevosMateriales'];
 
   // Función que será pasada a MenuComponentes para manejar el clic en #EcoFriendly
   const handleEcoFriendlyClick = () => {
@@ -412,7 +412,7 @@ export default function Dashboard() {
     setMostrandoDesgloseTasas(true); // 🔥 ACTIVAR MODO DESGLOSE
   };
 
-  // Función general para manejar cualquier elemento seleccionado
+  // 🔥 FUNCIÓN MEJORADA PARA MANEJAR CUALQUIER HASHTAG
   const handleSeleccionItem = (itemId: string) => {
     if (itemId === '') {
       // Si el itemId está vacío, resetear todo para mostrar mensaje inicial
@@ -422,8 +422,15 @@ export default function Dashboard() {
     } else {
       setMostrarTendenciaUniforme(true);
       setHashtagSeleccionado(itemId);
-      // Solo activar desglose si es EcoFriendly
-      setMostrandoDesgloseTasas(itemId.includes('EcoFriendly'));
+      // 🚀 NUEVA LÓGICA: Activar desglose para cualquier hashtag dinámico
+      const esHashtagDinamico = hashtagsDinamicos.includes(itemId);
+      setMostrandoDesgloseTasas(esHashtagDinamico);
+      
+      // 🔥 SI ES UN HASHTAG DINÁMICO, CAMBIAR LAS TASAS SELECCIONADAS
+      if (esHashtagDinamico) {
+        const nuevasTasas = obtenerTasasPorHashtag(itemId);
+        setTasasSeleccionadas(nuevasTasas);
+      }
     }
   };
 
