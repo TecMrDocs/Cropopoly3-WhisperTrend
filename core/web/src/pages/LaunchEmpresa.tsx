@@ -27,8 +27,6 @@ export default function LaunchEmpresa() {
   const [alcance, setAlcance] = useState("");
   const [operaciones, setOperaciones] = useState("");
   const [sucursales, setSucursales] = useState("");
-  //const [prompt1, setPrompt1] = useState("");
-  //const navigate = useNavigate();
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -109,7 +107,6 @@ export default function LaunchEmpresa() {
         return;
       }
 
-      //const prompt = `Me dedico a la industria de ${industria}. Tengo una ${ne} con alcance ${alcance} y ${sucursales} sucursales. Desarrollo mis operaciones en ${operaciones}.`;
       const prompt = promptBuilder1();
       console.log("Prompt: ", prompt);
       setEmpresa(payload);

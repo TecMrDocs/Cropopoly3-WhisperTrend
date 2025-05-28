@@ -46,7 +46,7 @@ export default function LaunchProducto() {
   
   const handleAddPalabra = (nuevaPalabra: string) => {
     if (nuevaPalabra.trim() !== "" && palabrasAsociadas.length < 10) {
-      setPalabrasAsociadas(prev => [...prev, nuevaPalabra]);
+      setPalabrasAsociadas((prev: string[]) => [...prev, nuevaPalabra]);
     }
   };
 
@@ -125,12 +125,13 @@ export default function LaunchProducto() {
   const promptBuilder2 = () => {
     const t1 = "Ofrezco un " + pors.toLowerCase() + " llamado " + nombreProducto + ". ";
     const t2 = "Consiste en: " + descripcion;
+    const t3 = "Por favor escribe una sentencia en inglés que describa mi producto (procura no mencionar el nombre de mi producto) y mi empresa para realizar una búsqueda de noticias. También dame 3 hashtags en inglés que hayan sido populares, que pueda buscar en redes sociales y que se relacionen con mi empresa y con mi producto (procura que los hashtags no incluyan el nombre de mi producto). Separa la sentencia de los hashtags solo con el símbolo @.";
 
     if (palabrasAsociadas.length > 0) {
       const palabras = palabrasAsociadas.join(", ");
-      return promptAnterior + t1 + t2 + ", y se asocia con: " + palabras + ".";
+      return promptAnterior + t1 + t2 + ", y se asocia con: " + palabras + ". " + t3;
     } else {
-      return promptAnterior + t1 + t2 + ".";
+      return promptAnterior + t1 + t2 + ". " + t3;
     }
   }
   
