@@ -26,12 +26,11 @@ const mapeoTipos = {
   'Noticia3': 'noticia3'
 };
 
-
 const generarDatosTasasDinamico = () => {
   const calculadoras = [
-    { id: 'insta', resultado: resultadoInstaCalc, color: '#16a34a' },
-    { id: 'x', resultado: resultadoXCalc, color: '#3b82f6' },
-    { id: 'reddit', resultado: resultadoRedditCalc, color: '#94a3b8' }
+    { id: 'insta', resultado: resultadoInstaCalc, colorInteraccion: '#e91e63', colorViralidad: '#f06292' }, // Instagram
+    { id: 'x', resultado: resultadoXCalc, colorInteraccion: '#dc2626', colorViralidad: '#f97316' },         // X
+    { id: 'reddit', resultado: resultadoRedditCalc, colorInteraccion: '#2563eb', colorViralidad: '#06b6d4' } // Reddit
   ];
 
   const datosTasas: any = {};
@@ -42,33 +41,56 @@ const generarDatosTasasDinamico = () => {
         datosTasas[`int_${calc.id}_${hashtag.id}`] = {
           nombre: `Tasa de interacción ${calc.resultado.emoji || ''} ${hashtag.nombre}`,
           datos: hashtag.datosInteraccion,
-          color: calc.color
+          color: calc.colorInteraccion
         };
 
         datosTasas[`vir_${calc.id}_${hashtag.id}`] = {
           nombre: `Tasa de viralidad ${calc.resultado.emoji || ''} ${hashtag.nombre}`,
           datos: hashtag.datosViralidad,
-          color: calc.color
+          color: calc.colorViralidad
         };
       });
     }
   });
 
-  datosTasas['int_insta'] = datosTasas['int_insta_eco'] || { nombre: 'Tasa de interacción Instagram', datos: [], color: '#16a34a' };
-  datosTasas['vir_insta'] = datosTasas['vir_insta_eco'] || { nombre: 'Tasa de viralidad Instagram', datos: [], color: '#16a34a' };
-  datosTasas['int_x'] = datosTasas['int_x_eco'] || { nombre: 'Tasa de interacción X', datos: [], color: '#3b82f6' };
-  datosTasas['vir_x'] = datosTasas['vir_x_eco'] || { nombre: 'Tasa de viralidad X', datos: [], color: '#3b82f6' };
-  datosTasas['int_reddit'] = datosTasas['int_reddit_eco'] || { nombre: 'Tasa de interacción Reddit', datos: [], color: '#94a3b8' };
-  datosTasas['vir_reddit'] = datosTasas['vir_reddit_eco'] || { nombre: 'Tasa de viralidad Reddit', datos: [], color: '#94a3b8' };
+  // Fallbacks con colores consistentes
+  datosTasas['int_insta'] = datosTasas['int_insta_eco'] || { 
+    nombre: 'Tasa de interacción Instagram', 
+    datos: [], 
+    color: '#e91e63' 
+  };
+  datosTasas['vir_insta'] = datosTasas['vir_insta_eco'] || { 
+    nombre: 'Tasa de viralidad Instagram', 
+    datos: [], 
+    color: '#f06292' 
+  };
+
+  datosTasas['int_x'] = datosTasas['int_x_eco'] || { 
+    nombre: 'Tasa de interacción X', 
+    datos: [], 
+    color: '#dc2626' 
+  };
+  datosTasas['vir_x'] = datosTasas['vir_x_eco'] || { 
+    nombre: 'Tasa de viralidad X', 
+    datos: [], 
+    color: '#f97316' 
+  };
+
+  datosTasas['int_reddit'] = datosTasas['int_reddit_eco'] || { 
+    nombre: 'Tasa de interacción Reddit', 
+    datos: [], 
+    color: '#2563eb' 
+  };
+  datosTasas['vir_reddit'] = datosTasas['vir_reddit_eco'] || { 
+    nombre: 'Tasa de viralidad Reddit', 
+    datos: [], 
+    color: '#06b6d4' 
+  };
 
   return datosTasas;
 };
 
-
 const datosTasas = generarDatosTasasDinamico();
-
-
-
 
 const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
   const ids: string[] = [];
@@ -87,7 +109,6 @@ const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
 
   return ids.length > 0 ? ids : [];
 };
-
 
 const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
   console.log("Renderizando TasasGraficaDinamica con tasasIds:", tasasIds);
@@ -257,7 +278,6 @@ const MensajeInicial = () => {
           ¡Bienvenido al análisis de tendencias!
         </h3>
 
-        {/* Tip Box */}
         <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 mb-3 border border-blue-200 shadow-sm">
           <div className="flex items-center justify-center mb-1">
             <div className="bg-yellow-400 rounded-full p-1 mr-2">
