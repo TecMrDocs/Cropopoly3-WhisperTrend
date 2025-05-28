@@ -1,14 +1,35 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { API_URL } from "@/utils/constants";
+import { getConfig } from "@/utils/auth";
 import ProgressBar from "../components/ProgressBar";
 import BlueButton from "../components/BlueButton";
 
 export default function LaunchProcess() {
-  const nombreUsuario: string = "Lucio";
+  const [nombreUsuario, setNombreUsuario] = useState("");
+
   const navigate = useNavigate();
 
   const handleClick = () => {
     navigate("/launchEmpresa");
   };
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const response = await fetch(`${API_URL}auth/check`, getConfig());
+        if (!response.ok) {
+          throw new Error("Token inválido");
+        }
+        const data = await response.json();
+        setNombreUsuario(data.name);
+      } catch (error) {
+        console.error("Error al verificar el usuario:", error);
+        navigate("/login");
+      }
+    };
+    checkUser();
+  }, []);
 
   return(
     <div className="flex flex-col items-center h-screen bg-white">

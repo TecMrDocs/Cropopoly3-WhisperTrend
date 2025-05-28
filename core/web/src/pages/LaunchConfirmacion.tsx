@@ -40,17 +40,13 @@ export default function LaunchConfirmacion() {
   
       const data = await response.json();
   
-      // Extraer solo el texto después de </think>
       const splitByThink = data.split("</think>");
       const afterThink = splitByThink.length > 1 ? splitByThink[1].trim() : data.trim();
   
-      // Separar por @
       const [sentenciaText, hashtagsText] = afterThink.split("@").map((s: string) => s.trim());
   
-      // Extraer hashtags (pueden estar separados por espacio o salto de línea)
       const hashtags = hashtagsText.split(/[\s\n]+/).filter((tag: string) => tag.startsWith("#"));
   
-      // Guardar en estados
       setSentencia(sentenciaText || "");
       setHashtag1(hashtags[0] || "");
       setHashtag2(hashtags[1] || "");
