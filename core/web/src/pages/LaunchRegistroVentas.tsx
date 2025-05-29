@@ -84,7 +84,7 @@ export default function LaunchRegistroVentas() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { productId } = usePrompt();
+  const { productId, setHasSalesData } = usePrompt();
 
   const handleChange = (id: string, value: string) => {
     setVentas(prev => ({ ...prev, [id]: value }));
@@ -93,6 +93,13 @@ export default function LaunchRegistroVentas() {
 
   const handleGuardar = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const hasData = meses.some(mes => ventas[mes.id] && ventas[mes.id] !== "");
+    setHasSalesData(hasData);
+
+    if (!hasData) {
+      console.log("No se registraron datos de ventas");
+    }
 
     const userId = await getUserId();
     if (!userId) {
@@ -111,6 +118,11 @@ export default function LaunchRegistroVentas() {
     try {
       // Filtrar solo los meses con ventas registradas
       const mesesConVentas = meses.filter(mes => ventas[mes.id] && ventas[mes.id] !== "");
+
+      if (mesesConVentas.length === 0) {
+        setError("Debes registrar al menos un mes de ventas para continuar");
+        return; // Detiene la ejecución si no hay datos
+      }
 
       // Enviar cada venta al backend
       const requests = mesesConVentas.map(mes => {

@@ -106,6 +106,9 @@ type PromptContextType = {
   
   productId: number | null;
   setProductId: (id: number) => void;
+
+  hasSalesData:boolean;
+  setHasSalesData: (hasData: boolean) => void;
 };
 
 const PromptContext = createContext<PromptContextType>({
@@ -124,6 +127,9 @@ const PromptContext = createContext<PromptContextType>({
   
   productId: null,
   setProductId: () => {},
+
+  hasSalesData: false,
+  setHasSalesData: () => {},
 });
 
 export function usePrompt() {
@@ -136,6 +142,7 @@ export function PromptProvider({ children }: { children: React.ReactNode }) {
   const [producto, setProductoState] = useState<DatosProducto | null>(null);
   const [userId, setUserIdState] = useState<number | null>(null);
   const [productId, setProductIdState] = useState<number | null>(null);
+  const [hasSalesData, setHasSalesDataState] = useState(false);
 
   const setPrompt = (text: string) => setPromptState(text);
   const resetPrompt = () => setPromptState("");
@@ -145,6 +152,8 @@ export function PromptProvider({ children }: { children: React.ReactNode }) {
   
   const setUserId = (id: number) => setUserIdState(id);
   const setProductId = (id: number) => setProductIdState(id);
+
+  const setHasSalesData = (hasData: boolean) => setHasSalesDataState(hasData);
 
   return (
     <PromptContext.Provider
@@ -159,6 +168,8 @@ export function PromptProvider({ children }: { children: React.ReactNode }) {
         setUserId,
         productId,
         setProductId,
+        hasSalesData,
+        setHasSalesData,
       }}
     >
       {children}
