@@ -87,6 +87,11 @@ export default function LaunchRegistroVentas() {
   const { productId, setHasSalesData } = usePrompt();
 
   const handleChange = (id: string, value: string) => {
+    if (value && Number(value) < 0) {
+      setError("No se permiten valores negativos en las ventas");
+      return;
+    }
+
     setVentas(prev => ({ ...prev, [id]: value }));
     setError(null);
   };
@@ -108,7 +113,7 @@ export default function LaunchRegistroVentas() {
     }
 
     if (!productId) {
-      setError("Falta información del producto. Por favor, completa el pasos de producto.");
+      setError("Falta información del producto. Por favor, completa el paso de producto.");
       return;
     }
 
@@ -121,7 +126,7 @@ export default function LaunchRegistroVentas() {
 
       if (mesesConVentas.length === 0) {
         setError("Debes registrar al menos un mes de ventas para continuar");
-        return; // Detiene la ejecución si no hay datos
+        return; 
       }
 
       // Enviar cada venta al backend
