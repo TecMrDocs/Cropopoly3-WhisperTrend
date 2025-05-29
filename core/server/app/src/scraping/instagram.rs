@@ -2,25 +2,20 @@ use chromiumoxide::browser::Browser;
 use chromiumoxide::cdp::browser_protocol::network::{
     Cookie, CookieParam, GetCookiesParams, SetCookiesParams, TimeSinceEpoch,
 };
-use chromiumoxide::cdp::js_protocol::runtime::CallFunctionOnReturns;
 use chromiumoxide::page::Page;
 use futures_util::stream::StreamExt;
-use serde::Serialize;
-use std::fs;
-use std::time::Duration;
+use fake::{faker::internet::en::UserAgent, Fake};
+use scraper::{Html, Selector};
+use std::{fs, time::Duration};
 use tokio::time::sleep;
+use serde_json;
 
-#[derive(Debug, Serialize)]
-pub struct InstagramPost {
-    pub url: String,
-    pub caption: String,
-    pub likes: Option<u32>,
-    pub comments: Option<u32>,
-}
+use crate::scraping::SCRAPER;
 
 pub struct InstagramScraper;
 
 impl InstagramScraper {
+
     pub async fn login() -> anyhow::Result<Browser> {
         let ws_url = std::env::var("BROWSERLESS_WS")?;
         let (browser, mut handler) = Browser::connect(ws_url).await?;
@@ -71,66 +66,50 @@ impl InstagramScraper {
         Ok(browser)
     }
 
-   pub async fn get_one_post() -> anyhow::Result<InstagramPost> {
-    let browser = Self::login().await?;
-    let page = browser
-        .new_page("https://www.instagram.com/reels/DIaAh_WSuMN/")
-        .await?;
-    page.wait_for_navigation().await?;
-    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+pub async fn get_post_links_from_hashtag_scraper(hashtag: &str) -> Result<Vec<String>, anyhow::Error> {
+    let url = format!("https://www.instagram.com/explore/tags/{}/", hashtag);
+    let scraper = crate::scraping::SCRAPER.clone();
 
-    // === Caption ===
-    let caption_el = page.find_element("meta[property='og:title']").await?;
-    let js_result: CallFunctionOnReturns = caption_el
-        .call_js_fn("function() { return this.getAttribute('content'); }", false)
-        .await?;
+    let html = scraper
+        .execute(move |context| {
+            // User-Agent móvil realista
+            let user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) \
+                              AppleWebKit/605.1.15 (KHTML, like Gecko) \
+                              Version/16.0 Mobile/15E148 Safari/604.1";
+            context.set_user_agent(user_agent);
 
-    let caption_text = js_result
-        .result
-        .value
-        .and_then(|v| v.as_str().map(|s| s.to_string()))
-        .unwrap_or_default();
+            context.navigate(&url);
+            context.wait_for_element("a[href^='/p/']", 8000);
 
-    // === Likes ===
-    let like_el = page.find_element("svg[aria-label='Like']").await?;
-    let like_result = like_el
-        .call_js_fn("function() { return this.closest('div').querySelector('span')?.innerText; }", false)
-        .await?;
+            // Simula scroll hacia abajo (a veces Instagram carga más posts así)
+            context.evaluate("window.scrollTo(0, document.body.scrollHeight)");
 
-    let likes = like_result
-        .result
-        .value
-        .and_then(|v| v.as_str().map(|s| {
-            let clean = s.replace(",", "").replace("K", "000");
-            clean.trim().parse::<u32>().ok()
-        }))
-        .flatten();
+            // Espera adicional para cargar contenido tras scroll
+            std::thread::sleep(std::time::Duration::from_secs(4));
 
-    // === Comments ===
-    let comment_el = page.find_element("svg[aria-label='Comment']").await?;
-    let comment_result = comment_el
-        .call_js_fn("function() { return this.closest('div').querySelector('span')?.innerText; }", false)
-        .await?;
+            context.get_html()
+        })
+        .await;
 
-    let comments = comment_result
-        .result
-        .value
-        .and_then(|v| v.as_str().map(|s| {
-            let clean = s.replace(",", "").replace("K", "000");
-            clean.trim().parse::<u32>().ok()
-        }))
-        .flatten();
+    let document = Html::parse_document(&html);
+    let selector = Selector::parse(r#"a[href^="/p/"]"#).unwrap();
 
-    Ok(InstagramPost {
-        url: page.url().await?.unwrap_or_default(),
-        caption: caption_text,
-        likes,
-        comments,
-    })
+    let mut urls = vec![];
+    for element in document.select(&selector) {
+        if let Some(href) = element.value().attr("href") {
+            let full_url = format!("https://www.instagram.com{}", href);
+            if !urls.contains(&full_url) {
+                urls.push(full_url);
+            }
+        }
+        if urls.len() >= 10 {
+            break;
+        }
+    }
+
+    Ok(urls)
 }
-
 }
-
 
 // =========================
 // Cookies: guardar y cargar
@@ -173,6 +152,7 @@ async fn set_all_cookies(page: &Page, cookies: Vec<Cookie>) -> anyhow::Result<()
     page.execute(SetCookiesParams::new(cookie_params)).await?;
     Ok(())
 }
+
 
 async fn save_cookies(page: &Page) -> anyhow::Result<()> {
     let cookies = get_all_cookies(page).await?;
