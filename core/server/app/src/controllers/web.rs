@@ -103,13 +103,12 @@ pub async fn login_instagram() -> impl Responder {
     }
 }
 
-
-#[get("/instagram/post")]
-pub async fn get_instagram_post() -> impl Responder {
-    match InstagramScraper::get_one_post().await {
-        Ok(post) => HttpResponse::Ok().json(serde_json::json!({
+#[get("/instagram/hashtag/{tag}")]
+pub async fn get_instagram_posts_from_hashtag(path: web::Path<String>) -> impl Responder {
+    match InstagramScraper::get_post_links_from_hashtag_scraper(&path.into_inner()).await {
+        Ok(posts) => HttpResponse::Ok().json(serde_json::json!({
             "status": "success",
-            "post": post,
+            "urls": posts
         })),
         Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({
             "status": "error",
@@ -118,6 +117,7 @@ pub async fn get_instagram_post() -> impl Responder {
     }
 }
 
+
 pub fn routes() -> actix_web::Scope {
     actix_web::Scope::new("/web")
         .service(get_simple_posts_with_members_reddit)
@@ -125,5 +125,5 @@ pub fn routes() -> actix_web::Scope {
         .service(get_notices)
         .service(get_details)
         .service(login_instagram)
-        .service(get_instagram_post)
+        .service(get_instagram_posts_from_hashtag)
 }
