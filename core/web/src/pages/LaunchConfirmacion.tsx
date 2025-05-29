@@ -24,7 +24,7 @@ export default function LaunchConfirmacion() {
       <p className="text-4xl font-bold mt-2 text-center pt-10">¡Ya podemos explorar las tendencias de tu mercado!</p>
 
       <div className="flex flex-col md:flex-row gap-6 mt-4 pt-10 items-center">
-        <WhiteButton text="Regresar" width="200px" />
+        <WhiteButton text="Regresar" width="200px" onClick={()=> navigate ('/launchRegistroVentas')} />
         <button
           onClick={() => navigate('/loading')}
           className="border-2 bg-gradient-to-r from-blue-500 to-teal-400 text-white font-semibold px-15 py-3 rounded-full hover:scale-105 transition-transform"

@@ -14,7 +14,7 @@ import EnclosedWord from "../components/EnclosedWord";
 
 export default function LaunchProducto() {
   const location = useLocation();
-  const { setPrompt, setProducto, } = usePrompt();
+  const { setPrompt, setProducto, setProductId, } = usePrompt();
   const promptAnterior = location.state?.prompt || "";
 
   const prodOrServ: string[] = ["Producto", "Servicio"];
@@ -109,6 +109,8 @@ export default function LaunchProducto() {
   
       const nuevoRecurso = await response.json();
       console.log("Recurso creado:", nuevoRecurso);
+
+      setProductId(nuevoRecurso.id);
 
       const prompt = promptBuilder2();
       console.log("Prompt: ", prompt);
