@@ -22,12 +22,12 @@ export default function LaunchConfirmacion() {
       </p>
       {/* <p className="text-lg text-black">Para este producto registraste información de ventas.</p> */}
       
-      <p className="text-lg text-black">Para este producto {hasSalesData ? "registraste información de ventas" : "no registraste información de ventas"} </p>
+      <p className="text-lg text-black">Para este <span className="font-bold">{r_type.toLowerCase()} {hasSalesData ? "registraste " : "no registraste "} </span> información de ventas</p>
       
       <p className="text-4xl font-bold mt-2 text-center pt-10">¡Ya podemos explorar las tendencias de tu mercado!</p>
 
       <div className="flex flex-col md:flex-row gap-6 mt-4 pt-10 items-center">
-        <WhiteButton text="Regresar" width="200px" onClick={()=> navigate ('/launchRegistroVentas')} />
+        <WhiteButton text="Regresar" width="200px" onClick={()=> navigate ('/launchVentas')} />
         <button
           onClick={() => navigate('/loading')}
           className="border-2 bg-gradient-to-r from-blue-500 to-teal-400 text-white font-semibold px-15 py-3 rounded-full hover:scale-105 transition-transform"
