@@ -1,6 +1,6 @@
 use crate::config::Config;
 use lazy_static::lazy_static;
-use scrap::{BlockResource, Scraper};
+use zbrowser::{BlockResource, Scraper};
 use std::sync::Arc;
 
 pub mod instagram;

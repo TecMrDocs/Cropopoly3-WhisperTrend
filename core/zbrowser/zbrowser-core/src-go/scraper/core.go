@@ -93,7 +93,7 @@ func (s *Scraper) startWorkers() {
 		requests[i] = make(chan Request, 1)
 		doneCollecting[i] = make(chan bool, 1)
 		ctxPool[i], cancels[i] = chromedp.NewContext(s.allocCtx)
-		chromedp.ListenTarget(ctxPool[i], Inspector(ctxPool[i], s.blockResources, requests[i]))
+		// chromedp.ListenTarget(ctxPool[i], Inspector(ctxPool[i], s.blockResources, requests[i]))
 	}
 
 	for i := 0; i < s.Config.Workers; i++ {
@@ -105,19 +105,19 @@ func (s *Scraper) startWorkers() {
 					result, err := task.Func(ctxPool[idx])
 					close(doneCollecting[idx])
 
-					if err == nil {
-						// Clear context
-						chromedp.Run(ctxPool[idx],
-							chromedp.ActionFunc(func(ctx context.Context) error {
-								// Clear cookies
-								network.ClearBrowserCookies().Do(ctx)
+					// if err == nil {
+					// 	// Clear context
+					// 	chromedp.Run(ctxPool[idx],
+					// 		chromedp.ActionFunc(func(ctx context.Context) error {
+					// 			// Clear cookies
+					// 			network.ClearBrowserCookies().Do(ctx)
 
-								// Clear cache
-								network.ClearBrowserCache().Do(ctx)
+					// 			// Clear cache
+					// 			network.ClearBrowserCache().Do(ctx)
 
-								return nil
-							}))
-					}
+					// 			return nil
+					// 		}))
+					// }
 
 					task.Result <- Result[any]{
 						Value: result,

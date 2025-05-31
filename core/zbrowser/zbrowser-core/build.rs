@@ -11,6 +11,16 @@ const LIB: &str = "scraper";
 
 fn main() {
     let current_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("Failed to get CARGO_MANIFEST_DIR"));
+
+    let common_dir = current_dir.join("..").join("common").join("target");
+    if !common_dir.exists() {
+        std::process::Command::new("cargo")
+            .current_dir(current_dir.join("..").join("common"))
+            .args(&["build"])
+            .output()
+            .expect("Failed to build common library");
+    }
+
     let src_go = current_dir.join("src-go");
 
     let profile = env::var("PROFILE").unwrap_or_else(|_| "debug".to_string());
@@ -48,7 +58,7 @@ fn main() {
 }
 
 fn build_common_library(profile: &str) {
-    let common_dir = Path::new("../../common");
+    let common_dir = Path::new("../common");
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_else(|_| "x86_64".to_string());
     let target = if cfg!(target_os = "windows") {
         match &target_arch[..] {
@@ -80,9 +90,9 @@ fn build_common_library(profile: &str) {
 
 fn build_go_library(src_go: &PathBuf, profile: &str) {
     let common_path = if profile == "release" {
-        Path::new("..").join("..").join("common").join("target").join("release")
+        Path::new("..").join("common").join("target").join("release")
     } else {
-        Path::new("..").join("..").join("common").join("target").join("debug")
+        Path::new("..").join("common").join("target").join("debug")
     };
 
     let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap_or_else(|_| "unknown".to_string());
