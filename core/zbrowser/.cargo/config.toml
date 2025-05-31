@@ -1,0 +1,2 @@
+[alias]
+clean-all = "run --manifest-path zbrowser-utils/Cargo.toml"

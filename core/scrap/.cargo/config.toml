@@ -1,2 +1,0 @@
-[alias]
-clean-all = "run --manifest-path scrap-utils/Cargo.toml"
