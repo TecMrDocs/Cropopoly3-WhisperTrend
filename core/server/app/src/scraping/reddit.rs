@@ -18,10 +18,7 @@ lazy_static! {
         Regex::new(r"^([\d,.]+)\s*([kKmM]il|mill[oó]n|mills?|[kKMGTP])?$").unwrap();
 
     // posts
-    static ref ARTICLE_SELECTOR: Selector = Selector::parse("article").unwrap();
     static ref TIME_SELECTOR: Selector = Selector::parse("time").unwrap();
-    static ref TITLE_SELECTOR: Selector = Selector::parse("a[slot='title']").unwrap();
-    static ref CONTENT_SELECTOR: Selector = Selector::parse("a[slot='text-body']").unwrap();
     static ref NUMBER_SELECTOR: Selector = Selector::parse("faceplate-number").unwrap();
 
     // simple posts
