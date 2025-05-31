@@ -141,8 +141,8 @@ impl Drop for Context {
 }
 
 impl Scraper {
-    pub fn new(url: Option<&str>, workers: i64, block_resources: Vec<BlockResource>) -> Self {
-        let c_url = CString::new(url.unwrap_or_default()).unwrap_or_default();
+    pub fn new<T: AsRef<str> + Default>(url: Option<T>, workers: i64, block_resources: Vec<BlockResource>) -> Self {
+        let c_url = CString::new(url.unwrap_or_default().as_ref()).unwrap_or_default();
         let c_block_resources = block_resources
             .iter()
             .map(|r| CString::new(r.as_str()).unwrap_or_default())
@@ -206,7 +206,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_execute() {
-        let scraper = Scraper::new(None, 1, vec![]);
+        let scraper = Scraper::new::<&str>(None, 1, vec![]);
         let title = scraper
             .execute(|ctx| {
                 ctx.navigate("https://www.example.com");

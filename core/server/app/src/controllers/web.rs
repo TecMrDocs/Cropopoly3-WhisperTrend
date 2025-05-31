@@ -2,6 +2,7 @@ use crate::scraping::{
     instagram::InstagramScraper,
     notices::{NoticesScraper, Params},
     reddit::RedditScraper,
+    trends::TrendsScraper,
 };
 use actix_web::{HttpResponse, Responder, get, post, web};
 use serde::{Deserialize, Serialize};
@@ -89,6 +90,37 @@ pub async fn get_details(query: web::Json<Query>) -> actix_web::Result<impl Resp
     }
 }
 
+#[post("/trends/get-trends")]
+pub async fn get_trends(query: web::Json<Query>) -> actix_web::Result<impl Responder> {
+    let query = query.into_inner();
+
+    let start_date = match chrono::NaiveDate::parse_from_str(&query.startdatetime, "%Y-%m-%d") {
+        Ok(date) => date,
+        Err(e) => {
+            warn!("Failed to parse start date: {}", e);
+            return Err(actix_web::error::ErrorBadRequest("Invalid start date format"));
+        }
+    };
+
+    let end_date = match chrono::NaiveDate::parse_from_str(&query.enddatetime, "%Y-%m-%d") {
+        Ok(date) => date,
+        Err(e) => {
+            warn!("Failed to parse end date: {}", e);
+            return Err(actix_web::error::ErrorBadRequest("Invalid end date format"));
+        }
+    };
+
+    let params = Params::new(query.query, start_date, end_date, query.language);
+
+    match TrendsScraper::get_trends(params).await {
+        Ok(trends) => Ok(HttpResponse::Ok().json(trends)),
+        Err(e) => {
+            warn!("Failed to get trends: {}", e);
+            Err(actix_web::error::ErrorBadRequest("Failed to get trends"))
+        }
+    }
+}
+
 #[get("/instagram/login")]
 pub async fn login_instagram() -> impl Responder {
     match InstagramScraper::login().await {
@@ -126,4 +158,5 @@ pub fn routes() -> actix_web::Scope {
         .service(get_details)
         .service(login_instagram)
         .service(get_instagram_posts_from_hashtag)
+        .service(get_trends)
 }
