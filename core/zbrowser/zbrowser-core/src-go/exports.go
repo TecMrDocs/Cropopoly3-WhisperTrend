@@ -7,8 +7,8 @@ package main
 #include <string.h>
 #include "../../common/common.h"
 
-static inline char *callTask(Task task, int64_t contextID) {
-    return task(contextID);
+static inline void callTask(Task task, int64_t contextID) {
+    task(contextID);
 }
 */
 import "C"
@@ -199,21 +199,25 @@ func GetHTML(ctxID C.int64_t, result *C.int64_t) *C.char {
 }
 
 //export Execute
-func Execute(id C.int64_t, contextID C.int64_t, task C.Task, result *C.int64_t) *C.char {
+func Execute(id C.int64_t, contextID C.int64_t, task C.Task, result *C.int64_t) {
 	scrapInterface, ok := scraperMap.Load(int64(id))
 	if !ok {
 		*result = C.int64_t(1)
-		return C.CString("")
+		return
 	}
 	scrap := scrapInterface.(*scraper.Scraper)
 
-	value, _ := scraper.Execute(scrap, func(ctx context.Context) (*C.char, error) {
+	_, err := scrap.Execute(func(ctx context.Context) (any, error) {
 		contextMap.Store(int64(contextID), &ctx)
-		return C.callTask(task, contextID), nil
+		C.callTask(task, contextID)
+		return struct{}{}, nil
 	})
 
-	*result = C.int64_t(0)
-	return value
+	if err != nil {
+		*result = C.int64_t(1)
+	} else {
+		*result = C.int64_t(0)
+	}
 }
 
 //export Close
