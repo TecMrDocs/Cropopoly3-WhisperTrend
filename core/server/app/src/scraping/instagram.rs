@@ -17,14 +17,14 @@ pub struct InstagramScraper;
 
 impl InstagramScraper {
     pub async fn login() -> anyhow::Result<()> {
-        let cookies = SCRAPER
-            .execute(move |context| {
-                let user_agent: String = UserAgent().fake();
-                context.set_user_agent(&user_agent);
-                context.navigate(INSTAGRAM_LOGIN_URL);
-                String::from("test")
-            })
-            .await;
+        // let cookies = SCRAPER
+        //     .execute_any(move |context| {
+        //         let user_agent: String = UserAgent().fake();
+        //         context.set_user_agent(&user_agent);
+        //         context.navigate(INSTAGRAM_LOGIN_URL);
+        //         String::from("")
+        //     })
+        //     .await;
 
         Ok(())
     }
