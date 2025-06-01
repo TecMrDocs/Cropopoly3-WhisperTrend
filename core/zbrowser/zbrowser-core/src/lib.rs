@@ -17,20 +17,18 @@ use tracing::error;
 
 include!(concat!(env!("CARGO_MANIFEST_DIR"), "/bindings.rs"));
 
-type Callback = Box<dyn Fn(i64) -> String + Send + Sync>;
+type Callback = Box<dyn Fn(i64) + Send + Sync>;
 
 lazy_static! {
     static ref NEXT_ID: AtomicI64 = AtomicI64::new(0);
     static ref CALLBACKS: DashMap<i64, Callback> = DashMap::new();
 }
 
-unsafe extern "C" fn callback_trampoline(context_id: i64) -> *mut c_char {
+unsafe extern "C" fn callback_trampoline(context_id: i64) {
     if let Some(cb) = CALLBACKS.get(&context_id) {
-        let result = cb(context_id);
-        CString::new(result).unwrap_or_default().into_raw()
+        cb(context_id);
     } else {
         eprintln!("Not found callback for {}", context_id);
-        CString::new("").unwrap_or_default().into_raw()
     }
 }
 
@@ -164,9 +162,9 @@ impl Scraper {
         }
     }
 
-    async fn raw_execute<F>(&self, task: F) -> String
+    async fn raw_execute<F>(&self, task: F)
     where
-        F: Fn(Context) -> String + Send + Sync + 'static,
+        F: Fn(Context) + Send + Sync + 'static,
     {
         let scraper_id = self.id;
 
@@ -176,13 +174,12 @@ impl Scraper {
 
             unsafe {
                 let mut err = 0;
-                let result = Execute(scraper_id, context_id, Some(callback_trampoline), &mut err);
+                Execute(scraper_id, context_id, Some(callback_trampoline), &mut err);
 
                 match err {
-                    0 => CStr::from_ptr(result).to_string_lossy().to_string(),
+                    0 => (),
                     _ => {
                         error!("Failed to execute task");
-                        String::new()
                     }
                 }
             }
@@ -204,7 +201,6 @@ impl Scraper {
             if let Ok(mut guard) = result_clone.lock() {
                 *guard = Some(task_result);
             }
-            String::new()
         }).await;
 
         if let Ok(mut guard) = result.lock() {
