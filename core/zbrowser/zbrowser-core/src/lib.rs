@@ -10,7 +10,7 @@ use lazy_static::lazy_static;
 use std::{
     ffi::{CStr, CString},
     os::raw::c_char,
-    sync::atomic::{AtomicI64, Ordering},
+    sync::{atomic::{AtomicI64, Ordering}, Arc, Mutex},
 };
 use tokio::task;
 use tracing::error;
@@ -164,7 +164,7 @@ impl Scraper {
         }
     }
 
-    pub async fn execute<F>(&self, task: F) -> String
+    async fn raw_execute<F>(&self, task: F) -> String
     where
         F: Fn(Context) -> String + Send + Sync + 'static,
     {
@@ -190,6 +190,30 @@ impl Scraper {
         .await
         .unwrap_or_default()
     }
+
+    pub async fn execute<F, R>(&self, task: F) -> anyhow::Result<R>
+    where
+        F: Fn(Context) -> R + Send + Sync + 'static,
+        R: Send + Sync + 'static,
+    {
+        let result = Arc::new(Mutex::new(None::<R>));
+        let result_clone = Arc::clone(&result);
+
+        self.raw_execute(move |ctx| {
+            let task_result = task(ctx);
+            if let Ok(mut guard) = result_clone.lock() {
+                *guard = Some(task_result);
+            }
+            String::new()
+        }).await;
+
+        if let Ok(mut guard) = result.lock() {
+            guard.take()
+                .ok_or_else(|| anyhow::anyhow!("Failed to execute task"))
+        } else {
+            Err(anyhow::anyhow!("Failed to lock result"))
+        }
+    }
 }
 
 impl Drop for Scraper {
@@ -214,6 +238,6 @@ mod tests {
             })
             .await;
 
-        assert_eq!(title, "Example Domain");
+        assert_eq!(title.unwrap(), "Example Domain");
     }
 }
