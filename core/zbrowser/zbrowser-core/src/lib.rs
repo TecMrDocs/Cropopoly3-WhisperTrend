@@ -204,29 +204,16 @@ impl Drop for Scraper {
 mod tests {
     use super::*;
 
-    // #[tokio::test]
-    // async fn test_execute() {
-    //     let scraper = Scraper::new::<&str>(None, 1, vec![]);
-    //     let title = scraper
-    //         .execute(|ctx| {
-    //             ctx.navigate("https://www.example.com");
-    //             return ctx.evaluate("document.querySelector('h1').textContent");
-    //         })
-    //         .await;
-
-    //     assert_eq!(title, "Example Domain");
-    // }
-
     #[tokio::test]
-    async fn test_reddit() {
-        let scraper = Scraper::new::<&str>(Some("ws://localhost:9222"), 1, vec![]);
+    async fn test_execute() {
+        let scraper = Scraper::new::<&str>(None, 1, vec![]);
         let title = scraper
             .execute(|ctx| {
-                ctx.navigate("https://www.reddit.com/search/?q=tesla");
-                return ctx.evaluate("document.documentElement.outerHTML");
+                ctx.navigate("https://www.example.com");
+                return ctx.evaluate("document.querySelector('h1').textContent");
             })
             .await;
 
-        println!("p: {}", title);
+        assert_eq!(title, "Example Domain");
     }
 }

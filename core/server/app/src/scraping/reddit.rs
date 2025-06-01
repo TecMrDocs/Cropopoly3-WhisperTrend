@@ -20,8 +20,6 @@ lazy_static! {
     // posts
     static ref TIME_SELECTOR: Selector = Selector::parse("time").unwrap();
     static ref NUMBER_SELECTOR: Selector = Selector::parse("faceplate-number").unwrap();
-
-    // simple posts
     static ref POST_CONSUME_SELECTOR: Selector = Selector::parse("[consume-events]").unwrap();
     static ref POST_TITLE_SELECTOR: Selector = Selector::parse("[data-testid='post-title-text']").unwrap();
     static ref SUBREDDIT_SELECTOR: Selector = Selector::parse(SUBREDDIT_SELECTOR_STR).unwrap();
