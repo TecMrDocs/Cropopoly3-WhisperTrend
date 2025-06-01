@@ -165,7 +165,8 @@ impl RedditScraper {
                 context.navigate(&format!("https://www.reddit.com/search?q={}", keyword));
                 context.get_html()
             })
-            .await;
+            .await
+            .unwrap_or_default();
 
         let document = Html::parse_document(&content);
         let mut posts = Vec::new();
@@ -200,7 +201,8 @@ impl RedditScraper {
                         context.navigate(&post.subreddit);
                         context.get_html()
                     })
-                    .await;
+                    .await
+                    .unwrap_or_default();
 
                 let document = Html::parse_document(&content);
                 let members_element = document.select(&MEMBERS_SELECTOR).next();
