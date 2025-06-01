@@ -135,7 +135,7 @@ func (s *Scraper) startWorkers() {
 	}
 }
 
-func (s *Scraper) execute(task func(context.Context) (any, error)) (any, error) {
+func (s *Scraper) Execute(task func(context.Context) (any, error)) (any, error) {
 	resultChan := make(chan Result[any], 1)
 	s.taskWg.Add(1)
 	s.tasks <- Task{Func: task, Result: resultChan}
@@ -144,7 +144,7 @@ func (s *Scraper) execute(task func(context.Context) (any, error)) (any, error) 
 }
 
 func Execute[T any](scraper *Scraper, task func(context.Context) (T, error)) (T, error) {
-	res, err := scraper.execute(func(ctx context.Context) (any, error) {
+	res, err := scraper.Execute(func(ctx context.Context) (any, error) {
 		return task(ctx)
 	})
 
