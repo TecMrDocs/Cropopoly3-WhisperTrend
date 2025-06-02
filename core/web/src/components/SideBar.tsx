@@ -1,13 +1,21 @@
 import { FC, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CiUser } from "react-icons/ci";
 import { FaRegBuilding } from "react-icons/fa";
 import { CiBoxes } from "react-icons/ci";
 import { GoQuestion } from "react-icons/go";
 import { TbLogout } from "react-icons/tb";
+import { useAuth } from '@/hooks/useAuth';
 
 const SideBar: FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    signOut();
+    navigate('/');
+  };
 
   return (
     <div 
@@ -47,10 +55,13 @@ const SideBar: FC = () => {
             </Link>
           </li> 
           <li>
-            <Link to="/" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
+            <button 
+              onClick={handleLogout}
+              className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200 w-full text-left"
+            >
               <TbLogout className="w-10 h-10"/>
               {isExpanded && <span className="ml-2">Cerrar Sesión</span>}
-            </Link>
+            </button>
           </li>
         </ul>
       </nav>

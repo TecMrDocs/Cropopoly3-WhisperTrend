@@ -6,7 +6,7 @@ export type AuthContextType = {
   isLoading: boolean;
   isAuthenticated: boolean;
   signOut: () => void;
-  signIn: (email: string, password: string, navigate: NavigateFunction) => void;
+  signIn: (email: string, password: string) => void;
 }
 
 export const AuthContext = createContext<AuthContextType>({

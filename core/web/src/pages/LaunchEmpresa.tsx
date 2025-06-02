@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "@/utils/constants";
+import { getConfig } from "@/utils/auth";
+import { usePrompt } from "../contexts/PromptContext";
 import ProgressBar from "../components/ProgressBar";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import SelectField from "../components/SelectField";
@@ -8,7 +11,12 @@ import WhiteButton from "../components/WhiteButton";
 import BlueButton from "../components/BlueButton";
 
 export default function LaunchEmpresa() {
+<<<<<<< HEAD
   const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzQ5MjI4MTIwfQ.ysOpkiGz9d07Dm-d1og-xAoSFIf-V7laT8xWp4COPfc";
+=======
+  const navigate = useNavigate();
+  const { setEmpresa } = usePrompt();
+>>>>>>> main
 
   const industrias: string[] = ["Manufactura", "Moda", "Alimentos", "Tecnología", "Salud"];
   const opcionesColabs: string[] = ["10 o menos", 
@@ -23,8 +31,11 @@ export default function LaunchEmpresa() {
   const [alcance, setAlcance] = useState("");
   const [operaciones, setOperaciones] = useState("");
   const [sucursales, setSucursales] = useState("");
+<<<<<<< HEAD
   const [prompt1, setPrompt1] = useState("");
   const navigate = useNavigate();
+=======
+>>>>>>> main
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -54,6 +65,7 @@ export default function LaunchEmpresa() {
 
   const getUserId = async (): Promise<number | null> => {
     try {
+<<<<<<< HEAD
       const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
         headers: {
           token: token,
@@ -62,6 +74,10 @@ export default function LaunchEmpresa() {
   
       if (!res.ok) throw new Error("Error al verificar usuario");
   
+=======
+      const res = await fetch(`${API_URL}auth/check`, getConfig());
+      if (!res.ok) throw new Error("Token inválido");
+>>>>>>> main
       const data = await res.json();
       return data.id;
     } catch (err) {
@@ -71,6 +87,7 @@ export default function LaunchEmpresa() {
   };
 
   const handleSubmit = async () => {
+<<<<<<< HEAD
   const getUserId = async (): Promise<number | null> => {
     try {
       const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
@@ -90,11 +107,17 @@ export default function LaunchEmpresa() {
   };
 
   const handleSubmit = async () => {
+=======
+>>>>>>> main
     if (!validarFormulario()) return;
 
     const userId = await getUserId();
     if (!userId) {
+<<<<<<< HEAD
       alert("No se pudo obtener el usuario.");
+=======
+      alert("Token inválido. Inicia sesión de nuevo.");
+>>>>>>> main
       return;
     }
 
@@ -111,6 +134,7 @@ export default function LaunchEmpresa() {
       scope: alcance,
       locations: operaciones,
       num_branches: sucursales,
+<<<<<<< HEAD
     }
   
     try {
@@ -183,6 +207,35 @@ export default function LaunchEmpresa() {
     } catch (err) {
       console.error("Error de red:", err);
       alert("Error de red o del servidor.");
+=======
+    };
+
+    try {
+      const res = await fetch(`${API_URL}user/update/${userId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getConfig().headers,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const msg = await res.text();
+        console.error("Error al registrar empresa:", msg);
+        alert("No se pudo registrar la empresa.");
+        return;
+      }
+
+      const prompt = promptBuilder1();
+      console.log("Prompt: ", prompt);
+      setEmpresa(payload);
+
+      navigate("/launchProducto", { state: { prompt } });
+    } catch (err) {
+      console.error("Error de red:", err);
+      alert("Ocurrió un error inesperado.");
+>>>>>>> main
     }
   };
 
