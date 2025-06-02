@@ -3,6 +3,7 @@ use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
+static USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 static JS_HOVER: &str = include_str!("hover.js");
 static COOKIES: OnceCell<String> = OnceCell::new();
 
@@ -18,8 +19,8 @@ const TIME_SELECTOR: &str = "a span time";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InstagramPost {
-    pub likes: String,
-    pub comments: String,
+    pub likes: u32,
+    pub comments: u32,
     pub link: String,
     pub time: String,
 }
@@ -65,6 +66,7 @@ impl InstagramScraper {
         if let Some(cookies) = COOKIES.get() {
             let posts = SCRAPER
                 .execute(move |context| {
+                    context.set_user_agent(USER_AGENT);
                     context.set_string_cookies(cookies.clone());
                     context.navigate(format!("{}/{}", INSTAGRAM_POST_URL, hashtag));
                     std::thread::sleep(std::time::Duration::from_secs(5));
@@ -78,25 +80,25 @@ impl InstagramScraper {
                     let result = context.async_evaluate(format!("(async () => {{
                         let posts = Array.from(document.querySelectorAll('{POST_SELECTOR}'));
                         let results = [];
-                        
+
                         for (let i = 0; i < posts.length; i++) {{
                             try {{
                                 let p = posts[i];
                                 let metrics = p.querySelectorAll('span > span');
                                 let a = p.querySelector('a');
-                    
+
                                 let likes = (metrics[0] || {{ textContent: '' }}).textContent;
                                 let comments = (metrics[1] || {{ textContent: '' }}).textContent;
                                 let link = (a || {{ href: '' }}).href;
-                    
+
                                 if (!a || !link) {{
                                     continue;
                                 }}
-                    
+
                                 a.click();
-                                
+
                                 await new Promise(resolve => setTimeout(resolve, 3000));
-                                
+
                                 let time = '';
                                 let timeSelectors = [
                                     '{TIME_SELECTOR}',
@@ -104,7 +106,7 @@ impl InstagramScraper {
                                     'time',
                                     '[datetime]'
                                 ];
-                                
+
                                 for (let selector of timeSelectors) {{
                                     let timeElement = document.querySelector(selector);
                                     if (timeElement && timeElement.attributes.datetime) {{
@@ -112,21 +114,21 @@ impl InstagramScraper {
                                         break;
                                     }}
                                 }}
-                                
+
                                 if (!time) {{
                                     time = new Date().toISOString();
                                 }}
-                    
+
                                 results.push({{
-                                    likes,
-                                    comments,
+                                    likes: likes === '' ? 0 : parseInt(likes.trim()),
+                                    comments: comments === '' ? 0 : parseInt(comments.trim()),
                                     link,
                                     time
-                                }});                                
+                                }});
                             }} catch (error) {{
                             }}
                         }}
-                    
+
                         return JSON.stringify(results);
                     }})()"));
                     std::thread::sleep(std::time::Duration::from_secs(5));
