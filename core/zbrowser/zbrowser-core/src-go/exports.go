@@ -15,6 +15,8 @@ import "C"
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"libscraper/scraper"
 	"sync"
 	"sync/atomic"
@@ -22,6 +24,7 @@ import (
 
 	"github.com/chromedp/cdproto/emulation"
 	"github.com/chromedp/cdproto/network"
+	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 )
 
@@ -103,6 +106,28 @@ func Evaluate(ctxID C.int64_t, expr *C.char, result *C.int64_t) *C.char {
 	var resultStr string
 	err := chromedp.Run(*ctx, chromedp.Evaluate(C.GoString(expr), &resultStr))
 	if err != nil {
+		fmt.Println(err)
+		*result = C.int64_t(1)
+		return C.CString("")
+	}
+	return C.CString(resultStr)
+}
+
+//export AsyncEvaluate
+func AsyncEvaluate(ctxID C.int64_t, expr *C.char, result *C.int64_t) *C.char {
+	ctxInterface, ok := contextMap.Load(int64(ctxID))
+	if !ok {
+		*result = C.int64_t(1)
+		return C.CString("")
+	}
+	ctx := ctxInterface.(*context.Context)
+
+	var resultStr string
+	err := chromedp.Run(*ctx, chromedp.Evaluate(C.GoString(expr), &resultStr, func(p *runtime.EvaluateParams) *runtime.EvaluateParams {
+		return p.WithAwaitPromise(true)
+	}))
+	if err != nil {
+		fmt.Println(err)
 		*result = C.int64_t(1)
 		return C.CString("")
 	}
@@ -137,6 +162,97 @@ func WaitForElement(ctxID C.int64_t, selector *C.char, timeoutMs C.int64_t) C.in
 	defer cancel()
 
 	err := chromedp.Run(timeoutCtx, chromedp.WaitReady(C.GoString(selector), chromedp.ByQuery))
+	if err != nil {
+		return C.int64_t(1)
+	}
+
+	return C.int64_t(0)
+}
+
+//export WriteInput
+func WriteInput(ctxID C.int64_t, selector *C.char, text *C.char) C.int64_t {
+	ctxInterface, ok := contextMap.Load(int64(ctxID))
+	if !ok {
+		return C.int64_t(1)
+	}
+	ctx := ctxInterface.(*context.Context)
+
+	err := chromedp.Run(*ctx, chromedp.SendKeys(C.GoString(selector), C.GoString(text)))
+	if err != nil {
+		return C.int64_t(1)
+	}
+	return C.int64_t(0)
+}
+
+//export ClickElement
+func ClickElement(ctxID C.int64_t, selector *C.char) C.int64_t {
+	ctxInterface, ok := contextMap.Load(int64(ctxID))
+	if !ok {
+		return C.int64_t(1)
+	}
+	ctx := ctxInterface.(*context.Context)
+
+	err := chromedp.Run(*ctx, chromedp.Click(C.GoString(selector), chromedp.ByQuery))
+	if err != nil {
+		return C.int64_t(1)
+	}
+	return C.int64_t(0)
+}
+
+//export StringCookies
+func StringCookies(ctxID C.int64_t, result *C.int64_t) *C.char {
+	ctxInterface, ok := contextMap.Load(int64(ctxID))
+	if !ok {
+		*result = C.int64_t(1)
+		return C.CString("")
+	}
+	ctx := ctxInterface.(*context.Context)
+
+	var cookies []*network.Cookie
+	err := chromedp.Run(*ctx, chromedp.ActionFunc(func(ctx context.Context) error {
+		var err error
+		cookies, err = network.GetCookies().Do(ctx)
+		return err
+	}))
+
+	if err != nil {
+		fmt.Println(err)
+		*result = C.int64_t(1)
+		return C.CString("[]")
+	}
+
+	var jsonCookies []byte
+	jsonCookies, err = json.Marshal(cookies)
+	if err != nil {
+		fmt.Println(err)
+		*result = C.int64_t(1)
+		return C.CString("[]")
+	}
+
+	*result = C.int64_t(0)
+	return C.CString(string(jsonCookies))
+}
+
+//export SetStringCookies
+func SetStringCookies(ctxID C.int64_t, stringCookies *C.char) C.int64_t {
+	ctxInterface, ok := contextMap.Load(int64(ctxID))
+	if !ok {
+		return C.int64_t(1)
+	}
+
+	ctx := ctxInterface.(*context.Context)
+
+	err := chromedp.Run(*ctx, chromedp.ActionFunc(func(ctx context.Context) error {
+		var err error
+		var cookies []*network.CookieParam
+		err = json.Unmarshal([]byte(C.GoString(stringCookies)), &cookies)
+		if err != nil {
+			return err
+		}
+		err = network.SetCookies(cookies).Do(ctx)
+		return err
+	}))
+
 	if err != nil {
 		return C.int64_t(1)
 	}

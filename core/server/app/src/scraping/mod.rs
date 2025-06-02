@@ -9,7 +9,7 @@ pub mod reddit;
 pub mod trends;
 
 lazy_static! {
-    pub static ref SCRAPER: Arc<Scraper> = Arc::new(Scraper::new(
+    pub static ref SCRAPER: Arc<Scraper> = Arc::new(Scraper::new::<&str>(
         Config::get_browserless_ws(),
         Config::get_workers_scraper(),
         vec![
