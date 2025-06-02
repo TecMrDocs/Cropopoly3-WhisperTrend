@@ -16,3 +16,4 @@ bindings.rs
 rules.json
 .env
 package-lock.json
+cookies.json
