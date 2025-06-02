@@ -1,31 +1,142 @@
-use crate::scraping::SCRAPER;
-use lazy_static::lazy_static;
-use fake::{Fake, faker::internet::en::UserAgent};
-use scraper::{ElementRef, Html, Selector};
+use crate::{config::Config, scraping::SCRAPER};
+use once_cell::sync::OnceCell;
+use serde::{Deserialize, Serialize};
+use tracing::info;
+
+static JS_HOVER: &str = include_str!("hover.js");
+static COOKIES: OnceCell<String> = OnceCell::new();
 
 const INSTAGRAM_LOGIN_URL: &str = "https://www.instagram.com/accounts/login/";
-const INSTAGRAM_POST_URL: &str = "https://www.instagram.com/explore/tags/";
+const INSTAGRAM_POST_URL: &str = "https://www.instagram.com/explore/tags";
 
-lazy_static! {
-  // login
-  static ref USERNAME_SELECTOR: Selector = Selector::parse("input[name='username']").unwrap();
-  static ref PASSWORD_SELECTOR: Selector = Selector::parse("input[name='password']").unwrap();
-  static ref LOGIN_BUTTON_SELECTOR: Selector = Selector::parse("button[type='submit']").unwrap();
+const USERNAME_SELECTOR: &str = "input[name='username']";
+const PASSWORD_SELECTOR: &str = "input[name='password']";
+const LOGIN_BUTTON_SELECTOR: &str = "button[type='submit']";
+
+const POST_SELECTOR: &str = "main > div > div:nth-of-type(2) > div > div > div";
+const TIME_SELECTOR: &str = "a span time";
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct InstagramPost {
+    pub likes: String,
+    pub comments: String,
+    pub link: String,
+    pub time: String,
 }
 
 pub struct InstagramScraper;
 
 impl InstagramScraper {
-    pub async fn login() -> anyhow::Result<()> {
-        // let cookies = SCRAPER
-        //     .execute_any(move |context| {
-        //         let user_agent: String = UserAgent().fake();
-        //         context.set_user_agent(&user_agent);
-        //         context.navigate(INSTAGRAM_LOGIN_URL);
-        //         String::from("")
-        //     })
-        //     .await;
+    pub async fn login() -> anyhow::Result<String> {
+        SCRAPER
+            .execute(move |context| {
+                context.navigate(INSTAGRAM_LOGIN_URL);
+                context.write_input(USERNAME_SELECTOR, Config::get_instagram_username());
+                context.write_input(PASSWORD_SELECTOR, Config::get_instagram_password());
+                context.click_element(LOGIN_BUTTON_SELECTOR);
+                std::thread::sleep(std::time::Duration::from_secs(15));
+                let cookies = context.string_cookies();
+                cookies
+            })
+            .await
+    }
+
+    pub async fn apply_login() -> anyhow::Result<()> {
+        if COOKIES.get().is_some() {
+            return Ok(());
+        }
+
+        if std::path::Path::new("cookies.json").exists() {
+            info!("Loading cookies from file");
+            let cookies = std::fs::read_to_string("cookies.json")?;
+            let _ = COOKIES.set(cookies);
+        } else {
+            info!("No cookies found, logging in");
+            let cookies = InstagramScraper::login().await?;
+            std::fs::write("cookies.json", cookies.clone())?;
+            let _ = COOKIES.set(cookies);
+        }
 
         Ok(())
+    }
+
+    pub async fn get_posts(hashtag: String) -> anyhow::Result<Vec<InstagramPost>> {
+        InstagramScraper::apply_login().await?;
+        if let Some(cookies) = COOKIES.get() {
+            let posts = SCRAPER
+                .execute(move |context| {
+                    context.set_string_cookies(cookies.clone());
+                    context.navigate(format!("{}/{}", INSTAGRAM_POST_URL, hashtag));
+                    std::thread::sleep(std::time::Duration::from_secs(5));
+                    context.evaluate(format!("(() => {{
+                        {JS_HOVER};
+                        let posts = Array.from(document.querySelectorAll('{POST_SELECTOR}'));
+                        posts.forEach((p) => forceHoverPermanent(p));
+                        return '';
+                    }})()"));
+                    std::thread::sleep(std::time::Duration::from_secs(5));
+                    let result = context.async_evaluate(format!("(async () => {{
+                        let posts = Array.from(document.querySelectorAll('{POST_SELECTOR}'));
+                        let results = [];
+                        
+                        for (let i = 0; i < posts.length; i++) {{
+                            try {{
+                                let p = posts[i];
+                                let metrics = p.querySelectorAll('span > span');
+                                let a = p.querySelector('a');
+                    
+                                let likes = (metrics[0] || {{ textContent: '' }}).textContent;
+                                let comments = (metrics[1] || {{ textContent: '' }}).textContent;
+                                let link = (a || {{ href: '' }}).href;
+                    
+                                if (!a || !link) {{
+                                    continue;
+                                }}
+                    
+                                a.click();
+                                
+                                await new Promise(resolve => setTimeout(resolve, 3000));
+                                
+                                let time = '';
+                                let timeSelectors = [
+                                    '{TIME_SELECTOR}',
+                                    'time[datetime]',
+                                    'time',
+                                    '[datetime]'
+                                ];
+                                
+                                for (let selector of timeSelectors) {{
+                                    let timeElement = document.querySelector(selector);
+                                    if (timeElement && timeElement.attributes.datetime) {{
+                                        time = timeElement.attributes.datetime.value;
+                                        break;
+                                    }}
+                                }}
+                                
+                                if (!time) {{
+                                    time = new Date().toISOString();
+                                }}
+                    
+                                results.push({{
+                                    likes,
+                                    comments,
+                                    link,
+                                    time
+                                }});                                
+                            }} catch (error) {{
+                            }}
+                        }}
+                    
+                        return JSON.stringify(results);
+                    }})()"));
+                    std::thread::sleep(std::time::Duration::from_secs(5));
+                    result
+                })
+                .await?;
+
+            return Ok(serde_json::from_str(&posts)?);
+        }
+
+        Err(anyhow::anyhow!("No cookies found"))
     }
 }

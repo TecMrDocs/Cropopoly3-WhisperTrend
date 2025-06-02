@@ -80,6 +80,9 @@ POSTGRES_DB=ksp
 GROQ_API_KEY=gsk_...
 
 BROWSERLESS_WS=ws://browserless-chrome:3000
+
+INSTAGRAM_USERNAME=jonh@example.com
+INSTAGRAM_PASSWORD=awdrqwer12
 ```
 
 # Frontend

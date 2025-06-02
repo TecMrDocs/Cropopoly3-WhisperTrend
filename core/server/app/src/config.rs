@@ -54,6 +54,17 @@ lazy_static! {
                 config.browserless_ws = None
             },
         }
+        
+        config.instagram_username = env::var("INSTAGRAM_USERNAME").unwrap_or_else(|_| {
+            warn!("INSTAGRAM_USERNAME is not set, using default value: {}", config.instagram_username);
+            config.instagram_username
+        });
+
+
+        config.instagram_password = env::var("INSTAGRAM_PASSWORD").unwrap_or_else(|_| {
+            warn!("INSTAGRAM_PASSWORD is not set, using default value: {}", config.instagram_password);
+            config.instagram_password
+        });
 
         config
     };
@@ -81,6 +92,10 @@ pub struct Config {
     pub browserless_ws: Option<String>,
     #[builder(default = "10")]
     pub workers_scraper: i64,
+    #[builder(default = "String::from(\"\")")]
+    pub instagram_username: String,
+    #[builder(default = "String::from(\"\")")]
+    pub instagram_password: String,
 }
 
 impl ApplicationConfig for Config {
@@ -128,5 +143,13 @@ impl Config {
 
     pub fn get_workers_scraper() -> i64 {
         CONFIG.workers_scraper
+    }
+
+    pub fn get_instagram_username() -> &'static str {
+        &CONFIG.instagram_username
+    }
+
+    pub fn get_instagram_password() -> &'static str {
+        &CONFIG.instagram_password
     }
 }
