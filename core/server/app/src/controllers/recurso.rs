@@ -54,8 +54,29 @@ pub async fn get_user_resources(req: HttpRequest) -> Result<impl Responder> {
     Ok(HttpResponse::Unauthorized().finish())
 }
 
+//------------------------------------------------------------------------------------------REMOVE
+/*
+#[get("/test-get/{id}")]
+pub async fn test_get_by_id(path: web::Path<i32>) -> impl Responder {
+    let id = path.into_inner();
+    match Resource::get_by_id(id).await {
+        Ok(Some(resource)) => HttpResponse::Ok().json(resource),
+        Ok(None) => HttpResponse::NotFound().body("Recurso no encontrado"),
+        Err(e) => HttpResponse::InternalServerError().body(format!("Error: {:?}", e)),
+    }
+}
+
+#[get("/ping")]
+pub async fn ping() -> impl Responder {
+    HttpResponse::Ok().body("pong")
+}
+    */
+//------------------------------------------------------------------------------------------REMOVE
+
 pub fn routes() -> actix_web::Scope {
     web::scope("/resource")
+        //.service(ping) //---------------------------------------------------------REMOVE
+        //.service(test_get_by_id) //---------------------------------------------------------REMOVE
         .service(create_resource)
         .service(get_resource)
         .service(get_user_resources)
