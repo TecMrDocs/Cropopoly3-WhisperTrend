@@ -42,7 +42,7 @@ async fn generate_prompt_from_flow(
         .ok_or_else(|| error::ErrorNotFound("Resource not found"))?;
 
     let prompt = format!(
-        "Me dedico a la industria de {}. Tengo una {} con alcance {} y {} sucursales. Desarrollo mis operaciones en {}. Ofrezco un {} llamado {}. Consiste en: {}, y se asocia con: {}. Por favor escribe una sentencia en inglés que describa mi producto (procura no mencionar el nombre de mi producto) y mi empresa para realizar una búsqueda de noticias. También dame 3 hashtags en inglés que hayan sido populares, que pueda buscar en redes sociales y que se relacionen con mi empresa y con mi producto (procura que los hashtags no incluyan el nombre de mi producto). Separa la sentencia de los hashtags solo con el símbolo @.",
+        "Me dedico a la industria de {}. Tengo una {} con alcance {} y {} sucursales. Desarrollo mis operaciones en {}. Ofrezco un {} llamado {}. Consiste en: {}, y se asocia con: {}. Por favor escribe una lista de 5 palabras (palabras individuales, no términos ni frases, separadas con comas) en inglés mi producto (procura no mencionar el nombre de mi producto) y mi empresa para realizar una búsqueda de noticias. Que ninguna palabra contenga guiones. También dame 3 hashtags en inglés que hayan sido populares, que pueda buscar en redes sociales y que se relacionen con mi empresa y con mi producto (procura que los hashtags no incluyan el nombre de mi producto). No incluyas más texto en tu respuesta. Al final de la lista y antes de los hashtags, escribe el símbolo @.",
         user.industry,
         user.company_size,
         user.scope,
@@ -65,34 +65,46 @@ async fn generate_prompt_from_flow(
         error::ErrorInternalServerError("Error generating chat response")
     })?;
 
-    // RESPUESTA DEL CHAT
-let content = response.trim();
-let after_think = content.split("</think>").nth(1).unwrap_or(content).trim();
-let parts: Vec<&str> = after_think.split('@').collect();
+    let content = response.trim();
+    let after_think = content.split("</think>").nth(1).unwrap_or(content).trim();
+    let parts: Vec<&str> = after_think.split('@').collect();
 
-let sentence = parts.get(0).map(|s| s.trim()).unwrap_or("");
-let hashtags_block = parts.get(1).map(|s| s.trim()).unwrap_or("");
+    let raw_sentence = parts.get(0).map(|s| s.trim()).unwrap_or("");
 
-// Regex para hashtags
-let re = Regex::new(r"#\w+").unwrap();
-let mut hashtags: Vec<String> = re
-    .find_iter(hashtags_block)
-    .map(|m| m.as_str().to_string())
-    .collect();
+    // Método mejorado: dividir por múltiples separadores y limpiar
+    let words: Vec<&str> = raw_sentence
+        .split(", ") //|c: char| c == ', ')// || c.is_whitespace())
+        .map(|w| w.trim())
+        .filter(|w| !w.is_empty())
+        .take(5)
+        .collect();
 
-// FECHAS PARA NOTICIAS
-let today = chrono::Utc::now().naive_utc().date();
-let yesterday = today.pred_opt().unwrap_or(today);
+    // Unir con OR
+    let sentence = format!("({})", words.join(" OR "));
+
+    let hashtags_block = parts.get(1).map(|s| s.trim()).unwrap_or("");
+
+    let re = Regex::new(r"#\w+").unwrap();
+    let hashtags: Vec<String> = re
+        .find_iter(hashtags_block)
+        .map(|m| m.as_str().to_string())
+        .collect();
+
+    let today = chrono::Utc::now().naive_utc().date();
+    let six_months_ago = today
+        .checked_sub_signed(chrono::Duration::days(180))
+        .unwrap_or(today);
+
     let notices_payload = serde_json::json!({
         "query": sentence,
-        "startdatetime": yesterday.to_string(),
+        "startdatetime": six_months_ago.to_string(),
         "enddatetime": today.to_string(),
-        "language": "en"
+        "language": "English"
     });
 
-    let notices_url = FLOW_CONFIG.get_web_url("notices/get-notices");
-    let client = reqwest::Client::new();
-    let notices_response = client.post(&notices_url).json(&notices_payload).send().await.map_err(|e| {
+    let notices_url = FLOW_CONFIG.get_web_url("notices/get-details");
+    let http_client = reqwest::Client::new();
+    let notices_response = http_client.post(&notices_url).json(&notices_payload).send().await.map_err(|e| {
         warn!("Error fetching notices: {}", e);
         error::ErrorInternalServerError("Failed to get notices")
     })?;
@@ -122,14 +134,14 @@ let yesterday = today.pred_opt().unwrap_or(today);
 
     for tag in &all_tags {
         let reddit_url = FLOW_CONFIG.get_web_url(&format!("reddit/get-simple-posts/{}", tag.trim_start_matches('#')));
-        if let Ok(res) = client.get(&reddit_url).send().await {
+        if let Ok(res) = http_client.get(&reddit_url).send().await {
             if let Ok(json) = res.json::<serde_json::Value>().await {
                 reddit_posts.push(json);
             }
         }
 
         let ig_url = FLOW_CONFIG.get_web_url(&format!("instagram/hashtag/{}", tag.trim_start_matches('#')));
-        if let Ok(res) = client.get(&ig_url).send().await {
+        if let Ok(res) = http_client.get(&ig_url).send().await {
             if let Ok(json) = res.json::<serde_json::Value>().await {
                 instagram_posts.push(json);
             }

@@ -12,10 +12,16 @@ pub struct RedditMetrics {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct Trends {
+pub struct Data {
     reddit: Vec<RedditMetrics>,
-    instagram: Vec<()>,
-    twitter: Vec<()>,
+    instagram: Vec<String>, // Placeholder for Instagram metrics
+    twitter: Vec<String>,   // Placeholder for Twitter metrics
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct Trends {
+    metadata: Details,
+    data: Data,
 }
 
 pub struct TrendsScraper;
@@ -47,9 +53,12 @@ impl TrendsScraper {
         let reddit = Self::get_reddit_metrics(&details).await;
 
         Ok(Trends {
-            reddit,
-            instagram: Vec::new(),
-            twitter: Vec::new(),
+            metadata: details,
+            data: Data {
+                reddit,
+                instagram: vec![], // Placeholder for Instagram metrics
+                twitter: vec![],   // Placeholder for Twitter metrics
+            },
         })
     }
 }
