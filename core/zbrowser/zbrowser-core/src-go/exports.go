@@ -98,6 +98,7 @@ func Navigate(ctxID C.int64_t, url *C.char) C.int64_t {
 func Evaluate(ctxID C.int64_t, expr *C.char, result *C.int64_t) *C.char {
 	ctxInterface, ok := contextMap.Load(int64(ctxID))
 	if !ok {
+		fmt.Println("Evaluate: Context not found")
 		*result = C.int64_t(1)
 		return C.CString("")
 	}
@@ -106,7 +107,7 @@ func Evaluate(ctxID C.int64_t, expr *C.char, result *C.int64_t) *C.char {
 	var resultStr string
 	err := chromedp.Run(*ctx, chromedp.Evaluate(C.GoString(expr), &resultStr))
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Evaluate: ", err)
 		*result = C.int64_t(1)
 		return C.CString("")
 	}
@@ -117,6 +118,7 @@ func Evaluate(ctxID C.int64_t, expr *C.char, result *C.int64_t) *C.char {
 func AsyncEvaluate(ctxID C.int64_t, expr *C.char, result *C.int64_t) *C.char {
 	ctxInterface, ok := contextMap.Load(int64(ctxID))
 	if !ok {
+		fmt.Println("AsyncEvaluate: Context not found")
 		*result = C.int64_t(1)
 		return C.CString("")
 	}
@@ -127,7 +129,7 @@ func AsyncEvaluate(ctxID C.int64_t, expr *C.char, result *C.int64_t) *C.char {
 		return p.WithAwaitPromise(true)
 	}))
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("AsyncEvaluate: ", err)
 		*result = C.int64_t(1)
 		return C.CString("")
 	}
