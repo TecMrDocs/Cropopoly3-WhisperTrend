@@ -6,3 +6,4 @@ pub mod user;
 pub mod sale;
 pub mod admin;
 pub mod flow;
+pub mod flow_config;
