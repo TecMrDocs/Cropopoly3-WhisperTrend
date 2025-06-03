@@ -1,4 +1,5 @@
 use crate::scraping::{
+    instagram::{InstagramPost, InstagramScraper},
     notices::{Details, NoticesScraper, Params},
     reddit::{RedditScraper, SimplePostWithMembers},
 };
@@ -12,9 +13,15 @@ pub struct RedditMetrics {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
+pub struct InstagramMetrics {
+    keyword: String,
+    posts: Vec<InstagramPost>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Trends {
     reddit: Vec<RedditMetrics>,
-    instagram: Vec<()>,
+    instagram: Vec<InstagramMetrics>,
     twitter: Vec<()>,
 }
 
@@ -42,13 +49,40 @@ impl TrendsScraper {
         results.into_iter().collect()
     }
 
+    pub async fn get_instagram_metrics(details: &Details) -> Vec<InstagramMetrics> {
+        let mut futures = Vec::new();
+
+        for detail in details {
+            for keyword in &detail.keywords {
+                let future = async move {
+                    match InstagramScraper::get_posts(keyword.clone()).await {
+                        Ok(posts) => InstagramMetrics {
+                            keyword: keyword.clone(),
+                            posts,
+                        },
+                        Err(_) => InstagramMetrics {
+                            keyword: keyword.clone(),
+                            posts: Vec::new(),
+                        },
+                    }
+                };
+
+                futures.push(future);
+            }
+        }
+
+        let results = join_all(futures).await;
+        results.into_iter().collect()
+    }
+
     pub async fn get_trends(params: Params) -> anyhow::Result<Trends> {
         let details = NoticesScraper::get_details(params).await?;
         let reddit = Self::get_reddit_metrics(&details).await;
+        let instagram = Self::get_instagram_metrics(&details).await;
 
         Ok(Trends {
             reddit,
-            instagram: Vec::new(),
+            instagram,
             twitter: Vec::new(),
         })
     }
