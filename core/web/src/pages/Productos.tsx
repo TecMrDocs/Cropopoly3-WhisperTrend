@@ -1,42 +1,104 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiTrash2, FiEdit2, FiPlus } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from "@/utils/constants";
+import { getConfig } from "@/utils/auth";
 
-const products = [
-  { name: 'Bolso Marianne' },
-  { name: 'Cartera Erika' }
-];
+interface Resource {
+  id: number;
+  user_id: number;
+  r_type: "Producto" | "Servicio";
+  name: string;
+  description: string;
+  related_words: string;
+}
 
 export default function Productos() {
   const navigate = useNavigate();
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [productToDelete, setProductToDelete] = useState<string | null>(null);
+  const [resourceToDelete, setResourceToDelete] = useState<number | null>(null);
 
-  const handleDeleteClick = (productName: string) => {
-    setProductToDelete(productName);
-    setShowModal(true);
+  const getUserId = async (): Promise<number | null> => {
+    try {
+      const res = await fetch(`${API_URL}auth/check`, getConfig());
+      if (!res.ok) throw new Error("Error al verificar usuario");
+      const data = await res.json();
+      return data.id;
+    } catch (err) {
+      console.error("Error obteniendo user_id:", err);
+      return null;
+    }
   };
 
-  const handleConfirmDelete = () => {
-    alert(`Producto eliminado: ${productToDelete}`);
-    setShowModal(false);
+  const fetchResources = async () => {
+    try {
+      const userId = await getUserId();
+      if (!userId) return;
+
+      const res = await fetch(`${API_URL}resource/user/${userId}`, getConfig());
+      if (!res.ok) throw new Error("Error al cargar recursos");
+
+      const data: Resource[] = await res.json();
+      setResources(data);
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleDelete = async () => {
+    if (!resourceToDelete) return;
+
+    try {
+      const res = await fetch(`${API_URL}resource/${resourceToDelete}`, {
+        ...getConfig(),
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setResources(resources.filter(r => r.id !== resourceToDelete));
+        setShowModal(false);
+      }
+    } catch (error) {
+      console.error("Error eliminando recurso:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchResources();
+  }, []);
+
+  if (loading) {
+    return <div className="min-h-screen flex justify-center items-center">Cargando...</div>;
+  }
 
   return (
-    <div className="min-h-screen relative">
-      <h1 className="text-5xl font-bold text-center mb-15">Mis productos y servicios</h1>
+    <div className="min-h-screen relative p-8">
+      <h1 className="text-5xl font-bold text-center mb-12">Mis productos y servicios</h1>
 
       <div className="flex flex-wrap justify-center gap-10">
-        {products.map((product, index) => (
+        {resources.map((resource) => (
           <div
-            key={index}
+            key={resource.id}
             className="w-60 border-2 border-blue-400 rounded-xl p-4 flex flex-col items-center space-y-5"
           >
-            <p className="text-lg text-blue-500 font-semibold">Producto</p>
-            <p className="text-2xl font-bold text-blue-400">{product.name}</p>
+            {/* Badge para el tipo */}
+            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+              resource.r_type === "Producto" 
+                ? "bg-blue-100 text-blue-800" 
+                : "bg-teal-100 text-teal-800"
+            }`}>
+              {resource.r_type}
+            </span>
+
+            <p className="text-2xl font-bold text-blue-400 text-center">{resource.name}</p>
 
             <button
-              onClick={() => navigate("/dashboard")}
+              // onClick={() => navigate(`/detalle/${resource.id}`)}
+              onClick={() => navigate(`/dashboard`)}
               className="cursor-pointer bg-gradient-to-r from-blue-500 to-teal-400 text-white font-semibold px-6 py-2 rounded-full"
             >
               Ver
@@ -46,38 +108,48 @@ export default function Productos() {
               <FiTrash2
                 className="cursor-pointer hover:text-red-500"
                 size={20}
-                onClick={() => handleDeleteClick(product.name)}
+                onClick={() => {
+                  setResourceToDelete(resource.id);
+                  setShowModal(true);
+                }}
               />
-              <FiEdit2 className="cursor-pointer hover:text-blue-600" size={20} />
+              <FiEdit2 
+                className="cursor-pointer hover:text-blue-600" 
+                size={20}
+                onClick={() => navigate(`/editar/${resource.id}`)}
+              />
             </div>
           </div>
         ))}
 
-        <div className="w-60 border-2 border-teal-400 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-5 hover:shadow-md transition">
-          <p className="text-black font-medium text-lg">Agregar producto</p>
-          <div
-            className="border-2 border-teal-400 p-2 rounded-full cursor-pointer"
-            onClick={() => navigate('/editarProducto')}
-          >
+        {/* Tarjeta para agregar nuevo */}
+        <div 
+          className="w-60 border-2 border-teal-400 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-5 hover:shadow-md transition cursor-pointer"
+          onClick={() => navigate('/crear')}
+        >
+          <p className="text-black font-medium text-lg">Agregar nuevo</p>
+          <div className="border-2 border-teal-400 p-2 rounded-full">
             <FiPlus className="text-teal-500" size={28} />
           </div>
         </div>
       </div>
 
+      {/* Modal de confirmación */}
       {showModal && (
-        <div className="fixed inset-0 flex justify-center items-center">
-          <div className="bg-white border-2 border-teal-400 rounded-xl p-8 text-center space-y-8 w-110">
-            <p className="text-black text-lg">¿Realmente quieres eliminar este producto?</p>
-            <div className="flex justify-around mt-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white rounded-xl p-8 text-center space-y-6 w-96">
+            <h3 className="text-xl font-bold">Confirmar eliminación</h3>
+            <p>¿Estás seguro de eliminar este {resources.find(r => r.id === resourceToDelete)?.r_type.toLowerCase()}?</p>
+            <div className="flex justify-center gap-4">
               <button
                 onClick={() => setShowModal(false)}
-                className="cursor-pointer border-2 border-blue-500 text-blue-600 font-semibold px-6 py-2 rounded-full hover:bg-blue-50"
+                className="px-6 py-2 border border-gray-300 rounded-full"
               >
                 Cancelar
               </button>
               <button
-                onClick={handleConfirmDelete}
-                className="cursor-pointer bg-red-500 text-white font-semibold px-6 py-2 rounded-full hover:bg-red-600"
+                onClick={handleDelete}
+                className="px-6 py-2 bg-red-500 text-white rounded-full hover:bg-red-600"
               >
                 Eliminar
               </button>
