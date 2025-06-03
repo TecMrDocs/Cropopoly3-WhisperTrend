@@ -10,7 +10,7 @@ import WhiteButton from "../components/WhiteButton";
 import BlueButton from "../components/BlueButton";
 import SaveAlert from "../components/saveAlert";
 
-export default function LaunchEmpresa() {
+export default function Empresa() {
   const navigate = useNavigate();
   const [showAlert, setShowAlert] = useState(false);
   const { setEmpresa } = usePrompt();

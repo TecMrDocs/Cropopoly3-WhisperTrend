@@ -125,7 +125,7 @@ export default function Productos() {
         {/* Tarjeta para agregar nuevo */}
         <div 
           className="w-60 border-2 border-teal-400 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-5 hover:shadow-md transition cursor-pointer"
-          onClick={() => navigate('/crear')}
+          onClick={() => navigate('/NewResource')}
         >
           <p className="text-black font-medium text-lg">Agregar nuevo</p>
           <div className="border-2 border-teal-400 p-2 rounded-full">

@@ -28,6 +28,7 @@ import EmailConfirmation from "../pages/EmailConfirmation";
 import ActualizarPlan from "../pages/ActualizarPlan";
 import Us from "../pages/Us";
 import HolaDeNuevo from "../pages/HolaDeNuevo";
+import NewResource from "../pages/NewResource";
 
 
 export default function WebRouter(){
@@ -66,6 +67,7 @@ export default function WebRouter(){
       <Route path="/launchVentas" element={loadLayout(LaunchLayout, LaunchVentas)} />
       <Route path="/loading" element={loadLayout(LaunchLayout, Loading)} />
       <Route path="/resumen" element={loadLayout(MainLayout, Resumen)} />
+      <Route path="/newResource" element={loadLayout(LaunchLayout, NewResource)}  />
     </Routes>
   );
 }
