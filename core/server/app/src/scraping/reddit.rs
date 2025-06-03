@@ -91,7 +91,7 @@ impl RedditScraper {
             .execute(move |context| {
                 let user_agent: String = UserAgent().fake();
                 context.set_user_agent(&user_agent);
-                context.wait_for_element(SUBREDDIT_SELECTOR_STR, 3000);
+                std::thread::sleep(std::time::Duration::from_secs(3));
                 context.navigate(&format!("https://www.reddit.com/search?q={}", keyword));
                 context.get_html()
             })
@@ -127,7 +127,7 @@ impl RedditScraper {
                     .execute(move |context| {
                         let user_agent: String = UserAgent().fake();
                         context.set_user_agent(&user_agent);
-                        context.wait_for_element(MEMBERS_SELECTOR_STR, 3000);
+                        std::thread::sleep(std::time::Duration::from_secs(3));
                         context.navigate(&post.subreddit);
                         context.get_html()
                     })
