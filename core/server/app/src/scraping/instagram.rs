@@ -1,252 +1,156 @@
-use crate::{
-    config::Config,
-    scraping::{SCRAPER, Utils},
+use chromiumoxide::browser::Browser;
+use chromiumoxide::cdp::browser_protocol::network::{
+    Cookie, CookieParam, GetCookiesParams, SetCookiesParams, TimeSinceEpoch,
 };
-use futures_util::future::join_all;
-use once_cell::sync::OnceCell;
-use serde::{Deserialize, Serialize};
-use tracing::info;
+use chromiumoxide::cdp::js_protocol::runtime::CallFunctionOnReturns;
+use chromiumoxide::page::Page;
+use futures_util::stream::StreamExt;
+use serde::Serialize;
+use std::fs;
+use std::time::Duration;
+use tokio::time::sleep;
 
-static USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-static JS_HOVER: &str = include_str!("hover.js");
-static COOKIES: OnceCell<String> = OnceCell::new();
-
-const INSTAGRAM_LOGIN_URL: &str = "https://www.instagram.com/accounts/login/";
-const INSTAGRAM_POST_URL: &str = "https://www.instagram.com/explore/tags";
-
-const USERNAME_SELECTOR: &str = "input[name='username']";
-const PASSWORD_SELECTOR: &str = "input[name='password']";
-const LOGIN_BUTTON_SELECTOR: &str = "button[type='submit']";
-
-const POST_SELECTOR: &str = "main > div > div:nth-of-type(2) > div > div > div";
-const TIME_SELECTOR: &str = "a span time";
-
-const FOLLOWERS_SELECTOR: &str = "section a span span";
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct InstagramPostPrimary {
-    pub likes: u32,
-    pub comments: u32,
-    pub link: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct InstagramPostSecondary {
-    pub time: String,
-    pub link: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 pub struct InstagramPost {
-    pub likes: u32,
-    pub comments: u32,
-    pub link: String,
-    pub time: String,
-    pub followers: u32,
+    pub url: String,
+    pub caption: String,
+    pub likes: Option<u32>,
 }
 
 pub struct InstagramScraper;
 
 impl InstagramScraper {
-    pub async fn login() -> anyhow::Result<String> {
-        SCRAPER
-            .execute(move |context| {
-                context.navigate(INSTAGRAM_LOGIN_URL);
-                context.write_input(USERNAME_SELECTOR, Config::get_instagram_username());
-                context.write_input(PASSWORD_SELECTOR, Config::get_instagram_password());
-                context.click_element(LOGIN_BUTTON_SELECTOR);
-                std::thread::sleep(std::time::Duration::from_secs(15));
-                let cookies = context.string_cookies();
-                cookies
-            })
-            .await
-    }
+    pub async fn login() -> anyhow::Result<Browser> {
+        let ws_url = std::env::var("BROWSERLESS_WS")?;
+        let (browser, mut handler) = Browser::connect(ws_url).await?;
 
-    pub async fn apply_login() -> anyhow::Result<()> {
-        if COOKIES.get().is_some() {
-            return Ok(());
+        tokio::spawn(async move {
+            while let Some(_event) = handler.next().await {}
+        });
+
+        let page = browser.new_page("https://www.instagram.com/").await?;
+        load_cookies(&page).await?;
+        page.reload().await?;
+        page.wait_for_navigation().await?;
+        sleep(Duration::from_secs(3)).await;
+
+        let current_url = page.url().await?.unwrap_or_default();
+        if !current_url.contains("login") {
+            return Ok(browser);
         }
 
-        if std::path::Path::new("cookies.json").exists() {
-            info!("Loading cookies from file");
-            let cookies = std::fs::read_to_string("cookies.json")?;
-            let _ = COOKIES.set(cookies);
-        } else {
-            info!("No cookies found, logging in");
-            let cookies = InstagramScraper::login().await?;
-            std::fs::write("cookies.json", cookies.clone())?;
-            let _ = COOKIES.set(cookies);
+        let page = browser
+            .new_page("https://www.instagram.com/accounts/login/")
+            .await?;
+        page.wait_for_navigation().await?;
+        sleep(Duration::from_secs(3)).await;
+
+        let username = std::env::var("INSTAGRAM_USERNAME")?;
+        let password = std::env::var("INSTAGRAM_PASSWORD")?;
+
+        let username_el = page.find_element("input[name='username']").await?;
+        username_el.click().await?;
+        username_el.type_str(&username).await?;
+
+        let password_el = page.find_element("input[name='password']").await?;
+        password_el.click().await?;
+        password_el.type_str(&password).await?;
+
+        let login_btn = page.find_element("button[type='submit']").await?;
+        login_btn.click().await?;
+
+        sleep(Duration::from_secs(5)).await;
+
+        let url = page.url().await?.unwrap_or_default();
+        if url.contains("login") {
+            anyhow::bail!("Login fallido: sigue en la página de login");
         }
 
-        Ok(())
+        save_cookies(&page).await?;
+        Ok(browser)
     }
 
-    pub async fn get_time_and_link(link: String) -> anyhow::Result<InstagramPostSecondary> {
-        InstagramScraper::apply_login().await?;
-        if let Some(cookies) = COOKIES.get() {
-            let result = SCRAPER
-                .execute(move |context| {
-                    context.set_user_agent(USER_AGENT);
-                    context.set_string_cookies(cookies.clone());
-                    context.navigate(link.clone());
-                    std::thread::sleep(std::time::Duration::from_secs(5));
-                    context.evaluate(format!(
-                    "(() => {{
-                        let t = document.querySelector('{TIME_SELECTOR}');
-                        let time = '';
+    pub async fn get_one_post() -> anyhow::Result<InstagramPost> {
+        let browser = Self::login().await?;
+        let page = browser
+            .new_page("https://www.instagram.com/reels/DIaAh_WSuMN/")
+            .await?;
+        page.wait_for_navigation().await?;
+        sleep(Duration::from_secs(5)).await;
 
-                        if (t) {{
-                            time = (t || {{ attributes: {{ datetime: {{ value: '' }} }}}}).attributes.datetime.value;
-                        }}
+        let caption_el = page.find_element("meta[property='og:title']").await?;
+        let js_result: CallFunctionOnReturns = caption_el
+            .call_js_fn("function() { return this.getAttribute('content'); }", false)
+            .await?;
 
-                        if (time === '') {{
-                            time = new Date().toISOString();
-                        }}
+        let caption_text = js_result
+            .result
+            .value
+            .and_then(|v| v.as_str().map(|s| s.to_string()))
+            .unwrap_or_default();
 
-                        let a = document.querySelector('a');
-                        let link = '';
-
-                        if (a) {{
-                            link = (a || {{ href: '' }}).href;
-                        }}
-
-                        return JSON.stringify({{ time, link }});
-                    }})()"
-                    ))
-                })
-                .await?;
-
-            let result: InstagramPostSecondary = serde_json::from_str(&result)?;
-            return Ok(result);
-        }
-
-        Err(anyhow::anyhow!("No cookies found"))
+        Ok(InstagramPost {
+            url: page.url().await?.unwrap_or_default(),
+            caption: caption_text,
+            likes: None,
+        })
     }
+}
 
-    pub async fn get_followers(link: String) -> anyhow::Result<String> {
-        InstagramScraper::apply_login().await?;
-        if let Some(cookies) = COOKIES.get() {
-            return SCRAPER
-                .execute(move |context| {
-                    context.set_user_agent(USER_AGENT);
-                    context.set_string_cookies(cookies.clone());
-                    context.navigate(link.clone());
-                    std::thread::sleep(std::time::Duration::from_secs(5));
-                    let result = context.evaluate(format!(
-                        "(() => {{
-                        let followers = document.querySelector('{FOLLOWERS_SELECTOR}').textContent;
-                        return followers;
-                    }})()"
-                    ));
-                    result
-                })
-                .await;
-        }
+// =========================
+// Cookies: guardar y cargar
+// =========================
 
-        Err(anyhow::anyhow!("No cookies found"))
-    }
+async fn get_all_cookies(page: &Page) -> anyhow::Result<Vec<Cookie>> {
+    let resp = page.execute(GetCookiesParams::default()).await?;
+    Ok(resp.cookies.clone())
+}
 
-    pub async fn get_posts(hashtag: String) -> anyhow::Result<Vec<InstagramPost>> {
-        InstagramScraper::apply_login().await?;
-        if let Some(cookies) = COOKIES.get() {
-            let posts = SCRAPER
-                .execute(move |context| {
-                    context.set_user_agent(USER_AGENT);
-                    context.set_string_cookies(cookies.clone());
-                    context.navigate(format!("{}/{}", INSTAGRAM_POST_URL, hashtag));
-                    std::thread::sleep(std::time::Duration::from_secs(5));
-                    context.evaluate(format!(
-                        "(() => {{
-                        {JS_HOVER};
-                        let posts = Array.from(document.querySelectorAll('{POST_SELECTOR}'));
-                        posts.forEach((p) => forceHoverPermanent(p));
-                        return '';
-                    }})()"
-                    ));
-                    std::thread::sleep(std::time::Duration::from_secs(5));
-                    let result = context.async_evaluate(format!(
-                        "(() => {{
-                        let posts = Array.from(document.querySelectorAll('{POST_SELECTOR}'));
-                        let results = [];
+async fn set_all_cookies(page: &Page, cookies: Vec<Cookie>) -> anyhow::Result<()> {
+    let cookie_params: Vec<CookieParam> = cookies
+        .into_iter()
+        .map(|c| {
+            let expires = if c.expires != 0.0 {
+                Some(TimeSinceEpoch::new(c.expires))
+            } else {
+                None
+            };
 
-                        for (let i = 0; i < posts.length; i++) {{
-                            try {{
-                                let p = posts[i];
-                                let metrics = p.querySelectorAll('span > span');
-                                let a = p.querySelector('a');
-
-                                let likes = (metrics[0] || {{ textContent: '' }}).textContent;
-                                let comments = (metrics[1] || {{ textContent: '' }}).textContent;
-                                let link = (a || {{ href: '' }}).href;
-
-                                if (!a || !link) {{
-                                    continue;
-                                }}
-
-                                results.push({{
-                                    likes: likes === '' ? 0 : parseInt(likes.trim()),
-                                    comments: comments === '' ? 0 : parseInt(comments.trim()),
-                                    link
-                                }});
-                            }} catch (error) {{
-                            }}
-                        }}
-
-                        return JSON.stringify(results);
-                    }})()"
-                    ));
-                    std::thread::sleep(std::time::Duration::from_secs(5));
-                    result
-                })
-                .await?;
-
-            let posts: Vec<InstagramPostPrimary> = serde_json::from_str(&posts)?;
-            let mut futures = Vec::new();
-
-            for post in posts.clone() {
-                futures.push(async move {
-                    match InstagramScraper::get_time_and_link(post.link).await {
-                        Ok(result) => Some(result),
-                        Err(_) => Some(InstagramPostSecondary {
-                            time: String::new(),
-                            link: String::new(),
-                        }),
-                    }
-                });
+            CookieParam {
+                name: c.name,
+                value: c.value,
+                url: None,
+                domain: Some(c.domain),
+                path: Some(c.path),
+                secure: Some(c.secure),
+                http_only: Some(c.http_only),
+                same_site: c.same_site,
+                expires,
+                priority: None,
+                same_party: None,
+                source_scheme: None,
+                source_port: None,
+                partition_key: None,
             }
+        })
+        .collect();
 
-            let results = join_all(futures).await;
-            let times_and_links: Vec<InstagramPostSecondary> =
-                results.into_iter().filter_map(|result| result).collect();
-            let mut futures = Vec::new();
+    page.execute(SetCookiesParams::new(cookie_params)).await?;
+    Ok(())
+}
 
-            for post in times_and_links.clone() {
-                futures.push(async move {
-                    match InstagramScraper::get_followers(post.link).await {
-                        Ok(result) => Some(result),
-                        Err(_) => Some(String::new()),
-                    }
-                });
-            }
+async fn save_cookies(page: &Page) -> anyhow::Result<()> {
+    let cookies = get_all_cookies(page).await?;
+    let serialized = serde_json::to_string(&cookies)?;
+    fs::write("cookies.json", serialized)?;
+    Ok(())
+}
 
-            let results = join_all(futures).await;
-            let followers: Vec<String> = results.into_iter().filter_map(|result| result).collect();
-            let posts: Vec<InstagramPost> = posts
-                .into_iter()
-                .zip(followers)
-                .zip(times_and_links)
-                .map(|((post, follower), time_and_link)| InstagramPost {
-                    likes: post.likes,
-                    comments: post.comments,
-                    link: post.link,
-                    time: time_and_link.time,
-                    followers: Utils::parse_human_number(&follower),
-                })
-                .collect();
-
-            return Ok(posts);
+async fn load_cookies(page: &Page) -> anyhow::Result<()> {
+    if let Ok(data) = fs::read_to_string("cookies.json") {
+        if let Ok(cookies) = serde_json::from_str::<Vec<Cookie>>(&data) {
+            set_all_cookies(page, cookies).await?;
         }
-
-        Err(anyhow::anyhow!("No cookies found"))
     }
+    Ok(())
 }
