@@ -1,4 +1,4 @@
-use actix_web::{post, get, web, HttpResponse, Responder};
+use actix_web::{post, web, HttpResponse, Responder};
 use tracing::{info, warn};
 use std::fs;
 use rig::{
@@ -67,20 +67,7 @@ pub async fn handle_analysis(body: web::Json<ChatRequest>) -> impl Responder {
     }
 }
 
-#[get("/dummy")]
-pub async fn handle_dummy_analysis() -> impl Responder {
-    info!("Devolviendo respuesta dummy de análisis");
-    match fs::read_to_string("src/data/response.md") {
-        Ok(content) => HttpResponse::Ok().body(content),
-        Err(e) => {
-            warn!("No pude leer response.md: {}", e);
-            HttpResponse::InternalServerError().finish()
-        }
-    }
-}
-
 pub fn routes() -> actix_web::Scope {
     actix_web::Scope::new("/analysis")
         .service(handle_analysis)
-        .service(handle_dummy_analysis)
 }

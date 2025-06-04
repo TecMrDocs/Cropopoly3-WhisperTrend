@@ -5,3 +5,4 @@ pub mod recurso;
 pub mod user;
 pub mod sale;
 pub mod admin;
+pub mod analysis;
