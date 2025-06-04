@@ -2,9 +2,6 @@ import { API_URL } from "@/utils/constants";
 import { getConfig } from "@/utils/auth";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { API_URL } from "@/utils/constants";
-import { getConfig } from "@/utils/auth";
 import ProgressBar from "../components/ProgressBar";
 import BlueButton from "../components/BlueButton";
 
