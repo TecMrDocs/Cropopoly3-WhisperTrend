@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { API_URL } from "@/utils/constants";
-import { getConfig } from "@/utils/auth";
-import { usePrompt } from "../contexts/PromptContext";
 import ProgressBar from "../components/ProgressBar";
 import SelectField from "../components/SelectField";
 import TextFieldWHolder from "../components/TextFieldWHolder";
@@ -14,7 +11,6 @@ import EnclosedWord from "../components/EnclosedWord";
 
 export default function LaunchProducto() {
   const location = useLocation();
-  const { setPrompt, setProducto, } = usePrompt();
   const promptAnterior = location.state?.prompt || "";
 
   const prodOrServ: string[] = ["Producto", "Servicio"];
@@ -48,13 +44,17 @@ export default function LaunchProducto() {
   
   const handleAddPalabra = (nuevaPalabra: string) => {
     if (nuevaPalabra.trim() !== "" && palabrasAsociadas.length < 10) {
-      setPalabrasAsociadas((prev: string[]) => [...prev, nuevaPalabra]);
+      setPalabrasAsociadas(prev => [...prev, nuevaPalabra]);
     }
   };
 
   const getUserId = async (): Promise<number | null> => {
     try {
-      const res = await fetch(`${API_URL}auth/check`, getConfig());
+      const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
+        headers: {
+          token: token,
+        },
+      });
   
       if (!res.ok) throw new Error("Error al verificar usuario");
   
@@ -64,66 +64,7 @@ export default function LaunchProducto() {
       console.error("Error obteniendo user_id:", err);
       return null;
     }
-  };  
-
-  const handleSubmit = async () => {
-    if (!validarFormulario()) return;
-  
-    const userId = await getUserId();
-    if (!userId) {
-      alert("No se pudo obtener el usuario.");
-      return;
-    }
-  
-    const palabrasJoin = palabrasAsociadas.join(", ");
-  
-    const payload = {
-      user_id: userId,
-      r_type: pors,
-      name: nombreProducto,
-      description: descripcion,
-      related_words: palabrasJoin,
-    };
-
-    const payload2 = {
-      r_type: pors,
-      name: nombreProducto,
-      description: descripcion,
-      related_words: palabrasJoin,
-    }
-  
-    try {
-      const response = await fetch(`${API_URL}resource`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getConfig().headers,
-        },
-        body: JSON.stringify(payload),
-      });      
-  
-      if (!response.ok) {
-        const msg = await response.text();
-        console.error("Error al crear el recurso:", msg);
-        alert("No se pudo crear el recurso.");
-        return;
-      }
-  
-      const nuevoRecurso = await response.json();
-      console.log("Recurso creado:", nuevoRecurso);
-
-      const prompt = promptBuilder2();
-      console.log("Prompt: ", prompt);
-      setProducto(payload2);
-      setPrompt(prompt);
-
-      navigate("/launchVentas");
-    } catch (err) {
-      console.error("Error de red:", err);
-      alert("Error de red o del servidor.");
-    }
   };
-  */
 
   const handleSubmit = async () => {
     if (!validarFormulario()) return;
@@ -163,24 +104,26 @@ export default function LaunchProducto() {
   
       const nuevoRecurso = await response.json();
       console.log("Recurso creado:", nuevoRecurso);
+
+      const prompt = promptBuilder2();
+      console.log("Prompt: ", prompt);
+
       navigate("/launchVentas");
     } catch (err) {
       console.error("Error de red:", err);
       alert("Error de red o del servidor.");
     }
   };
-  
 
   const promptBuilder2 = () => {
     const t1 = "Ofrezco un " + pors.toLowerCase() + " llamado " + nombreProducto + ". ";
     const t2 = "Consiste en: " + descripcion;
-    const t3 = "Por favor escribe una sentencia en inglés que describa mi producto (procura no mencionar el nombre de mi producto) y mi empresa para realizar una búsqueda de noticias. También dame 3 hashtags en inglés que hayan sido populares, que pueda buscar en redes sociales y que se relacionen con mi empresa y con mi producto (procura que los hashtags no incluyan el nombre de mi producto). Separa la sentencia de los hashtags solo con el símbolo @.";
 
     if (palabrasAsociadas.length > 0) {
       const palabras = palabrasAsociadas.join(", ");
-      return promptAnterior + t1 + t2 + ", y se asocia con: " + palabras + ". " + t3;
+      return promptAnterior + t1 + t2 + ", y se asocia con: " + palabras + ".";
     } else {
-      return promptAnterior + t1 + t2 + ". " + t3;
+      return promptAnterior + t1 + t2 + ".";
     }
   }
   
