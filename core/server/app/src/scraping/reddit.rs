@@ -1,8 +1,7 @@
-use crate::scraping::SCRAPER;
+use crate::scraping::{SCRAPER, Utils};
 use fake::{Fake, faker::internet::en::UserAgent};
 use futures::future::join_all;
 use lazy_static::lazy_static;
-use regex::Regex;
 use scraper::{ElementRef, Html, Selector};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -12,11 +11,6 @@ const SUBREDDIT_SELECTOR_STR: &str = "faceplate-hovercard a";
 const MEMBERS_SELECTOR_STR: &str = "#subscribers faceplate-number";
 
 lazy_static! {
-    static ref WHITESPACE_REGEX: Regex = Regex::new(r"\s+").unwrap();
-    static ref NEWLINE_REGEX: Regex = Regex::new(r"[\n\r]+").unwrap();
-    static ref HUMAN_NUMBER_REGEX: Regex =
-        Regex::new(r"^([\d,.]+)\s*([kKmM]il|mill[oó]n|mills?|[kKMGTP])?$").unwrap();
-
     // posts
     static ref TIME_SELECTOR: Selector = Selector::parse("time").unwrap();
     static ref NUMBER_SELECTOR: Selector = Selector::parse("faceplate-number").unwrap();
@@ -50,70 +44,6 @@ pub struct SimplePostWithMembers {
 pub struct RedditScraper;
 
 impl RedditScraper {
-    fn clean_text(text: &str) -> String {
-        let text = NEWLINE_REGEX.replace_all(text, " ");
-        let text = WHITESPACE_REGEX.replace_all(&text, " ");
-        text.trim().to_string()
-    }
-
-    fn parse_human_number(text: &str) -> u32 {
-        let text = Self::clean_text(text);
-
-        if let Some(captures) = HUMAN_NUMBER_REGEX.captures(&text) {
-            if let Some(number_str) = captures.get(1) {
-                let number_str = number_str.as_str();
-                let multiplier =
-                    captures
-                        .get(2)
-                        .map_or(1, |m| match m.as_str().to_lowercase().as_str() {
-                            "k" => 1_000,
-                            "m" => 1_000_000,
-                            "g" => 1_000_000_000,
-                            "t" => 1_000_000_000_000_i64,
-                            "p" => 1_000_000_000_000_000_i64,
-                            "mil" | "kmil" | "mmil" => 1_000,
-                            "millón" | "millon" | "mill" | "mills" => 1_000_000,
-                            _ => 1,
-                        });
-
-                if let Ok(num) = number_str.parse::<f64>() {
-                    return (num * multiplier as f64) as u32;
-                }
-
-                let with_dot = number_str.replace(',', ".");
-                if let Ok(num) = with_dot.parse::<f64>() {
-                    return (num * multiplier as f64) as u32;
-                }
-
-                let without_comma = number_str.replace(',', "");
-                if let Ok(num) = without_comma.parse::<f64>() {
-                    return (num * multiplier as f64) as u32;
-                }
-
-                let clean_number = number_str.replace(',', "").replace('.', "");
-                return (clean_number.parse::<f64>().unwrap_or_default() * multiplier as f64)
-                    as u32;
-            }
-        }
-
-        if let Ok(num) = text.parse::<f64>() {
-            return num as u32;
-        }
-
-        if let Ok(num) = text.replace(',', ".").parse::<f64>() {
-            return num as u32;
-        }
-
-        if let Ok(num) = text.replace(',', "").parse::<f64>() {
-            return num as u32;
-        }
-
-        text.replace(',', "")
-            .replace('.', "")
-            .parse::<f64>()
-            .unwrap_or_default() as u32
-    }
-
     fn get_simple_post(element: ElementRef) -> anyhow::Result<SimplePost> {
         let time_element = element.select(&TIME_SELECTOR).next();
         let title_element = element.select(&POST_TITLE_SELECTOR).next();
@@ -139,9 +69,9 @@ impl RedditScraper {
 
                 return Ok(SimplePost {
                     time: time.to_string(),
-                    title: Self::clean_text(&title),
-                    vote: Self::parse_human_number(&vote),
-                    comments: Self::parse_human_number(&comments),
+                    title: Utils::clean_text(&title),
+                    vote: Utils::parse_human_number(&vote),
+                    comments: Utils::parse_human_number(&comments),
                     subreddit: {
                         if subreddit.to_string().starts_with("/r/") {
                             format!("https://www.reddit.com{}", subreddit.to_string())
@@ -161,7 +91,7 @@ impl RedditScraper {
             .execute(move |context| {
                 let user_agent: String = UserAgent().fake();
                 context.set_user_agent(&user_agent);
-                context.wait_for_element(SUBREDDIT_SELECTOR_STR, 3000);
+                std::thread::sleep(std::time::Duration::from_secs(3));
                 context.navigate(&format!("https://www.reddit.com/search?q={}", keyword));
                 context.get_html()
             })
@@ -197,7 +127,7 @@ impl RedditScraper {
                     .execute(move |context| {
                         let user_agent: String = UserAgent().fake();
                         context.set_user_agent(&user_agent);
-                        context.wait_for_element(MEMBERS_SELECTOR_STR, 3000);
+                        std::thread::sleep(std::time::Duration::from_secs(3));
                         context.navigate(&post.subreddit);
                         context.get_html()
                     })
@@ -216,7 +146,7 @@ impl RedditScraper {
                         vote: post.vote,
                         comments: post.comments,
                         subreddit,
-                        members: Self::parse_human_number(&members),
+                        members: Utils::parse_human_number(&members),
                     })
                 } else {
                     None
@@ -228,17 +158,5 @@ impl RedditScraper {
 
         let results = join_all(futures).await;
         results.into_iter().filter_map(|result| result).collect()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_human_number() {
-        assert_eq!(RedditScraper::parse_human_number("4"), 4);
-        assert_eq!(RedditScraper::parse_human_number("1,6 mil"), 1600);
-        assert_eq!(RedditScraper::parse_human_number("1 mil"), 1000);
     }
 }

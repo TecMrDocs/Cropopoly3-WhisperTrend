@@ -1,4 +1,5 @@
 use crate::scraping::{
+    instagram::{InstagramPost, InstagramScraper},
     notices::{Details, NoticesScraper, Params},
     reddit::{RedditScraper, SimplePostWithMembers},
 };
@@ -12,10 +13,16 @@ pub struct RedditMetrics {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
+pub struct InstagramMetrics {
+    keyword: String,
+    posts: Vec<InstagramPost>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Data {
     reddit: Vec<RedditMetrics>,
-    instagram: Vec<String>, // Placeholder for Instagram metrics
-    twitter: Vec<String>,   // Placeholder for Twitter metrics
+    instagram: Vec<InstagramMetrics>,
+    twitter: Vec<()>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -48,16 +55,46 @@ impl TrendsScraper {
         results.into_iter().collect()
     }
 
+    pub async fn get_instagram_metrics(details: &Details) -> Vec<InstagramMetrics> {
+        let mut futures = Vec::new();
+
+        for detail in details {
+            for keyword in &detail.keywords {
+                let future = async move {
+                    match InstagramScraper::get_posts(keyword.clone()).await {
+                        Ok(posts) => InstagramMetrics {
+                            keyword: keyword.clone(),
+                            posts,
+                        },
+                        Err(_) => InstagramMetrics {
+                            keyword: keyword.clone(),
+                            posts: Vec::new(),
+                        },
+                    }
+                };
+
+                futures.push(future);
+            }
+        }
+
+        let results = join_all(futures).await;
+        results.into_iter().collect()
+    }
+
     pub async fn get_trends(params: Params) -> anyhow::Result<Trends> {
         let details = NoticesScraper::get_details(params).await?;
-        let reddit = Self::get_reddit_metrics(&details).await;
+
+        let reddit_future = Self::get_reddit_metrics(&details);
+        let instagram_future = Self::get_instagram_metrics(&details);
+
+        let (reddit, instagram) = futures::future::join(reddit_future, instagram_future).await;
 
         Ok(Trends {
             metadata: details,
             data: Data {
                 reddit,
-                instagram: vec![], // Placeholder for Instagram metrics
-                twitter: vec![],   // Placeholder for Twitter metrics
+                instagram,
+                twitter: Vec::new(),
             },
         })
     }

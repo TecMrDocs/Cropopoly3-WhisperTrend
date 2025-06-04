@@ -17,8 +17,8 @@ lazy_static! {
 const BASE_URL: &str = "https://api.gdeltproject.org/api/v2/doc/doc";
 const MODE: &str = "artlist";
 const FORMAT: &str = "JSON";
-const MAX_ARTICLES: usize = 10;
-const MAX_HASHTAGS: usize = 3;
+const MAX_ARTICLES: usize = 3;
+const MAX_HASHTAGS: usize = 1;
 const MAX_TIMEOUT: u64 = 3;
 
 pub type Details = Vec<Info>;
