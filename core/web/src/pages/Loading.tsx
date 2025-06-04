@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrompt } from "../contexts/PromptContext";
 import { getConfig } from "@/utils/auth";
@@ -14,10 +14,14 @@ export default function AnalysisLoading() {
     "Preparando presentación",
   ];
 
+  const hasFetched = useRef(false);
   const navigate = useNavigate();
-  const { idProducto } = usePrompt();
+  const { productId } = usePrompt();
 
   useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+
     const fetchPrompt = async () => {
       try {
         const res = await fetch(`${API_URL}flow/secure/generate-prompt`, {
@@ -26,7 +30,7 @@ export default function AnalysisLoading() {
             "Content-Type": "application/json",
             ...getConfig().headers,
           },
-          body: JSON.stringify({ resource_id: idProducto }),
+          body: JSON.stringify({ resource_id: productId }),
         });
 
         if (!res.ok) throw new Error("Error al generar prompt");

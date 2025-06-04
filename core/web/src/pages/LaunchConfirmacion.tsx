@@ -8,7 +8,7 @@ import { usePrompt } from "../contexts/PromptContext";
 
 export default function LaunchConfirmacion() {
   const navigate = useNavigate();
-  const { prompt, empresa, producto, hasSalesData } = usePrompt();
+  const { empresa, producto, hasSalesData } = usePrompt();
   const { business_name, industry, company_size, scope, locations, num_branches } = empresa || {};
   const { r_type, name, description, related_words } = producto || {};
 
@@ -62,7 +62,7 @@ export default function LaunchConfirmacion() {
       </p>
       {/* <p className="text-lg text-black">Para este producto registraste información de ventas.</p> */}
       
-      <p className="text-lg text-black">Para este <span className="font-bold">{r_type.toLowerCase()} {hasSalesData ? "registraste " : "no registraste "} </span> información de ventas</p>
+      <p className="text-lg text-black">Para este <span className="font-bold">{r_type ? r_type : ""} {hasSalesData ? "registraste " : "no registraste "} </span> información de ventas</p>
       
       <p className="text-4xl font-bold mt-2 text-center pt-10">¡Ya podemos explorar las tendencias de tu mercado!</p>
 
