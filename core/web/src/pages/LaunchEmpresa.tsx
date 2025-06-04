@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { API_URL } from "@/utils/constants";
-import { getConfig } from "@/utils/auth";
-import { usePrompt } from "../contexts/PromptContext";
 import ProgressBar from "../components/ProgressBar";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import SelectField from "../components/SelectField";
@@ -11,12 +8,7 @@ import WhiteButton from "../components/WhiteButton";
 import BlueButton from "../components/BlueButton";
 
 export default function LaunchEmpresa() {
-<<<<<<< HEAD
   const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzQ5MjI4MTIwfQ.ysOpkiGz9d07Dm-d1og-xAoSFIf-V7laT8xWp4COPfc";
-=======
-  const navigate = useNavigate();
-  const { setEmpresa } = usePrompt();
->>>>>>> main
 
   const industrias: string[] = ["Manufactura", "Moda", "Alimentos", "Tecnología", "Salud"];
   const opcionesColabs: string[] = ["10 o menos", 
@@ -31,11 +23,7 @@ export default function LaunchEmpresa() {
   const [alcance, setAlcance] = useState("");
   const [operaciones, setOperaciones] = useState("");
   const [sucursales, setSucursales] = useState("");
-<<<<<<< HEAD
-  const [prompt1, setPrompt1] = useState("");
   const navigate = useNavigate();
-=======
->>>>>>> main
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -65,31 +53,6 @@ export default function LaunchEmpresa() {
 
   const getUserId = async (): Promise<number | null> => {
     try {
-<<<<<<< HEAD
-      const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
-        headers: {
-          token: token,
-        },
-      });
-  
-      if (!res.ok) throw new Error("Error al verificar usuario");
-  
-=======
-      const res = await fetch(`${API_URL}auth/check`, getConfig());
-      if (!res.ok) throw new Error("Token inválido");
->>>>>>> main
-      const data = await res.json();
-      return data.id;
-    } catch (err) {
-      console.error("Error obteniendo user_id:", err);
-      return null;
-    }
-  };
-
-  const handleSubmit = async () => {
-<<<<<<< HEAD
-  const getUserId = async (): Promise<number | null> => {
-    try {
       const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
         headers: {
           token: token,
@@ -107,64 +70,10 @@ export default function LaunchEmpresa() {
   };
 
   const handleSubmit = async () => {
-=======
->>>>>>> main
     if (!validarFormulario()) return;
 
     const userId = await getUserId();
     if (!userId) {
-<<<<<<< HEAD
-      alert("No se pudo obtener el usuario.");
-=======
-      alert("Token inválido. Inicia sesión de nuevo.");
->>>>>>> main
-      return;
-    }
-
-    let ne = "";
-    if (numEmpleados === "10 o menos") ne = "micro empresa";
-    else if (numEmpleados === "Entre 11 y 50") ne = "pequeña empresa";
-    else if (numEmpleados === "Entre 51 y 250") ne = "empresa mediana";
-    else if (numEmpleados === "Más de 250") ne = "empresa grande";
-
-    const payload = {
-      business_name: nombreEmpresa,
-      industry: industria,
-      company_size: ne,
-      scope: alcance,
-      locations: operaciones,
-      num_branches: sucursales,
-<<<<<<< HEAD
-    }
-  
-    try {
-      const response = await fetch(`http://127.0.0.1:8080/api/v1/user/update/${userId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-  
-      if (!response.ok) {
-        const msg = await response.text();
-        console.error("Error al registrar información de empresa:", msg);
-        alert("No se pudo registrar la información de la empresa.");
-        return;
-      }
-  
-      console.log("Información de empresa registrada con éxito");
-      const prompt = promptBuilder1();
-      console.log("Prompt: ", prompt);
-      navigate("/launchProducto", { state: { prompt } });
-    } catch (err) {
-      console.error("Error de red:", err);
-      alert("Error de red o del servidor.");
-    }
-  };
-
-    const userId = await getUserId();
-    if (!userId) {
       alert("No se pudo obtener el usuario.");
       return;
     }
@@ -201,57 +110,12 @@ export default function LaunchEmpresa() {
       }
   
       console.log("Información de empresa registrada con éxito");
-      const prompt = promptBuilder1();
-      console.log("Prompt: ", prompt);
-      navigate("/launchProducto", { state: { prompt } });
+      navigate("/launchProducto");
     } catch (err) {
       console.error("Error de red:", err);
       alert("Error de red o del servidor.");
-=======
-    };
-
-    try {
-      const res = await fetch(`${API_URL}user/update/${userId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getConfig().headers,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const msg = await res.text();
-        console.error("Error al registrar empresa:", msg);
-        alert("No se pudo registrar la empresa.");
-        return;
-      }
-
-      const prompt = promptBuilder1();
-      console.log("Prompt: ", prompt);
-      setEmpresa(payload);
-
-      navigate("/launchProducto", { state: { prompt } });
-    } catch (err) {
-      console.error("Error de red:", err);
-      alert("Ocurrió un error inesperado.");
->>>>>>> main
     }
   };
-
-  const promptBuilder1 = () => {
-    let ne = "";
-    if (numEmpleados === "10 o menos") ne = "micro empresa";
-    else if (numEmpleados === "Entre 11 y 50") ne = "pequeña empresa";
-    else if (numEmpleados === "Entre 51 y 250") ne = "empresa mediana";
-    else if (numEmpleados === "Más de 250") ne = "empresa grande";
-
-    const t1 = "Me dedico a la industria de " + industria + ". ";
-    const t2 = "Tengo una " + ne + " con alcance " + alcance + " y " + sucursales + " sucursales. ";
-    const t3 = "Desarrollo mis operaciones en " + operaciones + ". ";
-
-    return t1 + t2 + t3;
-  }
 
   return(
     <div className="flex flex-col items-center h-screen bg-white">
