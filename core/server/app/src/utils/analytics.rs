@@ -26,11 +26,11 @@ pub fn reddit_viral_rate(upvotes: u32, comments: u32, subreddit_subs: u32) -> f6
     ((upvotes + comments) as f64 / subreddit_subs as f64) * 100.0
 }
 
-pub fn insta_ratio(likes: u32, comments: u32, shares: u32, views: u32) -> f64 {
+pub fn insta_ratio(likes: u32, comments: u32, views: u32) -> f64 {
     if views == 0 {
         return 0.0;
     }
-    ((likes + comments + shares) as f64 / views as f64) * 100.0
+    ((likes + comments) as f64 / views as f64) * 100.0
 }
 
 pub fn insta_viral_rate(comments: u32, shares: u32, followers: u32) -> f64 {
