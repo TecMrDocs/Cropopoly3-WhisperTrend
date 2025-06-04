@@ -1,5 +1,4 @@
 use crate::scraping::{
-    instagram::InstagramScraper,
     notices::{NoticesScraper, Params},
     reddit::RedditScraper,
     trends::TrendsScraper,
@@ -121,34 +120,33 @@ pub async fn get_trends(query: web::Json<Query>) -> actix_web::Result<impl Respo
     }
 }
 
-#[get("/instagram/login")]
-pub async fn login_instagram() -> impl Responder {
-    match InstagramScraper::login().await {
-        Ok(_) => HttpResponse::Ok().json(serde_json::json!({
-            "status": "success",
-            "message": "Login exitoso"
-        })),
-        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({
-            "status": "error",
-            "message": format!("Login failed: {}", e),
-        })),
-    }
-}
+// #[get("/instagram/login")]
+// pub async fn login_instagram() -> impl Responder {
+//     match InstagramScraper::login().await {
+//         Ok(_) => HttpResponse::Ok().json(serde_json::json!({
+//             "status": "success",
+//             "message": "Login exitoso"
+//         })),
+//         Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({
+//             "status": "error",
+//             "message": format!("Login failed: {}", e),
+//         })),
+//     }
+// }
 
-#[get("/instagram/hashtag/{tag}")]
-pub async fn get_instagram_posts_from_hashtag(path: web::Path<String>) -> impl Responder {
-    match InstagramScraper::get_post_links_from_hashtag_scraper(&path.into_inner()).await {
-        Ok(posts) => HttpResponse::Ok().json(serde_json::json!({
-            "status": "success",
-            "urls": posts
-        })),
-        Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({
-            "status": "error",
-            "message": format!("Scraping failed: {}", e),
-        })),
-    }
-}
-
+// #[get("/instagram/hashtag/{tag}")]
+// pub async fn get_instagram_posts_from_hashtag(path: web::Path<String>) -> impl Responder {
+//     match InstagramScraper::get_post_links_from_hashtag_scraper(&path.into_inner()).await {
+//         Ok(posts) => HttpResponse::Ok().json(serde_json::json!({
+//             "status": "success",
+//             "urls": posts
+//         })),
+//         Err(e) => HttpResponse::InternalServerError().json(serde_json::json!({
+//             "status": "error",
+//             "message": format!("Scraping failed: {}", e),
+//         })),
+//     }
+// }
 
 pub fn routes() -> actix_web::Scope {
     actix_web::Scope::new("/web")
@@ -156,7 +154,7 @@ pub fn routes() -> actix_web::Scope {
         .service(get_simple_posts_reddit)
         .service(get_notices)
         .service(get_details)
-        .service(login_instagram)
-        .service(get_instagram_posts_from_hashtag)
+        // .service(login_instagram)
+        // .service(get_instagram_posts_from_hashtag)
         .service(get_trends)
 }

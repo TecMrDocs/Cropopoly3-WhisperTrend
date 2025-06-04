@@ -17,6 +17,9 @@ lazy_static! {
 const BASE_URL: &str = "https://api.gdeltproject.org/api/v2/doc/doc";
 const MODE: &str = "artlist";
 const FORMAT: &str = "JSON";
+const MAX_ARTICLES: usize = 10;
+const MAX_HASHTAGS: usize = 3;
+const MAX_TIMEOUT: u64 = 3;
 
 pub type Details = Vec<Info>;
 
@@ -121,7 +124,7 @@ impl NoticesScraper {
             async move {
                 let request_future = client.get(&article_url).send();
                 
-                match timeout(Duration::from_secs(3), request_future).await {
+                match timeout(Duration::from_secs(MAX_TIMEOUT), request_future).await {
                     Ok(Ok(response)) => match response.text().await {
                         Ok(body) => {
                             let document = Html::parse_document(&body);
@@ -163,11 +166,11 @@ impl NoticesScraper {
         let results = join_all(futures).await;
         let mut details: Vec<Info> = results.into_iter().filter_map(|result| result).collect();
         details.sort_by(|a, b| b.keywords.len().cmp(&a.keywords.len()));
-        details = details.into_iter().take(5).collect();
+        details = details.into_iter().take(MAX_ARTICLES).collect();
 
         for detail in &mut details {
             detail.keywords.sort_by_key(|keyword| keyword.split(" ").count());
-            detail.keywords = detail.keywords.clone().into_iter().take(3).collect();
+            detail.keywords = detail.keywords.clone().into_iter().take(MAX_HASHTAGS).collect();
             detail.keywords = detail.keywords.iter().map(|keyword| {
                 keyword.to_lowercase().split(' ')
                     .filter(|s| !s.is_empty())
