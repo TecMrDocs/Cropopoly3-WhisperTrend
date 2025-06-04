@@ -17,27 +17,25 @@ type DatosProducto = {
 };
 
 type PromptContextType = {
-  prompt: string;
-  setPrompt: (text: string) => void;
-  resetPrompt: () => void;
-
   empresa: DatosEmpresa | null;
   setEmpresa: (data: DatosEmpresa) => void;
 
   producto: DatosProducto | null;
   setProducto: (data: DatosProducto) => void;
+
+  idProducto: number | null;
+  setIdProducto?: (id: number) => void;
 };
 
 const PromptContext = createContext<PromptContextType>({
-  prompt: "",
-  setPrompt: () => {},
-  resetPrompt: () => {},
-
   empresa: null,
   setEmpresa: () => {},
 
   producto: null,
   setProducto: () => {},
+
+  idProducto: null,
+  setIdProducto: () => {},
 });
 
 export function usePrompt() {
@@ -45,25 +43,25 @@ export function usePrompt() {
 }
 
 export function PromptProvider({ children }: { children: React.ReactNode }) {
-  const [prompt, setPromptState] = useState("");
   const [empresa, setEmpresaState] = useState<DatosEmpresa | null>(null);
   const [producto, setProductoState] = useState<DatosProducto | null>(null);
-
-  const setPrompt = (text: string) => setPromptState(text);
-  const resetPrompt = () => setPromptState("");
+  const [idProducto, setIdProductoState] = useState<number | null>(null);
 
   const setEmpresa = (data: DatosEmpresa) => setEmpresaState(data);
   const setProducto = (data: DatosProducto) => setProductoState(data);
 
+  const setIdProducto = (id: number) => setIdProductoState(id);
+
   return (
     <PromptContext.Provider
-      value={{ prompt,
-        setPrompt,
-        resetPrompt,
+      value={{
         empresa,
         setEmpresa,
         producto,
-        setProducto, }}
+        setProducto,
+        idProducto,
+        setIdProducto,
+      }}
     >
       {children}
     </PromptContext.Provider>

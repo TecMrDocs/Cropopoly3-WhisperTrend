@@ -12,7 +12,7 @@ import BlueButton from "../components/BlueButton";
 
 export default function LaunchEmpresa() {
   const navigate = useNavigate();
-  const { setEmpresa } = usePrompt();
+  const { empresa, setEmpresa } = usePrompt();
 
   const industrias: string[] = ["Manufactura", "Moda", "Alimentos", "Tecnología", "Salud"];
   const opcionesColabs: string[] = ["10 o menos", 
@@ -21,12 +21,27 @@ export default function LaunchEmpresa() {
     "Más de 250"];
   const alcances: string[] = ["Internacional", "Nacional", "Local"];
 
-  const [nombreEmpresa, setNombreEmpresa] = useState("");
-  const [industria, setIndustria] = useState("");
-  const [numEmpleados, setNumEmpleados] = useState("");
-  const [alcance, setAlcance] = useState("");
-  const [operaciones, setOperaciones] = useState("");
-  const [sucursales, setSucursales] = useState("");
+  function mapSizeToOption(size: string): string {
+    switch (size) {
+      case "micro empresa":
+        return "10 o menos";
+      case "pequeña empresa":
+        return "Entre 11 y 50";
+      case "empresa mediana":
+        return "Entre 51 y 250";
+      case "empresa grande":
+        return "Más de 250";
+      default:
+        return "";
+    }
+  }
+
+  const [nombreEmpresa, setNombreEmpresa] = useState(empresa?.business_name || "");
+  const [industria, setIndustria] = useState(empresa?.industry || "");
+  const [numEmpleados, setNumEmpleados] = useState(mapSizeToOption(empresa?.company_size || ""));
+  const [alcance, setAlcance] = useState(empresa?.scope || "");
+  const [operaciones, setOperaciones] = useState(empresa?.locations || "");
+  const [sucursales, setSucursales] = useState(empresa?.num_branches || "");
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -107,33 +122,17 @@ export default function LaunchEmpresa() {
         return;
       }
 
-      const prompt = promptBuilder1();
-      console.log("Prompt: ", prompt);
       setEmpresa(payload);
 
-      navigate("/launchProducto", { state: { prompt } });
+      navigate("/launchProducto");
     } catch (err) {
       console.error("Error de red:", err);
       alert("Ocurrió un error inesperado.");
     }
   };
 
-  const promptBuilder1 = () => {
-    let ne = "";
-    if (numEmpleados === "10 o menos") ne = "micro empresa";
-    else if (numEmpleados === "Entre 11 y 50") ne = "pequeña empresa";
-    else if (numEmpleados === "Entre 51 y 250") ne = "empresa mediana";
-    else if (numEmpleados === "Más de 250") ne = "empresa grande";
-
-    const t1 = "Me dedico a la industria de " + industria + ". ";
-    const t2 = "Tengo una " + ne + " con alcance " + alcance + " y " + sucursales + " sucursales. ";
-    const t3 = "Desarrollo mis operaciones en " + operaciones + ". ";
-
-    return t1 + t2 + t3;
-  }
-
   return(
-    <div className="flex flex-col items-center h-screen bg-white">
+    <div className="flex flex-col items-center min-h-screen bg-white">
       <ProgressBar activeStep={0} />
       <h1 className="text-4xl font-bold mt-2 text-center">Primero, cuéntanos sobre tu empresa</h1>
       <p className="text-xl mt-10 text-center">¿Cuál es el nombre de tu empresa?</p>

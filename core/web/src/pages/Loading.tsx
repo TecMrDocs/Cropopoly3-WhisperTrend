@@ -1,4 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { usePrompt } from "../contexts/PromptContext";
+import { getConfig } from "@/utils/auth";
+import { API_URL } from "@/utils/constants";
 import '/src/components/Loading.css';
 
 export default function AnalysisLoading() {
@@ -9,6 +13,36 @@ export default function AnalysisLoading() {
     "Preparando gráficas",
     "Preparando presentación",
   ];
+
+  const navigate = useNavigate();
+  const { idProducto } = usePrompt();
+
+  useEffect(() => {
+    const fetchPrompt = async () => {
+      try {
+        const res = await fetch(`${API_URL}flow/secure/generate-prompt`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...getConfig().headers,
+          },
+          body: JSON.stringify({ resource_id: idProducto }),
+        });
+
+        if (!res.ok) throw new Error("Error al generar prompt");
+        const data = await res.json();
+        console.log("Respuesta:", data);
+
+        navigate("/dashboard");
+      } catch (err) {
+        console.error("Error en /loading:", err);
+        alert("Ocurrió un error al generar el prompt.");
+        navigate("/launchConfirmacion");
+      }
+    };
+
+    fetchPrompt();
+  }, []);
 
   return (
     <div className=" bg-white flex flex-col items-center justify-center text-center pt-20">
