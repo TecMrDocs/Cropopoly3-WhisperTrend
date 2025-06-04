@@ -24,25 +24,26 @@ const SideBar: FC = () => {
       <nav>
         <ul className="space-y-2">
           <li>
-            <Link to="/perfil" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
+            <Link to="/perfil" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200" aria-label="Edición de los datos del perfil ">
               <CiUser className="w-10 h-10" />
               {isExpanded && <span className="ml-2">Perfil</span>}
+              
             </Link>
           </li>
           <li>
-            <Link to="/empresa" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
+            <Link to="/empresa" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200" aria-label="Edición de los datos de la empresa">
               <FaRegBuilding className="w-10 h-10" />
               {isExpanded && <span className="ml-2">Empresa</span>}
             </Link>
           </li>
           <li>
-            <Link to="/productos" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
+            <Link to="/productos" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200" aria-label="Página de los productos">
               <CiBoxes className="w-11 h-11" />
               {isExpanded && <span className="ml-2">Productos</span>}
             </Link>
           </li>
           <li>
-            <Link to="/acercaDe" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200">
+            <Link to="/acercaDe" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200" aria-label="Página de acerca de">
               <GoQuestion className="w-10 h-10" />
               {isExpanded && <span className="ml-2">Acerca de</span>}
             </Link>
@@ -52,6 +53,7 @@ const SideBar: FC = () => {
               // onClick={handleLogout}
               onClick={() => setMostrarModal(true)}
               className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200 w-full text-left"
+              aria-label="Cerrar sesión"
             >
               <TbLogout className="w-10 h-10" />
               {isExpanded && <span className="ml-2">Cerrar Sesión</span>}

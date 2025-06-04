@@ -61,7 +61,7 @@ export default function Registro() {
     if (!formData.name.trim()) {
       newErrors.name = "El nombre es requerido";
       valid = false;
-    } else if (!/^[a-zA-Z\s]+$/.test(formData.name)) {
+    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(formData.name)) {
       newErrors.name = "El nombre solo puede contener letras y espacios";
       valid = false;
     }
@@ -70,7 +70,7 @@ export default function Registro() {
     if (!formData.last_name.trim()) {
       newErrors.last_name = "El apellido es requerido";
       valid = false;
-    } else if (!/^[a-zA-Z\s]+$/.test(formData.last_name)) {
+    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(formData.last_name)) {
       newErrors.last_name = "El apellido solo puede contener letras y espacios";
 
       valid = false;
