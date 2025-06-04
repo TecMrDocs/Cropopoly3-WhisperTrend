@@ -135,9 +135,6 @@ export function PromptProvider({ children }: { children: React.ReactNode }) {
   const [productId, setProductIdState] = useState<number | null>(null);
   const [hasSalesData, setHasSalesDataState] = useState(false);
 
-  const setPrompt = (text: string) => setPromptState(text);
-  const resetPrompt = () => setPromptState("");
-
   const setEmpresa = (data: DatosEmpresa) => setEmpresaState(data);
   const setProducto = (data: DatosProducto) => setProductoState(data);
   
