@@ -71,19 +71,16 @@ async fn generate_prompt_from_flow(
 
     let raw_sentence = parts.get(0).map(|s| s.trim()).unwrap_or("");
 
-    // Método mejorado: dividir por múltiples separadores y limpiar
     let words: Vec<&str> = raw_sentence
-        .split(", ") //|c: char| c == ', ')// || c.is_whitespace())
+        .split(", ")
         .map(|w| w.trim())
         .filter(|w| !w.is_empty())
         .take(5)
         .collect();
 
-    // Unir con OR
     let sentence = format!("({})", words.join(" OR "));
 
     let hashtags_block = parts.get(1).map(|s| s.trim()).unwrap_or("");
-
     let re = Regex::new(r"#\w+").unwrap();
     let hashtags: Vec<String> = re
         .find_iter(hashtags_block)
@@ -95,65 +92,34 @@ async fn generate_prompt_from_flow(
         .checked_sub_signed(chrono::Duration::days(180))
         .unwrap_or(today);
 
-    let notices_payload = serde_json::json!({
+    let trends_payload = serde_json::json!({
         "query": sentence,
         "startdatetime": six_months_ago.to_string(),
         "enddatetime": today.to_string(),
         "language": "English"
     });
 
-    let notices_url = FLOW_CONFIG.get_web_url("notices/get-details");
+    let trends_url = FLOW_CONFIG.get_web_url("trends/get-trends");
     let http_client = reqwest::Client::new();
-    let notices_response = http_client.post(&notices_url).json(&notices_payload).send().await.map_err(|e| {
-        warn!("Error fetching notices: {}", e);
-        error::ErrorInternalServerError("Failed to get notices")
+    let trends_response = http_client
+        .post(&trends_url)
+        .json(&trends_payload)
+        .send()
+        .await
+        .map_err(|e| {
+            warn!("Error fetching trends: {}", e);
+            error::ErrorInternalServerError("Failed to get trends")
+        })?;
+
+    let trends: serde_json::Value = trends_response.json().await.map_err(|e| {
+        warn!("Invalid trends response: {}", e);
+        error::ErrorInternalServerError("Invalid trends response")
     })?;
-
-    let notices: serde_json::Value = notices_response.json().await.map_err(|e| {
-        warn!("Invalid notices response: {}", e);
-        error::ErrorInternalServerError("Invalid notices response")
-    })?;
-
-    let mut all_tags = hashtags.clone();
-    if let Some(array) = notices.as_array() {
-        for item in array.iter() {
-            if let Some(tags) = item.get("tags") {
-                if let Some(arr) = tags.as_array() {
-                    for tag in arr.iter().filter_map(|v| v.as_str()) {
-                        if tag.starts_with('#') && !all_tags.contains(&tag.to_string()) {
-                            all_tags.push(tag.to_string());
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    let mut reddit_posts = vec![];
-    let mut instagram_posts = vec![];
-
-    for tag in &all_tags {
-        let reddit_url = FLOW_CONFIG.get_web_url(&format!("reddit/get-simple-posts/{}", tag.trim_start_matches('#')));
-        if let Ok(res) = http_client.get(&reddit_url).send().await {
-            if let Ok(json) = res.json::<serde_json::Value>().await {
-                reddit_posts.push(json);
-            }
-        }
-
-        let ig_url = FLOW_CONFIG.get_web_url(&format!("instagram/hashtag/{}", tag.trim_start_matches('#')));
-        if let Ok(res) = http_client.get(&ig_url).send().await {
-            if let Ok(json) = res.json::<serde_json::Value>().await {
-                instagram_posts.push(json);
-            }
-        }
-    }
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "sentence": sentence,
         "hashtags": hashtags,
-        "notices": notices,
-        "reddit": reddit_posts,
-        "instagram": instagram_posts
+        "trends": trends
     })))
 }
 
