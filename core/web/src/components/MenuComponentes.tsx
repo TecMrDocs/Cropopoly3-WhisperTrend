@@ -52,8 +52,8 @@ const generarHashtagsDinamicos = () => {
   const hashtagsMap = new Map<string, any>();
 
   calculadoras.forEach((calc, calcIndex) => {
-    if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
-      calc.resultado.hashtags.forEach((hashtag: any) => {
+    if (calc.resultado.hashtag && Array.isArray(calc.resultado.hashtag)) {
+      calc.resultado.hashtag.forEach((hashtag: any) => {
         const hashtagNombre = hashtag.nombre;
         
         if (!hashtagsUnicos.has(hashtagNombre)) {
@@ -64,8 +64,8 @@ const generarHashtagsDinamicos = () => {
           let contadorPlataformas = 0;
           
           calculadoras.forEach(calcTmp => {
-            if (calcTmp.resultado.hashtags && Array.isArray(calcTmp.resultado.hashtags)) {
-              const hashtagEncontrado = calcTmp.resultado.hashtags.find((h: any) => h.nombre === hashtagNombre);
+            if (calcTmp.resultado.hashtag && Array.isArray(calcTmp.resultado.hashtag)) {
+              const hashtagEncontrado = calcTmp.resultado.hashtag.find((h: any) => h.nombre === hashtagNombre);
               if (hashtagEncontrado) {
                 totalCorrelacionInteraccion += calcularCorrelacion(hashtagEncontrado.datosInteraccion);
                 totalCorrelacionViralidad += calcularCorrelacion(hashtagEncontrado.datosViralidad);
@@ -112,21 +112,21 @@ const generarOpcionesTasas = () => {
       nombre: 'Instagram', 
       resultado: resultadoInstaCalc,
       plataforma: resultadoInstaCalc.emoji || '📸',
-      color: resultadoInstaCalc.color || '#16a34a'
+      color: '#e91e63' // Color definido directamente
     },
     { 
       id: 'x', 
       nombre: 'X (Twitter)', 
       resultado: resultadoXCalc,
       plataforma: resultadoXCalc.emoji || '🐦',
-      color: resultadoXCalc.color || '#3b82f6'
+      color: '#dc2626' // Color definido directamente
     },
     { 
       id: 'reddit', 
       nombre: 'Reddit', 
       resultado: resultadoRedditCalc,
       plataforma: resultadoRedditCalc.emoji || '🔴',
-      color: resultadoRedditCalc.color || '#94a3b8'
+      color: '#2563eb' // Color definido directamente
     }
   ];
 

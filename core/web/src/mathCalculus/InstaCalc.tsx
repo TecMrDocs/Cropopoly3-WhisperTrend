@@ -6,9 +6,10 @@ import {
 // Importar datos desde archivo JSON
 import instagramDataRaw from '../dataSets/data-instagram.json';
 
-// Definir el tipo para los datos de Instagram
-interface InstagramData {
+// Definir el tipo para un hashtag individual
+interface HashtagData {
   hashtag: string;
+  id: string;
   fechas: string[];
   likes: number[];
   comentarios: number[];
@@ -17,8 +18,16 @@ interface InstagramData {
   compartidos: number[];
 }
 
+// Definir el tipo para la estructura del JSON
+interface InstagramDataStructure {
+  hashtags: HashtagData[];
+}
+
 // Hacer type assertion para TypeScript
-const instagramData = instagramDataRaw as InstagramData;
+const instagramDataStructure = instagramDataRaw as InstagramDataStructure;
+
+// Tomar el primer hashtag como predeterminado (puedes cambiar esto según tu lógica)
+const instagramData = instagramDataStructure.hashtags[0];
 
 // Los datos ya vienen en el formato que necesitamos
 const datos = {
@@ -60,13 +69,48 @@ function generadorTasaViralidad(data: typeof datos) {
   });
 }
 
-// Exporta los datos para consolidación
+// Función para procesar todos los hashtags
+function procesarTodosLosHashtags() {
+  return instagramDataStructure.hashtags.map(hashtagData => ({
+    id: hashtagData.id,
+    nombre: hashtagData.hashtag,
+    datosInteraccion: generadorTasaInteraccion({
+      fechas: hashtagData.fechas,
+      likes: hashtagData.likes,
+      comentarios: hashtagData.comentarios,
+      vistas: hashtagData.vistas,
+      seguidores: hashtagData.seguidores,
+      compartidos: hashtagData.compartidos,
+    }),
+    datosViralidad: generadorTasaViralidad({
+      fechas: hashtagData.fechas,
+      likes: hashtagData.likes,
+      comentarios: hashtagData.comentarios,
+      vistas: hashtagData.vistas,
+      seguidores: hashtagData.seguidores,
+      compartidos: hashtagData.compartidos,
+    }),
+    datosRaw: {
+      fechas: hashtagData.fechas,
+      likes: hashtagData.likes,
+      comentarios: hashtagData.comentarios,
+      vistas: hashtagData.vistas,
+      seguidores: hashtagData.seguidores,
+      compartidos: hashtagData.compartidos,
+    }
+  }));
+}
+
+// Exporta los datos para consolidación - Nueva estructura compatible con Dashboard
 export const resultadoInstaCalc = {
+  // Mantener compatibilidad con código existente (primer hashtag)
   datosInteraccion: generadorTasaInteraccion(datos),
   datosViralidad: generadorTasaViralidad(datos),
-  // Exportar también los datos raw y el hashtag
   datosRaw: datos,
-  hashtag: instagramData.hashtag
+  hashtag: instagramData.hashtag,
+  // Agregar todos los hashtags procesados
+  hashtags: procesarTodosLosHashtags(),
+  emoji: '📷'
 };
 
 // Componente con dos gráficos (mantenemos el diseño original simplificado)

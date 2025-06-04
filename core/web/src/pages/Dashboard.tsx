@@ -11,6 +11,7 @@ import UniformTrendPlot from '@/components/UniformTrendPlot';
 import MensajeInicial from '@/components/dashboard/mensajeInicial';
 import TasasGraficaDinamica from '@/components/dashboard/TasaGraficaDinamica';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
+
 const mapeoTipos = {
   'Ventas': 'ventas',
   '#EcoFriendly': 'hashtag1',
@@ -23,9 +24,9 @@ const mapeoTipos = {
 
 const generarDatosTasasDinamico = () => {
   const calculadoras = [
-    { id: 'insta', resultado: resultadoInstaCalc, colorInteraccion: '#e91e63', colorViralidad: '#f06292' }, // Instagram
-    { id: 'x', resultado: resultadoXCalc, colorInteraccion: '#dc2626', colorViralidad: '#f97316' },         // X
-    { id: 'reddit', resultado: resultadoRedditCalc, colorInteraccion: '#2563eb', colorViralidad: '#06b6d4' } // Reddit
+    { id: 'insta', resultado: resultadoInstaCalc, colorInteraccion: '#e91e63', colorViralidad: '#f06292', emoji: '📷' }, // Instagram
+    { id: 'x', resultado: resultadoXCalc, colorInteraccion: '#dc2626', colorViralidad: '#f97316', emoji: '𝕏' },         // X
+    { id: 'reddit', resultado: resultadoRedditCalc, colorInteraccion: '#2563eb', colorViralidad: '#06b6d4', emoji: '🔴' } // Reddit
   ];
 
   const datosTasas: any = {};
@@ -34,13 +35,13 @@ const generarDatosTasasDinamico = () => {
     if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
       calc.resultado.hashtags.forEach((hashtag: any) => {
         datosTasas[`int_${calc.id}_${hashtag.id}`] = {
-          nombre: `Tasa de interacción ${calc.resultado.emoji || ''} ${hashtag.nombre}`,
+          nombre: `Tasa de interacción ${calc.emoji || ''} ${hashtag.nombre}`,
           datos: hashtag.datosInteraccion,
           color: calc.colorInteraccion
         };
 
         datosTasas[`vir_${calc.id}_${hashtag.id}`] = {
-          nombre: `Tasa de viralidad ${calc.resultado.emoji || ''} ${hashtag.nombre}`,
+          nombre: `Tasa de viralidad ${calc.emoji || ''} ${hashtag.nombre}`,
           datos: hashtag.datosViralidad,
           color: calc.colorViralidad
         };
@@ -96,7 +97,7 @@ const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
   ];
 
   calculadoras.forEach(calc => {
-    const hashtag = calc.resultado.hashtags.find(h => h.nombre === hashtagId);
+    const hashtag = calc.resultado.hashtag.find(h => h.nombre === hashtagId);
     if (hashtag) {
       ids.push(`int_${calc.id}_${hashtag.id}`, `vir_${calc.id}_${hashtag.id}`);
     }
@@ -104,8 +105,6 @@ const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
 
   return ids.length > 0 ? ids : [];
 };
-
-
 
 const HashtagsNoticiasGrafica = ({ hashtagsIds }: { hashtagsIds: string[] }) => {
   if (!hashtagsIds || hashtagsIds.length === 0) {
@@ -120,7 +119,6 @@ const HashtagsNoticiasGrafica = ({ hashtagsIds }: { hashtagsIds: string[] }) => 
     </div>
   );
 };
-
 
 export default function Dashboard() {
   const nombreProducto = "Bolso Mariana :D";
