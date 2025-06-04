@@ -5,23 +5,24 @@ import CorrelacionVentas from '../components/CorrelacionVentas';
 import XCalc from '../mathCalculus/XCalc';
 import RedditCalc from '../mathCalculus/RedditCalc';
 import InstaCalc from '../mathCalculus/InstaCalc';
+import VentasCalc from '../mathCalculus/VentasCalc';
 import { 
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, 
   ResponsiveContainer, CartesianGrid 
 } from 'recharts';
 
-// Importamos los resultados de cada calculadora
 import { resultadoXCalc } from '../mathCalculus/XCalc';
 import { resultadoRedditCalc } from '../mathCalculus/RedditCalc';
 import { resultadoInstaCalc } from '../mathCalculus/InstaCalc';
+import { resultadoVentasCalc } from '../mathCalculus/VentasCalc';
 import PlotTrend from '@/components/PlotTrend';
 import UniformTrendPlot from '@/components/UniformTrendPlot';
 import RatePlot from '@/components/RatePlot';
 
-// Importamos los datos de hashtags de noticias
+
 import { hashtagsNoticias } from '../components/MenuComponentes';
 
-// Mapeo de ID de selección a tipo de visualización
+
 const mapeoTipos = {
   'Ventas': 'ventas',
   '#EcoFriendly': 'hashtag1',
@@ -32,81 +33,72 @@ const mapeoTipos = {
   'Noticia3': 'noticia3'
 };
 
-// 🔥 DATOS DE TASAS ACTUALIZADOS PARA LOS NUEVOS IDs DINÁMICOS
-const datosTasas = {
-  // Nuevos IDs dinámicos
-  'int_insta': { 
-    nombre: 'Tasa de interacción Instagram', 
-    datos: resultadoInstaCalc.datosInteraccion, 
-    color: '#16a34a' 
-  },
-  'vir_insta': { 
-    nombre: 'Tasa de viralidad Instagram', 
-    datos: resultadoInstaCalc.datosViralidad, 
-    color: '#16a34a' 
-  },
-  'int_x': { 
-    nombre: 'Tasa de interacción X', 
-    datos: resultadoXCalc.datosInteraccion, 
-    color: '#3b82f6' 
-  },
-  'vir_x': { 
-    nombre: 'Tasa de viralidad X', 
-    datos: resultadoXCalc.datosViralidad, 
-    color: '#3b82f6' 
-  },
-  'int_reddit': { 
-    nombre: 'Tasa de interacción Reddit', 
-    datos: resultadoRedditCalc.datosInteraccion, 
-    color: '#94a3b8' 
-  },
-  'vir_reddit': { 
-    nombre: 'Tasa de viralidad Reddit', 
-    datos: resultadoRedditCalc.datosViralidad, 
-    color: '#94a3b8' 
-  },
-  // IDs antiguos para compatibilidad (por si acaso)
-  'virX': { 
-    nombre: 'Tasa de viralidad en X', 
-    datos: resultadoXCalc.datosViralidad, 
-    color: '#8884d8' 
-  },
-  'intX': { 
-    nombre: 'Tasa de interacción en X', 
-    datos: resultadoXCalc.datosInteraccion, 
-    color: '#8884d8' 
-  },
-  'virInsta': { 
-    nombre: 'Tasa de viralidad en Instagram', 
-    datos: resultadoInstaCalc.datosViralidad, 
-    color: '#82ca9d' 
-  },
-  'intInsta': { 
-    nombre: 'Tasa de interacción en Instagram', 
-    datos: resultadoInstaCalc.datosInteraccion, 
-    color: '#82ca9d' 
-  },
-  'virReddit': { 
-    nombre: 'Tasa de viralidad en Reddit', 
-    datos: resultadoRedditCalc.datosViralidad, 
-    color: '#ffc658' 
-  },
-  'intReddit': { 
-    nombre: 'Tasa de interacción en Reddit', 
-    datos: resultadoRedditCalc.datosInteraccion, 
-    color: '#ffc658' 
-  }
+
+const generarDatosTasasDinamico = () => {
+  const calculadoras = [
+    { id: 'insta', resultado: resultadoInstaCalc, color: '#16a34a' },
+    { id: 'x', resultado: resultadoXCalc, color: '#3b82f6' },
+    { id: 'reddit', resultado: resultadoRedditCalc, color: '#94a3b8' }
+  ];
+
+  const datosTasas: any = {};
+
+  calculadoras.forEach(calc => {
+    if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
+      calc.resultado.hashtags.forEach((hashtag: any) => {
+        datosTasas[`int_${calc.id}_${hashtag.id}`] = {
+          nombre: `Tasa de interacción ${calc.resultado.emoji || ''} ${hashtag.nombre}`,
+          datos: hashtag.datosInteraccion,
+          color: calc.color
+        };
+
+        datosTasas[`vir_${calc.id}_${hashtag.id}`] = {
+          nombre: `Tasa de viralidad ${calc.resultado.emoji || ''} ${hashtag.nombre}`,
+          datos: hashtag.datosViralidad,
+          color: calc.color
+        };
+      });
+    }
+  });
+
+  datosTasas['int_insta'] = datosTasas['int_insta_eco'] || { nombre: 'Tasa de interacción Instagram', datos: [], color: '#16a34a' };
+  datosTasas['vir_insta'] = datosTasas['vir_insta_eco'] || { nombre: 'Tasa de viralidad Instagram', datos: [], color: '#16a34a' };
+  datosTasas['int_x'] = datosTasas['int_x_eco'] || { nombre: 'Tasa de interacción X', datos: [], color: '#3b82f6' };
+  datosTasas['vir_x'] = datosTasas['vir_x_eco'] || { nombre: 'Tasa de viralidad X', datos: [], color: '#3b82f6' };
+  datosTasas['int_reddit'] = datosTasas['int_reddit_eco'] || { nombre: 'Tasa de interacción Reddit', datos: [], color: '#94a3b8' };
+  datosTasas['vir_reddit'] = datosTasas['vir_reddit_eco'] || { nombre: 'Tasa de viralidad Reddit', datos: [], color: '#94a3b8' };
+
+  return datosTasas;
 };
 
-// Crear un mapeo similar para los hashtags de noticias
+
+const datosTasas = generarDatosTasasDinamico();
+
 const datosHashtagsNoticias = {
   'pielesSinteticas': hashtagsNoticias[0],
   'milan': hashtagsNoticias[1], 
   'modaSustentable': hashtagsNoticias[2]
 };
 
-// 🔥 COMPONENTE MEJORADO QUE FUNCIONA CON LOS NUEVOS IDs
+
+const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
+  const hashtagMap: { [key: string]: string } = {
+    '#EcoFriendly': 'eco',
+    '#SustainableFashion': 'sustainable', 
+    '#NuevosMateriales': 'materiales'
+  };
+  
+  const tag = hashtagMap[hashtagId];
+  if (!tag) return ['int_insta_eco']; 
+  return [
+    `int_insta_${tag}`, `vir_insta_${tag}`,
+    `int_x_${tag}`, `vir_x_${tag}`,
+    `int_reddit_${tag}`, `vir_reddit_${tag}`
+  ];
+};
+
 const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
+  console.log("Renderizando TasasGraficaDinamica con tasasIds:", tasasIds);
   if (!tasasIds || tasasIds.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
@@ -118,9 +110,7 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
     );
   }
 
-  // Generamos los datos combinados para la gráfica
   const generarDatosCombinados = () => {
-    // Obtenemos todas las fechas de todos los conjuntos de datos seleccionados
     const todasFechas = Array.from(
       new Set(
         tasasIds.flatMap(id => {
@@ -130,10 +120,8 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
       )
     );
 
-    // Para cada fecha, creamos un objeto con los valores de todas las tasas seleccionadas
     return todasFechas.map(fecha => {
-      const item: any = { fecha };
-      
+      const item: any = { fecha };      
       tasasIds.forEach(id => {
         const tasa = datosTasas[id as keyof typeof datosTasas];
         if (tasa) {
@@ -141,12 +129,12 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
           item[id] = datoTasa ? datoTasa.tasa : 0;
         }
       });
-      
       return item;
     });
   };
 
   const datosCombinados = generarDatosCombinados();
+  console.log("Datos combinados generados:", datosCombinados);
 
   return (
     <div className="w-full">
@@ -191,7 +179,10 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
             />
             {tasasIds.map((id, index) => {
               const tasa = datosTasas[id as keyof typeof datosTasas];
-              if (!tasa) return null;
+              if (!tasa) {
+                console.warn(`No se encontró tasa para ID: ${id}`);
+                return null;
+              }
               
               return (
                 <Line 
@@ -210,7 +201,6 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
         </ResponsiveContainer>
       </div>
       
-      {/* Info de tasas seleccionadas */}
       <div className="mt-4 flex flex-wrap gap-2 justify-center">
         {tasasIds.map(id => {
           const tasa = datosTasas[id as keyof typeof datosTasas];
@@ -233,15 +223,12 @@ const TasasGraficaDinamica = ({ tasasIds }: { tasasIds: string[] }) => {
   );
 };
 
-// Componente que muestra la gráfica con hashtags de noticias seleccionados
 const HashtagsNoticiasGrafica = ({ hashtagsIds }: { hashtagsIds: string[] }) => {
   if (!hashtagsIds || hashtagsIds.length === 0) {
     return <div>Selecciona al menos un hashtag para visualizar</div>;
   }
 
-  // Generamos los datos combinados para la gráfica
   const generarDatosCombinados = () => {
-    // Obtenemos todas las fechas de todos los conjuntos de datos seleccionados
     const todasFechas = Array.from(
       new Set(
         hashtagsIds.flatMap(id => {
@@ -251,7 +238,6 @@ const HashtagsNoticiasGrafica = ({ hashtagsIds }: { hashtagsIds: string[] }) => 
       )
     );
 
-    // Para cada fecha, creamos un objeto con los valores de todos los hashtags seleccionados
     return todasFechas.map(fecha => {
       const item: any = { fecha };
       
@@ -303,11 +289,9 @@ const HashtagsNoticiasGrafica = ({ hashtagsIds }: { hashtagsIds: string[] }) => 
   );
 };
 
-// Componente de mensaje inicial
 const MensajeInicial = () => {
   return (
     <div className="w-full h-96 flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 rounded-xl border-2 border-dashed border-blue-300 relative overflow-hidden px-4">
-      {/* Decoración de fondo */}
       <div className="absolute top-4 right-4 opacity-20">
         <svg className="h-20 w-20 text-blue-300" fill="currentColor" viewBox="0 0 24 24">
           <path d="M16 6l2.29 2.29c.39.39.39 1.02 0 1.41L16 12l2.29 2.29c.39.39.39 1.02 0 1.41L16 18l-4-4 4-4 4-4-4-4z"/>
@@ -315,7 +299,6 @@ const MensajeInicial = () => {
       </div>
       
       <div className="text-center max-w-md mx-auto relative z-10">
-        {/* Icono principal */}
         <div className="mb-4">
           <div className="mx-auto h-16 w-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
             <svg 
@@ -334,7 +317,6 @@ const MensajeInicial = () => {
           </div>
         </div>
 
-        {/* Título con estilo */}
         <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3">
           ¡Bienvenido al análisis de tendencias!
         </h3>
@@ -354,7 +336,6 @@ const MensajeInicial = () => {
           </p>
         </div>
 
-        {/* Sugerencias */}
         <div className="space-y-1 text-xs">
           <div className="flex items-center justify-center text-gray-600">
             <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-2 flex-shrink-0"></div>
@@ -370,7 +351,6 @@ const MensajeInicial = () => {
           </div>
         </div>
 
-        {/* Flecha animada */}
         <div className="mt-4 flex justify-center">
           <div className="animate-bounce">
             <div className="bg-blue-500 rounded-full p-2 shadow-lg">
@@ -401,80 +381,78 @@ export default function Dashboard() {
   const [hashtagSeleccionado, setHashtagSeleccionado] = useState<string>(''); // Cambié a string vacío para mostrar mensaje inicial
   const [mostrarTendenciaUniforme, setMostrarTendenciaUniforme] = useState<boolean>(false);
   const [mostrarConsolidacion, setMostrarConsolidacion] = useState<boolean>(true);
-  const [tasasSeleccionadas, setTasasSeleccionadas] = useState<string[]>(['int_insta']); // 🔥 ACTUALIZADO CON NUEVO ID
+  const [tasasSeleccionadas, setTasasSeleccionadas] = useState<string[]>(['int_insta_eco']); // 🔥 EMPEZAR CON ECOFRIENDLY
   const [hashtagsNoticiasSeleccionados, setHashtagsNoticiasSeleccionados] = useState<string[]>(['pielesSinteticas']); // Estado para hashtags de noticias
   const [mostrandoDesgloseTasas, setMostrandoDesgloseTasas] = useState<boolean>(false); // 🔥 NUEVO ESTADO
 
-  // Función que será pasada a MenuComponentes para manejar el clic en #EcoFriendly
+  const hashtagsDinamicos = ['#EcoFriendly', '#SustainableFashion', '#NuevosMateriales'];
+
   const handleEcoFriendlyClick = () => {
     setMostrarTendenciaUniforme(true);
     setHashtagSeleccionado('#EcoFriendly');
-    setMostrandoDesgloseTasas(true); // 🔥 ACTIVAR MODO DESGLOSE
+    setMostrandoDesgloseTasas(true); 
   };
 
-  // Función general para manejar cualquier elemento seleccionado
   const handleSeleccionItem = (itemId: string) => {
     if (itemId === '') {
-      // Si el itemId está vacío, resetear todo para mostrar mensaje inicial
       setMostrarTendenciaUniforme(false);
       setHashtagSeleccionado('');
-      setMostrandoDesgloseTasas(false); // 🔥 DESACTIVAR MODO DESGLOSE
+      setMostrandoDesgloseTasas(false); 
     } else {
       setMostrarTendenciaUniforme(true);
       setHashtagSeleccionado(itemId);
-      // Solo activar desglose si es EcoFriendly
-      setMostrandoDesgloseTasas(itemId.includes('EcoFriendly'));
+      
+      const esHashtagDinamico = hashtagsDinamicos.includes(itemId);
+      setMostrandoDesgloseTasas(esHashtagDinamico);
+      
+      if (esHashtagDinamico) {
+        const nuevasTasas = obtenerTasasPorHashtag(itemId);
+        console.log(`Cambiando a hashtag ${itemId}, nuevas tasas:`, nuevasTasas);
+        setTasasSeleccionadas(nuevasTasas);
+      }
     }
   };
 
-  // Función para manejar múltiples tasas seleccionadas
   const handleTasasSeleccionadas = (tasasIds: string[]) => {
     setTasasSeleccionadas(tasasIds);
-    // NO cambiar mostrarTendenciaUniforme aquí
   };
 
-  // Función para manejar múltiples hashtags de noticias seleccionados
   const handleHashtagsNoticiasSeleccionados = (hashtagsIds: string[]) => {
     setHashtagsNoticiasSeleccionados(hashtagsIds);
-    // Si seleccionamos hashtags de noticias, mostramos su visualización correspondiente
     if (hashtagsIds.length > 0) {
       setMostrarTendenciaUniforme(false);
     }
   };
 
-  // Función para restaurar la visualización normal
   const resetVisualizacion = () => {
     setMostrarTendenciaUniforme(false);
   };
 
-  // Función para alternar la visualización de la consolidación
   const toggleConsolidacion = () => {
     setMostrarConsolidacion(!mostrarConsolidacion);
   };
 
-  // Obtener el tipo de visualización según el elemento seleccionado
   const getTipoVisualizacion = (): 'ventas' | 'hashtag1' | 'hashtag2' | 'hashtag3' | 'noticia1' | 'noticia2' | 'noticia3' => {
     return (mapeoTipos[hashtagSeleccionado as keyof typeof mapeoTipos] || 'hashtag1') as 'ventas' | 'hashtag1' | 'hashtag2' | 'hashtag3' | 'noticia1' | 'noticia2' | 'noticia3';
   };
 
-  // 🔥 FUNCIÓN ARREGLADA QUE SIEMPRE MUESTRA LA GRÁFICA
   const renderGraficaPrincipal = () => {
-    // Si no hay selección, mostrar mensaje inicial
     if (!hashtagSeleccionado || hashtagSeleccionado === '') {
       return <MensajeInicial />;
     }
     
-    // 🔥 SI ESTAMOS EN MODO DESGLOSE DE TASAS, MOSTRAR LA GRÁFICA DE TASAS
+    if (hashtagSeleccionado === 'Ventas') {
+      return <VentasCalc />;
+    }
+    
     if (mostrandoDesgloseTasas && tasasSeleccionadas.length > 0) {
       return <TasasGraficaDinamica tasasIds={tasasSeleccionadas} />;
     }
     
-    // Si tenemos hashtags de noticias seleccionados y estamos en Noticia1
     if (hashtagsNoticiasSeleccionados.length > 0 && hashtagSeleccionado === 'Noticia1') {
       return <HashtagsNoticiasGrafica hashtagsIds={hashtagsNoticiasSeleccionados} />;
     }
     
-    // Si está mostrando tendencia uniforme
     if (mostrarTendenciaUniforme) {
       return (
         <div>
@@ -489,13 +467,11 @@ export default function Dashboard() {
       );
     }
     
-    // Por defecto, mostrar PlotTrend
     return <PlotTrend modoVisualizacion={modoVisualizacion} />;
   };
 
   return (
     <div className="p-6">
-      {/* Header mejorado */}
       <div className="text-center mb-8">
         <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
           <h1 className="text-4xl font-bold">
@@ -536,6 +512,8 @@ export default function Dashboard() {
                     <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-700 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
                       {!hashtagSeleccionado || hashtagSeleccionado === ''
                         ? "📊 Visualización de Tendencias"
+                        : hashtagSeleccionado === 'Ventas'
+                        ? "💰 Análisis de Ventas"
                         : mostrandoDesgloseTasas && tasasSeleccionadas.length > 0
                         ? "📈 Comparativa de Tasas Seleccionadas"
                         : hashtagsNoticiasSeleccionados.length > 0 && hashtagSeleccionado === 'Noticia1'
@@ -559,6 +537,8 @@ export default function Dashboard() {
                     <p className="text-gray-700 text-sm font-medium">
                       {!hashtagSeleccionado || hashtagSeleccionado === ''
                         ? <>Aquí podrás ver tus <span className="text-blue-600 font-semibold">tendencias</span></>
+                        : hashtagSeleccionado === 'Ventas'
+                        ? "Ventas del Bolso Marianne - Período Enero-Abril 2025"
                         : "Visualización activa - Datos actualizados"
                       }
                     </p>

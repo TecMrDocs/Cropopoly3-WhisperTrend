@@ -1,7 +1,7 @@
 import React from 'react';
 import {
-  Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, 
-  CartesianGrid, BarChart, Bar, ComposedChart, Area
+  LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, 
+  CartesianGrid, BarChart, Bar, ComposedChart, Area, Cell
 } from 'recharts';
 
 // Importar datos de ventas
@@ -183,6 +183,87 @@ const VentasCalc: React.FC = () => {
               />
             </ComposedChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Gráfica de Ingresos */}
+      <div className="mb-8">
+        <h2 className="text-xl font-bold text-gray-800 mb-4 text-center">
+          💸 Ingresos por Período
+        </h2>
+        <div className="w-full h-80">
+          <ResponsiveContainer>
+            <BarChart data={datosCompletos} margin={{ top: 20, right: 30, left: 60, bottom: 60 }}>
+              <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="fecha" 
+                tick={{ fontSize: 12 }}
+                angle={-30}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis 
+                tick={{ fontSize: 12 }}
+                tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                label={{ value: 'Ingresos (MXN)', angle: -90, position: 'insideLeft' }}
+              />
+              <Tooltip 
+                formatter={(value: any) => formatearMoneda(value)}
+                contentStyle={{ 
+                  backgroundColor: '#fff', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px'
+                }}
+              />
+              <Bar 
+                dataKey="ingresos" 
+                fill="#16a34a"
+                name="Ingresos"
+                radius={[8, 8, 0, 0]}
+              >
+                {datosCompletos.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={index === 2 ? '#059669' : '#16a34a'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Tabla de resumen */}
+      <div className="bg-gray-50 rounded-lg p-4">
+        <h3 className="text-lg font-semibold mb-3">📋 Resumen Detallado</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-200 text-gray-700">
+              <tr>
+                <th className="px-4 py-2 text-left">Período</th>
+                <th className="px-4 py-2 text-right">Unidades</th>
+                <th className="px-4 py-2 text-right">Ingresos</th>
+                <th className="px-4 py-2 text-right">Precio Promedio</th>
+                <th className="px-4 py-2 text-right">Variación</th>
+              </tr>
+            </thead>
+            <tbody>
+              {datosCompletos.map((dato, index) => {
+                const variacion = index > 0 
+                  ? ((dato.unidades - datosCompletos[index - 1].unidades) / datosCompletos[index - 1].unidades * 100).toFixed(1)
+                  : 0;
+                  
+                return (
+                  <tr key={index} className="border-b border-gray-200">
+                    <td className="px-4 py-2">{dato.fecha}</td>
+                    <td className="px-4 py-2 text-right font-medium">{dato.unidades.toLocaleString()}</td>
+                    <td className="px-4 py-2 text-right font-medium">{formatearMoneda(dato.ingresos)}</td>
+                    <td className="px-4 py-2 text-right">{formatearMoneda(dato.precio_promedio)}</td>
+                    <td className={`px-4 py-2 text-right font-bold ${Number(variacion) > 0 ? 'text-green-600' : Number(variacion) < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                      {index > 0 ? `${Number(variacion) > 0 ? '+' : ''}${variacion}%` : '-'}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
