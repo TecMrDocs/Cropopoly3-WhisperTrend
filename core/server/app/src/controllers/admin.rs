@@ -20,13 +20,8 @@ pub async fn register(mut admin: web::Json<Admin>) -> Result<impl Responder> {
   }
 
   if let Ok(None) = Admin::get_by_email(admin.email.clone()).await {
-<<<<<<< HEAD
       if let Ok(hash) = PasswordHasher::hash(&admin.contrasena) {
           admin.contrasena = hash.to_string();
-=======
-      if let Ok(hash) = PasswordHasher::hash(&admin.password) {
-          admin.password = hash.to_string();
->>>>>>> main
 
           let id = Admin::create(admin.clone()).await.to_web()?;
           admin.id = Some(id);
@@ -43,11 +38,7 @@ pub async fn register(mut admin: web::Json<Admin>) -> Result<impl Responder> {
 #[post("/signin")]
 pub async fn signin(profile: web::Json<AdminCredentials>) -> impl Responder {
   if let Ok(Some(admin)) = Admin::get_by_email(profile.email.clone()).await {
-<<<<<<< HEAD
       if let Ok(true) = PasswordHasher::verify(&profile.contrasena, &admin.contrasena) {
-=======
-      if let Ok(true) = PasswordHasher::verify(&profile.password, &admin.password) {
->>>>>>> main
           if let Some(id) = admin.id {
               if let Ok(token) =
                   TokenService::<Claims>::create(&Config::get_secret_key(), Claims::new(id))
@@ -77,11 +68,7 @@ pub async fn check(req: HttpRequest) -> Result<impl Responder> {
 }
 
 pub fn routes() -> actix_web::Scope {
-<<<<<<< HEAD
   web::scope("/auth/admin")
-=======
-  web::scope("/admin")
->>>>>>> main
       .service(register)
       .service(signin)
       .service(
