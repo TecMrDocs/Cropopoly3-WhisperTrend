@@ -28,6 +28,7 @@ import EmailConfirmation from "../pages/EmailConfirmation";
 import ActualizarPlan from "../pages/ActualizarPlan";
 import Us from "../pages/Us";
 import HolaDeNuevo from "../pages/HolaDeNuevo";
+import NewResource from "../pages/NewResource";
 import Protected from "../components/Protected";
 import Unprotected from "../components/Unprotected";
 
@@ -54,6 +55,7 @@ export default function WebRouter(){
       <Route path="/changePassword" element={loadLayout(MainLayout, ChangePassword)} />
       <Route path="/actualizarPlan" element={loadLayout(MainLayout, ActualizarPlan)} />
       <Route path="/resumen" element={loadLayout(MainLayout, Resumen)} />
+      <Route path="/newResource" element={loadLayout(LaunchLayout, NewResource)}  />
       
       {/* Rutas protegidas - requieren autenticación */}
       <Route path="/dashboard" element={<Protected>{loadLayout(ProfileLayout, Dashboard)}</Protected>} />

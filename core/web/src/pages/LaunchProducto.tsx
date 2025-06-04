@@ -13,7 +13,7 @@ import WordAdder from "../components/WordAdder";
 import EnclosedWord from "../components/EnclosedWord";
 
 export default function LaunchProducto() {
-  const { producto, setProducto, setIdProducto } = usePrompt();
+  const { producto, setProducto, setProductId } = usePrompt();
 
   const prodOrServ: string[] = ["Producto", "Servicio"];
 
@@ -109,10 +109,8 @@ export default function LaunchProducto() {
   
       const nuevoRecurso = await response.json();
       console.log("Recurso creado:", nuevoRecurso);
-      if (setIdProducto) {
-        setIdProducto(nuevoRecurso.id);
-      }
-      console.log("ID del producto:", nuevoRecurso.id);
+
+      setProductId(nuevoRecurso.id);
 
       setProducto(payload2);
 

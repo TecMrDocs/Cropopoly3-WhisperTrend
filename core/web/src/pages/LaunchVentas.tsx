@@ -26,7 +26,7 @@ export default function LaunchEmpresa() {
         </button>
 
         <button
-          onClick={() => navigate('/launchPeriodo')}
+          onClick={() => navigate('/launchRegistroVentas')}
           className="border-2 bg-gradient-to-r from-blue-500 to-teal-400 text-white font-semibold px-15 py-3 rounded-full hover:scale-105 transition-transform"
         >
           Sí

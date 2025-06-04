@@ -1,3 +1,6 @@
+import { API_URL } from "@/utils/constants";
+import { getConfig } from "@/utils/auth";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { API_URL } from "@/utils/constants";
@@ -6,9 +9,25 @@ import ProgressBar from "../components/ProgressBar";
 import BlueButton from "../components/BlueButton";
 
 export default function LaunchProcess() {
-  const [nombreUsuario, setNombreUsuario] = useState("");
-
+  const [nombreUsuario, setNombreUsuario] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const getUserData = async () => {
+      try {
+        const res = await fetch(`${API_URL}auth/check`, getConfig());
+        if (!res.ok) throw new Error("Token inválido");
+
+        const data = await res.json();
+        setNombreUsuario(data.name);
+      } catch (err) {
+        console.error("Error obteniendo datos del usuario:", err);
+        setNombreUsuario("usuario"); 
+      }
+    };
+
+    getUserData();
+  }, []);
 
   const handleClick = () => {
     navigate("/launchEmpresa");
@@ -33,7 +52,9 @@ export default function LaunchProcess() {
 
   return(
     <div className="flex flex-col items-center h-screen bg-white">
-      <h1 className="text-4xl font-bold mt-10 text-center">¡Hola {nombreUsuario}!</h1>
+      <h1 className="text-4xl font-bold mt-10 text-center">
+        ¡Hola {nombreUsuario ? nombreUsuario : "..." }!
+      </h1>
       <p className="text-xl mt-10 text-center">Te damos la bienvenida a WhisperTrend</p>
       <p className="text-xl mt-10 text-center">¡Ayúdanos a conocerte para comenzar a descubrir las tendencias<br/>que dan futuro a tu industria</p>
       <p className="text-xl mt-10 mb-10 text-center">A continuación te mostramos el proceso</p>
