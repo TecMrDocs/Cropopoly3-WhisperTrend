@@ -13,16 +13,16 @@ pub struct RedditMetrics {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct InstagramMetrics {
-    keyword: String,
-    posts: Vec<InstagramPost>,
+pub struct Data {
+    reddit: Vec<RedditMetrics>,
+    instagram: Vec<String>, // Placeholder for Instagram metrics
+    twitter: Vec<String>,   // Placeholder for Twitter metrics
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct Data {
-    reddit: Vec<RedditMetrics>,
-    instagram: Vec<InstagramMetrics>,
-    twitter: Vec<()>,
+pub struct Trends {
+    metadata: Details,
+    data: Data,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -93,8 +93,8 @@ impl TrendsScraper {
             metadata: details,
             data: Data {
                 reddit,
-                instagram,
-                twitter: Vec::new(),
+                instagram: vec![], // Placeholder for Instagram metrics
+                twitter: vec![],   // Placeholder for Twitter metrics
             },
         })
     }

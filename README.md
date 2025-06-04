@@ -91,7 +91,7 @@ INSTAGRAM_PASSWORD=awdrqwer12
 ```bash
 #core/web/.env
 VITE_APP_SERVER_PROTOCOL = "http"
-VITE_APP_SERVER_PORT = "8080"
+VITE_APP_SERVER_PORT = "5173"
 VITE_APP_SERVER_HOST = "localhost"
-VITE_APP_API_ROUTE = "api/v1/"
+VITE_APP_API_ROUTE = "api/v1"
 ```

@@ -194,6 +194,7 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({ hashtagSelecciona
             </div>
           </div>
           
+          {/* Métrica general destacada */}
           <div className="text-right">
             <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl p-3 border border-green-200">
               <div className="text-2xl font-bold text-green-700">{promedioCorrelacion}%</div>
@@ -214,6 +215,9 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({ hashtagSelecciona
         {/* Navegación de pestañas */}
         <div className="flex space-x-2 bg-gray-100 rounded-xl p-1">
           {[
+            { id: 'correlacion', label: '📊 Correlaciones', icon: '📊' },
+            { id: 'impacto', label: '💰 Impacto en Ventas', icon: '💰' },
+            { id: 'insights', label: '💡 Insights Clave', icon: '💡' },
             { id: 'posts', label: '📝 Análisis de Posts', icon: '📝' }
           ].map((tab) => (
             <button

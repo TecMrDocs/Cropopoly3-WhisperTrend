@@ -112,24 +112,21 @@ const generarOpcionesTasas = () => {
       nombre: 'Instagram', 
       resultado: resultadoInstaCalc,
       plataforma: resultadoInstaCalc.emoji || '📸',
-      colorInteraccion: '#e91e63',
-      colorViralidad: '#f06292'
+      color: resultadoInstaCalc.color || '#16a34a'
     },
     { 
       id: 'x', 
       nombre: 'X (Twitter)', 
       resultado: resultadoXCalc,
       plataforma: resultadoXCalc.emoji || '🐦',
-      colorInteraccion: '#dc2626',
-      colorViralidad: '#f97316'
+      color: resultadoXCalc.color || '#3b82f6'
     },
-    {
-      id: 'reddit',
+    { 
+      id: 'reddit', 
       nombre: 'Reddit', 
       resultado: resultadoRedditCalc,
       plataforma: resultadoRedditCalc.emoji || '🔴',
-      colorInteraccion: '#2563eb',
-      colorViralidad: '#06b6d4'
+      color: resultadoRedditCalc.color || '#94a3b8'
     }
   ];
 
@@ -142,7 +139,7 @@ const generarOpcionesTasas = () => {
           id: `int_${calc.id}_${hashtag.id}`,
           nombre: `Tasa de interacción ${calc.plataforma} ${hashtag.nombre}`,
           correlacion: calcularCorrelacion(hashtag.datosInteraccion),
-          color: calc.colorInteraccion,
+          color: calc.color,
           datos: hashtag.datosInteraccion,
           plataforma: calc.nombre,
           hashtag: hashtag.nombre,
@@ -153,7 +150,7 @@ const generarOpcionesTasas = () => {
           id: `vir_${calc.id}_${hashtag.id}`,
           nombre: `Tasa de viralidad ${calc.plataforma} ${hashtag.nombre}`,
           correlacion: calcularCorrelacion(hashtag.datosViralidad),
-          color: calc.colorViralidad,
+          color: calc.color,
           datos: hashtag.datosViralidad,
           plataforma: calc.nombre,
           hashtag: hashtag.nombre,
@@ -165,7 +162,7 @@ const generarOpcionesTasas = () => {
         id: `int_${calc.id}`,
         nombre: `Tasa de interacción ${calc.plataforma} ${calc.resultado.hashtag}`,
         correlacion: calcularCorrelacion(calc.resultado.datosInteraccion),
-        color: calc.colorInteraccion,
+        color: calc.color,
         datos: calc.resultado.datosInteraccion,
         plataforma: calc.nombre
       });
@@ -174,7 +171,7 @@ const generarOpcionesTasas = () => {
         id: `vir_${calc.id}`,
         nombre: `Tasa de viralidad ${calc.plataforma} ${calc.resultado.hashtag}`,
         correlacion: calcularCorrelacion(calc.resultado.datosViralidad),
-        color: calc.colorViralidad,
+        color: calc.color,
         datos: calc.resultado.datosViralidad,
         plataforma: calc.nombre
       });
