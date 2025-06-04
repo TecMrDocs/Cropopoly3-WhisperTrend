@@ -20,7 +20,7 @@ import UniformTrendPlot from '@/components/UniformTrendPlot';
 import RatePlot from '@/components/RatePlot';
 
 
-import { hashtagsNoticias } from '../components/MenuComponentes';
+
 
 
 const mapeoTipos = {
@@ -74,11 +74,7 @@ const generarDatosTasasDinamico = () => {
 
 const datosTasas = generarDatosTasasDinamico();
 
-const datosHashtagsNoticias = {
-  'pielesSinteticas': hashtagsNoticias[0],
-  'milan': hashtagsNoticias[1], 
-  'modaSustentable': hashtagsNoticias[2]
-};
+
 
 
 const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
@@ -228,62 +224,13 @@ const HashtagsNoticiasGrafica = ({ hashtagsIds }: { hashtagsIds: string[] }) => 
     return <div>Selecciona al menos un hashtag para visualizar</div>;
   }
 
-  const generarDatosCombinados = () => {
-    const todasFechas = Array.from(
-      new Set(
-        hashtagsIds.flatMap(id => {
-          const hashtag = datosHashtagsNoticias[id as keyof typeof datosHashtagsNoticias];
-          return hashtag ? hashtag.datos.map((d: any) => d.fecha) : [];
-        })
-      )
-    );
 
-    return todasFechas.map(fecha => {
-      const item: any = { fecha };
-      
-      hashtagsIds.forEach(id => {
-        const hashtag = datosHashtagsNoticias[id as keyof typeof datosHashtagsNoticias];
-        if (hashtag) {
-          const datoHashtag = hashtag.datos.find((d: any) => d.fecha === fecha);
-          item[id] = datoHashtag ? datoHashtag.tasa : 0;
-        }
-      });
-      
-      return item;
-    });
-  };
-
-  const datosCombinados = generarDatosCombinados();
 
   return (
     <div className="w-full">
       <h3 className="text-xl font-bold text-center mb-4">Análisis de Hashtags - Noticias</h3>
       <div className="w-full h-80">
-        <ResponsiveContainer>
-          <LineChart data={datosCombinados} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid stroke="#ccc" strokeDasharray="3 3" />
-            <XAxis dataKey="fecha" />
-            <YAxis domain={[0, 'dataMax']} tickFormatter={(value) => `${value}%`} />
-            <Tooltip formatter={(value) => `${value}%`} />
-            <Legend />
-            {hashtagsIds.map(id => {
-              const hashtag = datosHashtagsNoticias[id as keyof typeof datosHashtagsNoticias];
-              if (!hashtag) return null;
-              
-              return (
-                <Line 
-                  key={id}
-                  type="monotone" 
-                  dataKey={id} 
-                  stroke={hashtag.color} 
-                  name={hashtag.nombre} 
-                  strokeWidth={3}
-                  dot={{ r: 5 }}
-                />
-              );
-            })}
-          </LineChart>
-        </ResponsiveContainer>
+
       </div>
     </div>
   );
