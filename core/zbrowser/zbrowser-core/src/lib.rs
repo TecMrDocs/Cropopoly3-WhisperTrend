@@ -10,28 +10,27 @@ use lazy_static::lazy_static;
 use std::{
     ffi::{CStr, CString},
     os::raw::c_char,
-    sync::{
-        Arc, Mutex,
-        atomic::{AtomicI64, Ordering},
-    },
+    sync::atomic::{AtomicI64, Ordering},
 };
 use tokio::task;
 use tracing::error;
 
 include!(concat!(env!("CARGO_MANIFEST_DIR"), "/bindings.rs"));
 
-type Callback = Box<dyn Fn(i64) + Send + Sync>;
+type Callback = Box<dyn Fn(i64) -> String + Send + Sync>;
 
 lazy_static! {
     static ref NEXT_ID: AtomicI64 = AtomicI64::new(0);
     static ref CALLBACKS: DashMap<i64, Callback> = DashMap::new();
 }
 
-unsafe extern "C" fn callback_trampoline(context_id: i64) {
+unsafe extern "C" fn callback_trampoline(context_id: i64) -> *mut c_char {
     if let Some(cb) = CALLBACKS.get(&context_id) {
-        cb(context_id);
+        let result = cb(context_id);
+        CString::new(result).unwrap_or_default().into_raw()
     } else {
         eprintln!("Not found callback for {}", context_id);
+        CString::new("").unwrap_or_default().into_raw()
     }
 }
 
@@ -101,68 +100,11 @@ impl Context {
         }
     }
 
-    pub fn write_input<T: AsRef<str>, U: AsRef<str>>(&self, selector: T, text: U) {
-        let c_selector = CString::new(selector.as_ref()).unwrap_or_default();
-        let c_text = CString::new(text.as_ref()).unwrap_or_default();
-        unsafe {
-            WriteInput(
-                self.id,
-                c_selector.as_ptr() as *mut c_char,
-                c_text.as_ptr() as *mut c_char,
-            );
-        }
-    }
-
-    pub fn click_element<T: AsRef<str>>(&self, selector: T) {
-        let c_selector = CString::new(selector.as_ref()).unwrap_or_default();
-        unsafe {
-            ClickElement(self.id, c_selector.as_ptr() as *mut c_char);
-        }
-    }
-
-    pub fn string_cookies(&self) -> String {
-        unsafe {
-            let mut err = 0;
-            let result = StringCookies(self.id, &mut err);
-
-            match err {
-                0 => CStr::from_ptr(result).to_string_lossy().to_string(),
-                _ => {
-                    error!("Failed to get cookies");
-                    String::new()
-                }
-            }
-        }
-    }
-
-    pub fn set_string_cookies<T: AsRef<str>>(&self, cookies: T) {
-        let c_cookies = CString::new(cookies.as_ref()).unwrap_or_default();
-        unsafe {
-            SetStringCookies(self.id, c_cookies.as_ptr() as *mut c_char);
-        }
-    }
-
     pub fn evaluate<T: AsRef<str>>(&self, expr: T) -> String {
         let c_expr = CString::new(expr.as_ref()).unwrap_or_default();
         unsafe {
             let mut err = 0;
             let result = Evaluate(self.id, c_expr.as_ptr() as *mut c_char, &mut err);
-
-            match err {
-                0 => CStr::from_ptr(result).to_string_lossy().to_string(),
-                _ => {
-                    error!("Failed to evaluate expression");
-                    String::new()
-                }
-            }
-        }
-    }
-
-    pub fn async_evaluate<T: AsRef<str>>(&self, expr: T) -> String {
-        let c_expr = CString::new(expr.as_ref()).unwrap_or_default();
-        unsafe {
-            let mut err = 0;
-            let result = AsyncEvaluate(self.id, c_expr.as_ptr() as *mut c_char, &mut err);
 
             match err {
                 0 => CStr::from_ptr(result).to_string_lossy().to_string(),
@@ -199,19 +141,14 @@ impl Drop for Context {
 }
 
 impl Scraper {
-    pub fn new<T: AsRef<str> + Default>(
-        url: Option<T>,
-        workers: i64,
-        block_resources: Vec<BlockResource>,
-    ) -> Self {
+    pub fn new<T: AsRef<str> + Default>(url: Option<T>, workers: i64, block_resources: Vec<BlockResource>) -> Self {
         let c_url = CString::new(url.unwrap_or_default().as_ref()).unwrap_or_default();
         let c_block_resources = block_resources
             .iter()
             .map(|r| CString::new(r.as_str()).unwrap_or_default())
             .collect::<Vec<_>>();
 
-        let ptrs: Vec<*mut c_char> = c_block_resources
-            .iter()
+        let ptrs: Vec<*mut c_char> = c_block_resources.iter()
             .map(|s| s.as_ptr() as *mut c_char)
             .collect();
 
@@ -221,15 +158,15 @@ impl Scraper {
                 len: ptrs.len() as GoInt,
                 cap: ptrs.len() as GoInt,
             };
-
+            
             let id = NewScraper(c_url.as_ptr() as *mut c_char, workers, slice);
             Self { id }
         }
     }
 
-    async fn raw_execute<F>(&self, task: F)
+    pub async fn execute<F>(&self, task: F) -> String
     where
-        F: Fn(Context) + Send + Sync + 'static,
+        F: Fn(Context) -> String + Send + Sync + 'static,
     {
         let scraper_id = self.id;
 
@@ -239,43 +176,19 @@ impl Scraper {
 
             unsafe {
                 let mut err = 0;
-                Execute(scraper_id, context_id, Some(callback_trampoline), &mut err);
+                let result = Execute(scraper_id, context_id, Some(callback_trampoline), &mut err);
 
                 match err {
-                    0 => (),
+                    0 => CStr::from_ptr(result).to_string_lossy().to_string(),
                     _ => {
                         error!("Failed to execute task");
+                        String::new()
                     }
                 }
             }
         })
         .await
         .unwrap_or_default()
-    }
-
-    pub async fn execute<F, R>(&self, task: F) -> anyhow::Result<R>
-    where
-        F: Fn(Context) -> R + Send + Sync + 'static,
-        R: Send + Sync + 'static,
-    {
-        let result = Arc::new(Mutex::new(None::<R>));
-        let result_clone = Arc::clone(&result);
-
-        self.raw_execute(move |ctx| {
-            let task_result = task(ctx);
-            if let Ok(mut guard) = result_clone.lock() {
-                *guard = Some(task_result);
-            }
-        })
-        .await;
-
-        if let Ok(mut guard) = result.lock() {
-            guard
-                .take()
-                .ok_or_else(|| anyhow::anyhow!("Failed to execute task"))
-        } else {
-            Err(anyhow::anyhow!("Failed to lock result"))
-        }
     }
 }
 
@@ -301,6 +214,6 @@ mod tests {
             })
             .await;
 
-        assert_eq!(title.unwrap(), "Example Domain");
+        assert_eq!(title, "Example Domain");
     }
 }
