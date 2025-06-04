@@ -1,7 +1,6 @@
 pub use user::{User, Credentials, BusinessData};
 pub use resource::Resource;
 pub use sale::Sale;
-pub use admin::{Admin, AdminCredentials};
 
 use crate::database::Database;
 
@@ -11,7 +10,6 @@ use diesel::prelude::*;
 mod user;
 mod resource;
 mod sale;
-mod admin;
 
 use crate::schema::resources::dsl::*;
 
