@@ -19,10 +19,16 @@ pub struct InstagramMetrics {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct Trends {
+pub struct Data {
     reddit: Vec<RedditMetrics>,
     instagram: Vec<InstagramMetrics>,
     twitter: Vec<()>,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct Trends {
+    metadata: Details,
+    data: Data,
 }
 
 pub struct TrendsScraper;
@@ -77,13 +83,19 @@ impl TrendsScraper {
 
     pub async fn get_trends(params: Params) -> anyhow::Result<Trends> {
         let details = NoticesScraper::get_details(params).await?;
-        let reddit = Self::get_reddit_metrics(&details).await;
-        let instagram = Self::get_instagram_metrics(&details).await;
+
+        let reddit_future = Self::get_reddit_metrics(&details);
+        let instagram_future = Self::get_instagram_metrics(&details);
+
+        let (reddit, instagram) = futures::future::join(reddit_future, instagram_future).await;
 
         Ok(Trends {
-            reddit,
-            instagram,
-            twitter: Vec::new(),
+            metadata: details,
+            data: Data {
+                reddit,
+                instagram,
+                twitter: Vec::new(),
+            },
         })
     }
 }
