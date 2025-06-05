@@ -37,17 +37,17 @@ export default function HolaDeNuevo() {
   return (
     <div className='flex flex-col items-center justify-center w-full px-4'>
       <div className="w-full max-w-md">
-        <h1 className="text-5xl font-bold text-blue-900 text-center">
+        <h1 className="md:text-5xl text-3xl font-bold text-blue-900 text-center">
           ¡Hola de nuevo!
         </h1>
-        <p className="text-3xl mb-8 pt-8 pb-8 text-center">
+        <p className="md:text-3xl text-xl mb-8 pt-8 pb-8 text-center">
           Ingresa el código de verificación que llegó a tu correo
         </p>
 
         <div className="w-full">
           <label
             htmlFor="verify-input"
-            className="w-full text-center text-2xl font-bold text-black block mb-2"
+            className="w-full text-center md:text-2xl text-xl font-bold text-black block mb-2"
           >
             Código de verificación:
           </label>
@@ -66,7 +66,7 @@ export default function HolaDeNuevo() {
 
         <div className="mt-6 w-full flex flex-col items-center">
           <BlueButton text="Continuar" width="300px" onClick={handleContinue} />
-          <p className="mt-4">¿No te llegó el código?</p>
+          <p className="mt-4 md:text-lg text-md md:p-2 p-4">¿No te llegó el código?</p>
           <WhiteButton
             text="Enviar un código nuevo"
             width="300px"
