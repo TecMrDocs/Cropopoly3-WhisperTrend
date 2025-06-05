@@ -1,3 +1,9 @@
+/**
+ * Componente: LaunchProducto
+ * Authors: Arturo Barrios Mendoza
+ * Descripción: Página para registrar el producto o servicio del usuario
+ */
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/utils/constants";
@@ -13,20 +19,24 @@ import WordAdder from "../components/WordAdder";
 import EnclosedWord from "../components/EnclosedWord";
 
 export default function LaunchProducto() {
-  const { producto, setProducto, setProductId } = usePrompt();
+  const { producto, setProducto, setProductId } = usePrompt(); // Obtenemos los datos del producto del contexto
 
+  // Opciones para registrar producto o servicio
   const prodOrServ: string[] = ["Producto", "Servicio"];
 
-  const [pors, setPors] = useState(producto?.r_type || "");
-  const [nombreProducto, setNombreProducto] = useState(producto?.name || "");
-  const [descripcion, setDescripcion] = useState(producto?.description || "");
+  // Estados para los campos del formulario
+  const [pors, setPors] = useState(producto?.r_type || ""); // Tipo de recurso (producto o servicio)
+  const [nombreProducto, setNombreProducto] = useState(producto?.name || ""); // Nombre del producto o servicio
+  const [descripcion, setDescripcion] = useState(producto?.description || ""); // Descripción del producto o servicio
+  // Palabras asociadas al producto o servicio
   const [palabrasAsociadas, setPalabrasAsociadas] = useState<string[]>(
     producto?.related_words?.split(", ").filter(Boolean) || []
   );
   const navigate = useNavigate();
 
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({}); // Objeto para almacenar errores de validación
 
+  // Validación del formulario
   const validarFormulario = () => {
     const nuevosErrores: { [key: string]: string } = {};
   
@@ -40,16 +50,19 @@ export default function LaunchProducto() {
     return Object.keys(nuevosErrores).length === 0;
   };  
 
+  // Redirecciona al usuario a la página de registro de empresa
   const handleReturn = () => {
     navigate("/launchEmpresa");
   };
   
+  // Maneja la adición de una nueva palabra asociada
   const handleAddPalabra = (nuevaPalabra: string) => {
     if (nuevaPalabra.trim() !== "" && palabrasAsociadas.length < 10) {
       setPalabrasAsociadas((prev: string[]) => [...prev, nuevaPalabra]);
     }
   };
 
+  // Obtiene el ID del usuario autenticado
   const getUserId = async (): Promise<number | null> => {
     try {
       const res = await fetch(`${API_URL}auth/check`, getConfig());
@@ -64,17 +77,24 @@ export default function LaunchProducto() {
     }
   };  
 
+  /**
+   * Autor: Arturo Barrios Mendoza
+   * Descripción: Envía los datos de la empresa al backend y redirige al usuario.
+   */
   const handleSubmit = async () => {
     if (!validarFormulario()) return;
   
+    // Verifica que el usuario esté autenticado y obtén su ID
     const userId = await getUserId();
     if (!userId) {
       alert("No se pudo obtener el usuario.");
       return;
     }
   
+    // Une las palabras asociadas en una cadena separada por comas
     const palabrasJoin = palabrasAsociadas.join(", ");
   
+    // Crea el payload para enviar al backend
     const payload = {
       user_id: userId,
       r_type: pors,
@@ -83,6 +103,7 @@ export default function LaunchProducto() {
       related_words: palabrasJoin,
     };
 
+    // Crea el payload para el contexto del producto
     const payload2 = {
       r_type: pors,
       name: nombreProducto,
@@ -90,6 +111,7 @@ export default function LaunchProducto() {
       related_words: palabrasJoin,
     }
   
+    // Envía el payload al backend para crear el recurso
     try {
       const response = await fetch(`${API_URL}resource`, {
         method: "POST",

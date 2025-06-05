@@ -1,10 +1,16 @@
+/**
+ * Componente: SelectField
+ * Authors: Arturo Barrios Mendoza
+ * Descripción: Componente de campo de selección personalizado.
+ */
+
 type SelectFieldProps = {
-  label?: string;
-  options: string[];
-  width?: string;
-  placeholder?: string;
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  label?: string; // Etiqueta del campo de selección
+  options: string[]; // Opciones del campo de selección
+  width?: string; // Ancho del campo de selección, por defecto es '200px'
+  placeholder?: string; // Texto del placeholder, por defecto es 'Selecciona una opción'
+  value?: string; // Valor seleccionado del campo de selección
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void; // Función a ejecutar al cambiar el valor del campo de selección
 };
 
 export default function SelectField({

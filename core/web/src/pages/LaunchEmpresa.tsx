@@ -1,3 +1,9 @@
+/**
+ * Componente: LaunchEmpresa
+ * Authors: Arturo Barrios Mendoza
+ * Descripción: Permite registrar los datos de la empresa del usuario
+ */
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/utils/constants";
@@ -12,15 +18,24 @@ import BlueButton from "../components/BlueButton";
 
 export default function LaunchEmpresa() {
   const navigate = useNavigate();
-  const { empresa, setEmpresa } = usePrompt();
+  const { empresa, setEmpresa } = usePrompt(); // Obtenemos los datos de la empresa del contexto
 
+  // Opciones para industria
   const industrias: string[] = ["Manufactura", "Moda", "Alimentos", "Tecnología", "Salud"];
+  // Opciones para número de empleados
   const opcionesColabs: string[] = ["10 o menos", 
     "Entre 11 y 50", 
     "Entre 51 y 250", 
     "Más de 250"];
+  // Opciones para alcance geográfico
   const alcances: string[] = ["Internacional", "Nacional", "Local"];
 
+  /**
+   * Autor: Arturo Barrios Mendoza
+   * Descripción: Mapea el número de empleados a una opción de tamaño de empresa.
+   * @param size 
+   * @returns string
+   */
   function mapSizeToOption(size: string): string {
     switch (size) {
       case "micro empresa":
@@ -36,6 +51,7 @@ export default function LaunchEmpresa() {
     }
   }
 
+  // Estados para los campos del formulario
   const [nombreEmpresa, setNombreEmpresa] = useState(empresa?.business_name || "");
   const [industria, setIndustria] = useState(empresa?.industry || "");
   const [numEmpleados, setNumEmpleados] = useState(mapSizeToOption(empresa?.company_size || ""));
@@ -43,8 +59,14 @@ export default function LaunchEmpresa() {
   const [operaciones, setOperaciones] = useState(empresa?.locations || "");
   const [sucursales, setSucursales] = useState(empresa?.num_branches || "");
 
+  // Estado para manejar errores de validación
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
+  /**
+   * Autor: Arturo Barrios Mendoza
+   * Descripción: Valida el formulario y muestra errores si es necesario.
+   * @returns boolean
+   */
   const validarFormulario = () => {
     const nuevosErrores: { [key: string]: string } = {};
   
@@ -65,10 +87,16 @@ export default function LaunchEmpresa() {
     return Object.keys(nuevosErrores).length === 0;
   };  
 
+  // Redirecciona al usuario a la página de lanzamiento del proceso
   const handleReturn = () => {
     navigate("/launchProcess");
   };
 
+  /**
+   * Autor: Arturo Barrios Mendoza
+   * Descripción: Obtiene el user_id del usuario autenticado.
+   * @returns Promise<number | null>
+   */
   const getUserId = async (): Promise<number | null> => {
     try {
       const res = await fetch(`${API_URL}auth/check`, getConfig());
@@ -81,21 +109,28 @@ export default function LaunchEmpresa() {
     }
   };
 
+  /**
+   * Autor: Arturo Barrios Mendoza
+   * Descripción: Envía los datos de la empresa al backend y redirige al usuario.
+   */
   const handleSubmit = async () => {
     if (!validarFormulario()) return;
 
+    // Verifica que el usuario esté autenticado y obtén su ID
     const userId = await getUserId();
     if (!userId) {
       alert("Token inválido. Inicia sesión de nuevo.");
       return;
     }
 
+    // Mapea el número de empleados a una opción de tamaño de empresa
     let ne = "";
     if (numEmpleados === "10 o menos") ne = "micro empresa";
     else if (numEmpleados === "Entre 11 y 50") ne = "pequeña empresa";
     else if (numEmpleados === "Entre 51 y 250") ne = "empresa mediana";
     else if (numEmpleados === "Más de 250") ne = "empresa grande";
 
+    // Prepara el payload para enviar al backend
     const payload = {
       business_name: nombreEmpresa,
       industry: industria,
@@ -105,6 +140,7 @@ export default function LaunchEmpresa() {
       num_branches: sucursales,
     };
 
+    // Envía los datos al backend
     try {
       const res = await fetch(`${API_URL}user/update/${userId}`, {
         method: "POST",
@@ -122,8 +158,10 @@ export default function LaunchEmpresa() {
         return;
       }
 
+      // Si la respuesta es exitosa, actualiza el contexto de la empresa
       setEmpresa(payload);
 
+      // Redirige al usuario a la página de registro del producto
       navigate("/launchProducto");
     } catch (err) {
       console.error("Error de red:", err);

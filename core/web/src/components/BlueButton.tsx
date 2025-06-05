@@ -1,8 +1,14 @@
+/**
+ * Componente: BlueButton
+ * Authors: Arturo Barrios Mendoza
+ * Descripción: Botón de color azul.
+ */
+
 type BlueButtonProps = {
-  text?: string;
-  width?: string;
-  onClick?: () => void;
-  type?: "button" | "submit" | "reset";
+  text?: string; // Texto del botón
+  width?: string; // Ancho del botón
+  onClick?: () => void; // Función a ejecutar al hacer clic
+  type?: "button" | "submit" | "reset"; // Tipo de botón, por defecto es "button"
 };
 
 export default function BlueButton({text = '', width = '400px', onClick, type = "button"} : BlueButtonProps){

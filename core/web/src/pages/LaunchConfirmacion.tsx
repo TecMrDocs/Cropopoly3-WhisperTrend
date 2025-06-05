@@ -1,55 +1,24 @@
+/**
+ * Componente: LaunchConfirmacion
+ * Authors: Arturo Barrios Mendoza, Mariana Balderrábano Aguilar y Andrés Cabrera Alvarado
+ * Descripción: Muestra la confirmación de la información ingresada por el usuario
+ */
+
 import ProgressBar from "../components/ProgressBar";
 import WhiteButton from "../components/WhiteButton";
-//import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { usePrompt } from "../contexts/PromptContext";
-//import { getConfig } from "@/utils/auth";
-//import { API_URL } from "@/utils/constants";
 
 export default function LaunchConfirmacion() {
   const navigate = useNavigate();
-  const { empresa, producto, hasSalesData } = usePrompt();
-  const { business_name, industry, company_size, scope, locations, num_branches } = empresa || {};
-  const { r_type, name, description, related_words } = producto || {};
+  const { empresa, producto, hasSalesData } = usePrompt(); // Contexto para obtener los datos de la empresa y el producto
+  const { business_name, industry, company_size, scope, locations, num_branches } = empresa || {}; // Desestructuración de los datos de la empresa
+  const { r_type, name, description, related_words } = producto || {}; // Desestructuración de los datos del producto
 
+  // Se dirige a la página de carga
   const handleSubmit = () => {
     navigate('/loading');
   };
-
-  /*
-  const handleSubmit = async () => {
-    if (!idProducto) {
-      alert("No se pudo obtener el ID del producto.");
-      return;
-    }
-  
-    try {
-      const response = await fetch(`${API_URL}flow/secure/generate-prompt`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getConfig().headers,
-        },
-        body: JSON.stringify({
-          resource_id: idProducto,
-        }),
-      });
-  
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error del servidor: ${errorText}`);
-      }
-  
-      const data = await response.json();
-      console.log("Resultado del prompt generado:", data);
-  
-      navigate('/loading');
-    } catch (error) {
-      console.error("Error en la generación del prompt:", error);
-      alert("Ocurrió un error al generar el prompt.");
-    }
-  };
-  */
 
   return(
     <div className="flex flex-col items-center h-screen bg-white">

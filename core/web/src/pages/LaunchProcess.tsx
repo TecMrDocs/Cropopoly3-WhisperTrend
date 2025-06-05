@@ -1,3 +1,9 @@
+/**
+ * Componente: LaunchProcess
+ * Authors: Arturo Barrios Mendoza
+ * Descripción: Página inicial del proceso de lanzamiento de la aplicación.
+ */
+
 import { API_URL } from "@/utils/constants";
 import { getConfig } from "@/utils/auth";
 import { useEffect, useState } from "react";
@@ -9,6 +15,7 @@ export default function LaunchProcess() {
   const [nombreUsuario, setNombreUsuario] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  // Función para obtener el ID del usuario
   useEffect(() => {
     const getUserData = async () => {
       try {
@@ -26,10 +33,12 @@ export default function LaunchProcess() {
     getUserData();
   }, []);
 
+  // Redirecciona al usuario a la página de registro de empresa
   const handleClick = () => {
     navigate("/launchEmpresa");
   };
 
+  // Verifica si el usuario está autenticado al cargar la página
   useEffect(() => {
     const checkUser = async () => {
       try {

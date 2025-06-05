@@ -1,4 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+/**
+ * Componente: Loading
+ * Authors: Andrés Cabrera Alvarado y Arturo Barrios Mendoza
+ * Descripción: Página de carga que muestra mensajes de espera y realiza una petición para activar la búsqueda.
+ */
+
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrompt } from "../contexts/PromptContext";
 import { getConfig } from "@/utils/auth";
@@ -14,14 +20,16 @@ export default function AnalysisLoading() {
     "Preparando presentación",
   ];
 
-  const hasFetched = useRef(false);
+  const hasFetched = useRef(false); // Evita múltiples peticiones al servidor
   const navigate = useNavigate();
-  const { productId } = usePrompt();
+  const { productId } = usePrompt(); // Obtenemos el ID del producto del contexto
 
+  // Efecto para realizar la petición al servidor una sola vez
   useEffect(() => {
     if (hasFetched.current) return;
     hasFetched.current = true;
 
+    // Función para realizar la petición al servidor y generar el prompt
     const fetchPrompt = async () => {
       try {
         const res = await fetch(`${API_URL}flow/secure/generate-prompt`, {
@@ -33,10 +41,12 @@ export default function AnalysisLoading() {
           body: JSON.stringify({ resource_id: productId }),
         });
 
+        // Verifica si la respuesta es exitosa
         if (!res.ok) throw new Error("Error al generar prompt");
         const data = await res.json();
         console.log("Respuesta:", data);
 
+        // Si la respuesta es exitosa, redirige al usuario al dashboard
         navigate("/dashboard");
       } catch (err) {
         console.error("Error en /loading:", err);

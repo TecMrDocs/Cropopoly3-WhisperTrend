@@ -1,13 +1,19 @@
+/**
+ * Componente: TextFieldWHolder
+ * Authors: Arturo Barrios Mendoza
+ * Descripción: Componente de campo de texto con un fondo degradado y placeholder.
+ */
+
 type TextFieldWHolderProps = {
-  placeholder?: string;
-  width?: string;
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  label?: string;
-  name?: string;
-  id?: string;
-  hasError?: boolean;
-  type?: string;
+  placeholder?: string; // Texto del placeholder, por defecto es ''
+  width?: string; // Ancho del campo de texto, por defecto es '200px'
+  value?: string; // Valor del campo de texto, si no se proporciona se usa el estado interno
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; // Función a ejecutar al cambiar el valor del campo de texto
+  label?: string; // Etiqueta del campo de texto
+  name?: string; // Nombre del campo de texto, usado en formularios
+  id?: string; // ID del campo de texto, usado para accesibilidad y referencia
+  hasError?: boolean; // Indica si el campo tiene un error, por defecto es false
+  type?: string; // Tipo del campo de texto, por defecto es 'text'
 };
 
 export default function TextFieldWHolder({ 
