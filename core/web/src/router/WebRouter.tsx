@@ -29,6 +29,9 @@ import ActualizarPlan from "../pages/ActualizarPlan";
 import Us from "../pages/Us";
 import HolaDeNuevo from "../pages/HolaDeNuevo";
 import NewResource from "../pages/NewResource";
+import RegistroVentas from "../pages/RegistroVentas";
+import PrevioRegistroVentas from "../pages/PrevioRegistroVentas";
+import ConfirmaProducto from "../pages/ConfirmaProducto";
 import Protected from "../components/Protected";
 import Unprotected from "../components/Unprotected";
 import AuthLayout from "@/layouts/authLayout";
@@ -57,6 +60,11 @@ export default function WebRouter(){
       <Route path="/actualizarPlan" element={loadLayout(MainLayout, ActualizarPlan)} />
       <Route path="/resumen" element={loadLayout(MainLayout, Resumen)} />
       <Route path="/newResource" element={loadLayout(LaunchLayout, NewResource)}  />
+      <Route path="/previoRegistroVentas" element={loadLayout(LaunchLayout, PrevioRegistroVentas)} />
+      <Route path="/registroVentas" element={loadLayout(LaunchLayout, RegistroVentas)} />
+      <Route path="/confirmaProducto" element={loadLayout(LaunchLayout, ConfirmaProducto)} />
+      
+      {/* Rutas de autenticación */}
       
       {/* Rutas protegidas - requieren autenticación */}
       <Route path="/dashboard" element={<Protected>{loadLayout(ProfileLayout, Dashboard)}</Protected>} />
