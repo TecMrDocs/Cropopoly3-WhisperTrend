@@ -40,6 +40,15 @@ export default function Registro() {
     confirmPassword: ""
   });
 
+  // Estado para manejar el cumplimiento de criterios de contraseña
+  const [passwordCriteria, setPasswordCriteria] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    specialChar: false,
+  });
+
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
 
@@ -83,7 +92,7 @@ export default function Registro() {
     } else if (!formData.email.includes("@")) {
       newErrors.email = "El correo debe contener @";
       valid = false;
-    } else if (!/^[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$/.test(formData.email)) {
+    } else if (!/^[a-z0-9_]+@[a-z]+\.[a-z]+(\.[a-z]+)?$/.test(formData.email)) {
       newErrors.email = "El correo no tiene un formato válido";
       valid = false;
     }
@@ -101,17 +110,32 @@ export default function Registro() {
     if (!formData.position.trim()) {
       newErrors.position = "El puesto o cargo es requerido";
       valid = false;
-    } else if (!/^[a-zA-Z\s]+$/.test(formData.position)) {
+    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(formData.position)) {
       newErrors.position = "El puesto o cargo solo puede contener letras y espacios";
       valid = false;
     }
 
     // Valida contraseña
+    // if (!formData.password) {
+    //   newErrors.password = "La contraseña es requerida";
+    //   valid = false;
+    // } else if (formData.password.length < 8) {
+    //   newErrors.password = "La contraseña debe tener al menos 8 caracteres";
+    //   valid = false;
+    // }
+
+    // Validación de criterios de contraseña
     if (!formData.password) {
       newErrors.password = "La contraseña es requerida";
       valid = false;
-    } else if (formData.password.length < 8) {
-      newErrors.password = "La contraseña debe tener al menos 8 caracteres";
+    } else if (!(
+      passwordCriteria.length &&
+      passwordCriteria.uppercase &&
+      passwordCriteria.lowercase &&
+      passwordCriteria.number &&
+      passwordCriteria.specialChar
+    )) {
+      newErrors.password = "Debe cumplir con todos los requisitos";
       valid = false;
     }
 
@@ -129,6 +153,24 @@ export default function Registro() {
   };
 
   // Maneja el cambio de valor en los campos del formulario
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    setFormData(prev => ({
+      ...prev,
+      password: value
+    }));
+
+    setPasswordCriteria({
+      length: value.length >= 8,
+      uppercase: /[A-Z]/.test(value),
+      lowercase: /[a-z]/.test(value),
+      number: /\d/.test(value),
+      specialChar: /[@$!%*?&]/.test(value),
+    });
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -174,9 +216,9 @@ export default function Registro() {
       } catch (error: any) {
         console.error("Error al registrar el usuario:", error);
 
-        if(error.response){
-          const { status , data} = error.response;
-          if (status === 400){
+        if (error.response) {
+          const { status, data } = error.response;
+          if (status === 400) {
             setApiError(data.message || "Datos de registro inválidos");
 
           } else if (status === 409) {
@@ -269,7 +311,7 @@ export default function Registro() {
               value={formData.email}
               onChange={handleChange}
               hasError={!!errors.email}
-              placeholder="Ingrese su correo electrónico"
+              placeholder="Ingrese su correo electrónico ej. test@gmail.com"
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -325,13 +367,41 @@ export default function Registro() {
               type="password"
               name="password"
               value={formData.password}
-              onChange={handleChange}
+              onChange={handlePasswordChange}
               hasError={!!errors.password}
               placeholder="Ingrese su contraseña"
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
             )}
+            <div className="text-sm text-gray-600 mt-2">
+              <p className={passwordCriteria.length ? "text-green-500" : "text-red-500"}>✓ Mínimo 8 caracteres</p>
+              <p className={passwordCriteria.uppercase ? "text-green-500" : "text-red-500"}>✓ Al menos una mayúscula</p>
+              <p className={passwordCriteria.lowercase ? "text-green-500" : "text-red-500"}>✓ Al menos una minúscula</p>
+              <p className={passwordCriteria.number ? "text-green-500" : "text-red-500"}>✓ Al menos un número</p>
+              <p className={passwordCriteria.specialChar ? "text-green-500" : "text-red-500"}>✓ Al menos un carácter especial (@$!%*?&)</p>
+            </div>
+
+            {/* <ul className="text-sm mt-1">
+              <li className={passwordCriteria.length ? "text-green-600" : "text-red-600"}>
+                Al menos 8 caracteres
+              </li>
+              <li className={passwordCriteria.uppercase ? "text-green-600" : "text-red-600"}>
+                Una letra mayúscula
+              </li>
+              <li className={passwordCriteria.lowercase ? "text-green-600" : "text-red-600"}>
+                Una letra minúscula
+              </li>
+              <li className={passwordCriteria.number ? "text-green-600" : "text-red-600"}>
+                Un número
+              </li>
+              <li className={passwordCriteria.specialChar ? "text-green-600" : "text-red-600"}>
+                Un carácter especial (@$!%*?&)
+              </li>
+            </ul> */}
+
+
+
           </div>
 
           <div className="w-full">

@@ -28,7 +28,6 @@ export default function Login() {
       email: "",
       password: "",
     };
-    console.log("formulario", { email, password: password });
 
     if (!email) {
       newErrors.email = "El correo es requerido";
@@ -36,7 +35,7 @@ export default function Login() {
     } else if (!email.includes("@")) {
       newErrors.email = "El correo debe contener @";
       valid = false;
-    } else if (!/^[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$/.test(email)) {
+    } else if (!/^[a-zA-Z0-9_]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$/.test(email)) {
       newErrors.email = "El correo no tiene un formato válido";
       valid = false;
     }
@@ -55,26 +54,29 @@ export default function Login() {
     return valid;
   };
 
-  // Maneja el envío del formulario
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    setErrors({ email: "", password: "" });
     setApiError("");
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
       await signIn(email, password);
-    } catch(error: any){
-      if(error.response?.status === 401){
-        setApiError("Email o contraseña incorrectos");
-      } else {
-        setApiError("Error al iniciar sesión")
-      }
-    } finally {
-      setLoading(false);
+    } catch (error: any) {
+      // const status = error.response?.status;
+      console.log("Esto es el error pipipi ", error)
+      const message = typeof error.response?.data === "string"
+        ? error.response.data
+        : error.response?.data?.message || "Error al iniciar sesión";
+      setApiError(message);
     }
-
+    setLoading(false);
   };
 
   // Página de inicio de sesión con formulario y mensajes de error
@@ -124,7 +126,9 @@ export default function Login() {
               </div>
             </Container>
 
-            <GenericButton type="submit" text="Iniciar sesión" />
+            {/* <GenericButton type="submit" text="Iniciar sesión" /> */}
+            <GenericButton type="submit" text={loading ? "Cargando..." : "Iniciar sesión"} disabled={loading} />
+
           </form>
 
           <div className="text-center mt-12 text-sm">

@@ -55,10 +55,16 @@ export default function UserAuthProvider({ children }: {children: React.ReactNod
     navigate("/login");
   }
 
+  // Maneja el inicio de sesión del usuario
   function signIn(email: string, password: string) {
-    user.user.signIn({ email, password })
-      .then(({ token }) => {
-        // Guardamos token pero aún no damos acceso completo
+    return user.user.signIn({ email, password })
+      .then((result) => {
+        
+        if (!result || !result.token) {
+          throw new Error("No se recibió token de autenticación");
+        }
+        
+        const { token } = result;
         localStorage.setItem("token", token);
         localStorage.setItem("verified", "false");
         setNeedsVerification(true);
@@ -66,10 +72,10 @@ export default function UserAuthProvider({ children }: {children: React.ReactNod
         navigate("/holaDeNuevo");
       })
       .catch((error) => {
-        console.error("Error al iniciar sesión:", error);
         throw error;
       });
   }
+
     // verifyCode: ACEPTA cualquier código de verificación que no esté vacío
     const verifyCode = useCallback(async (code: string) => {
       if (!code.trim()) {
