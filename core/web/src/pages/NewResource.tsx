@@ -347,7 +347,14 @@ export default function NewResource() {
       
       <p className="text-xl mt-10 text-center">¿Cómo se llama tu producto o servicio?</p>
       <div className="mt-3">
-        <TextFieldWHolder placeholder="Escribe el nombre de tu producto o servicio" width="600px" value={nombreProducto} onChange={(e) => setNombreProducto(e.target.value)} />
+        <TextFieldWHolder 
+          id="Nombre producto"
+          label="Nombre de tu producto o servicio"
+          placeholder="Escribe el nombre de tu producto o servicio" 
+          width="600px" 
+          value={nombreProducto} 
+          onChange={(e) => setNombreProducto(e.target.value)} 
+        />
         {errors.nombreProducto && (
           <p className="text-red-500 text-sm mt-1">{errors.nombreProducto}</p>
         )}
@@ -355,7 +362,14 @@ export default function NewResource() {
       
       <p className="text-xl mt-10 text-center">Explica en qué consiste tu producto o servicio</p>
       <div className="mt-3">
-        <TextAreaField placeholder="Explica en qué consiste tu producto o servicio" maxLength={300} width="600px" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} />
+        <TextAreaField 
+          id="Descripcion"
+          label="Descripción"
+          placeholder="Explica en qué consiste tu producto o servicio" 
+          maxLength={300} 
+          width="600px" 
+          value={descripcion} 
+          onChange={(e) => setDescripcion(e.target.value)} />
         {errors.descripcion && (
           <p className="text-red-500 text-sm mt-1">{errors.descripcion}</p>
         )}
