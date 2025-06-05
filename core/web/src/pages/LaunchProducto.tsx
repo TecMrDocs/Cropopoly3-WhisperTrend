@@ -19,7 +19,7 @@ import WordAdder from "../components/WordAdder";
 import EnclosedWord from "../components/EnclosedWord";
 
 export default function LaunchProducto() {
-  const { producto, setProducto, setProductId } = usePrompt(); // Obtenemos los datos del producto del contexto
+  const { producto, setProducto, productId, setProductId } = usePrompt(); // Obtenemos los datos del producto del contexto
 
   // Opciones para registrar producto o servicio
   const prodOrServ: string[] = ["Producto", "Servicio"];
@@ -84,59 +84,75 @@ export default function LaunchProducto() {
   const handleSubmit = async () => {
     if (!validarFormulario()) return;
   
-    // Verifica que el usuario esté autenticado y obtén su ID
     const userId = await getUserId();
     if (!userId) {
       alert("No se pudo obtener el usuario.");
       return;
     }
   
-    // Une las palabras asociadas en una cadena separada por comas
     const palabrasJoin = palabrasAsociadas.join(", ");
   
-    // Crea el payload para enviar al backend
     const payload = {
+      id: productId,
       user_id: userId,
       r_type: pors,
       name: nombreProducto,
       description: descripcion,
       related_words: palabrasJoin,
     };
-
-    // Crea el payload para el contexto del producto
+  
     const payload2 = {
       r_type: pors,
       name: nombreProducto,
       description: descripcion,
       related_words: palabrasJoin,
-    }
+    };
   
-    // Envía el payload al backend para crear el recurso
     try {
-      const response = await fetch(`${API_URL}resource`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getConfig().headers,
-        },
-        body: JSON.stringify(payload),
-      });      
+      let response;
+      if (productId) {
+        response = await fetch(`${API_URL}resource/${productId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "*/*",
+            ...getConfig().headers,
+          },
+          body: JSON.stringify(payload),
+        });
   
-      if (!response.ok) {
-        const msg = await response.text();
-        console.error("Error al crear el recurso:", msg);
-        alert("No se pudo crear el recurso.");
-        return;
+        if (!response.ok) {
+          const msg = await response.text();
+          console.error("Error al actualizar el recurso:", msg);
+          alert("No se pudo actualizar el recurso.");
+          return;
+        }
+  
+        // No se espera respuesta JSON
+        setProducto(payload2);
+        navigate("/launchVentas");
+      } else {
+        response = await fetch(`${API_URL}resource`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...getConfig().headers,
+          },
+          body: JSON.stringify(payload),
+        });
+  
+        if (!response.ok) {
+          const msg = await response.text();
+          console.error("Error al crear el recurso:", msg);
+          alert("No se pudo crear el recurso.");
+          return;
+        }
+  
+        const recursoGuardado = await response.json();
+        setProductId(recursoGuardado.id);
+        setProducto(payload2);
+        navigate("/launchVentas");
       }
-  
-      const nuevoRecurso = await response.json();
-      console.log("Recurso creado:", nuevoRecurso);
-
-      setProductId(nuevoRecurso.id);
-
-      setProducto(payload2);
-
-      navigate("/launchVentas");
     } catch (err) {
       console.error("Error de red:", err);
       alert("Error de red o del servidor.");
