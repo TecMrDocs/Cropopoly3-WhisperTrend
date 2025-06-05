@@ -8,6 +8,7 @@ pub mod instagram;
 pub mod notices;
 pub mod reddit;
 pub mod trends;
+pub mod twitter;
 
 lazy_static! {
     static ref WHITESPACE_REGEX: Regex = Regex::new(r"\s+").unwrap();
@@ -16,8 +17,8 @@ lazy_static! {
         Regex::new(r"^([\d,.]+)\s*([kKmM]il|mill[oó]n|mills?|[kKMGTP])?$").unwrap();
 
     pub static ref SCRAPER: Arc<Scraper> = Arc::new(Scraper::new::<&str>(
-        // None,
-        Config::get_browserless_ws(),
+        None,
+        // Config::get_browserlekss_ws(),
         Config::get_workers_scraper(),
         vec![
             BlockResource::Stylesheet,

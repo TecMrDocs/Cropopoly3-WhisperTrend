@@ -66,6 +66,16 @@ lazy_static! {
             config.instagram_password
         });
 
+        config.twitter_username = env::var("TWITTER_USERNAME").unwrap_or_else(|_| {
+            warn!("TWITTER_USERNAME is not set, using default value: {}", config.twitter_username);
+            config.twitter_username
+        });
+
+        config.twitter_password = env::var("TWITTER_PASSWORD").unwrap_or_else(|_| {
+            warn!("TWITTER_PASSWORD is not set, using default value: {}", config.twitter_password);
+            config.twitter_password
+        });
+
         config
     };
 }
@@ -90,12 +100,16 @@ pub struct Config {
     pub token_expiration: usize,
     #[builder(default = "None")]
     pub browserless_ws: Option<String>,
-    #[builder(default = "10")]
+    #[builder(default = "5")]
     pub workers_scraper: i64,
     #[builder(default = "String::from(\"\")")]
     pub instagram_username: String,
     #[builder(default = "String::from(\"\")")]
     pub instagram_password: String,
+    #[builder(default = "String::from(\"\")")]
+    pub twitter_username: String,
+    #[builder(default = "String::from(\"\")")]
+    pub twitter_password: String,
 }
 
 impl ApplicationConfig for Config {
@@ -151,5 +165,13 @@ impl Config {
 
     pub fn get_instagram_password() -> &'static str {
         &CONFIG.instagram_password
+    }
+
+    pub fn get_twitter_username() -> &'static str {
+        &CONFIG.twitter_username
+    }
+
+    pub fn get_twitter_password() -> &'static str {
+        &CONFIG.twitter_password
     }
 }
