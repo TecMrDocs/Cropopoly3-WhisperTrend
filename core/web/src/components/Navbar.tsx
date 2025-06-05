@@ -1,4 +1,4 @@
-import logo from '../assets/Wtw1.png';
+import logo from '../assets/logo_whispertrend.png';
 
 export default function Navbar() {
   return(
@@ -9,7 +9,7 @@ export default function Navbar() {
           alt="WhisperTrend Logo" 
           className="h-[50px] w-auto object-contain"
         />
-        <p className="m-0 text-2xl font-bold">WhisperTrend</p>
+        <h4 className="m-0 text-2xl font-bold">WhisperTrend</h4>
       </div>
     </div>
   );

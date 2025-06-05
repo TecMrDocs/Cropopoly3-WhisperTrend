@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/utils/constants";
 import { getConfig } from "@/utils/auth";
 import { usePrompt } from "../contexts/PromptContext";
@@ -13,16 +13,16 @@ import WordAdder from "../components/WordAdder";
 import EnclosedWord from "../components/EnclosedWord";
 
 export default function LaunchProducto() {
-  const location = useLocation();
-  const { setPrompt, setProducto, } = usePrompt();
-  const promptAnterior = location.state?.prompt || "";
+  const { producto, setProducto, setProductId } = usePrompt();
 
   const prodOrServ: string[] = ["Producto", "Servicio"];
 
-  const [pors, setPors] = useState("");
-  const [nombreProducto, setNombreProducto] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [palabrasAsociadas, setPalabrasAsociadas] = useState<string[]>([]);
+  const [pors, setPors] = useState(producto?.r_type || "");
+  const [nombreProducto, setNombreProducto] = useState(producto?.name || "");
+  const [descripcion, setDescripcion] = useState(producto?.description || "");
+  const [palabrasAsociadas, setPalabrasAsociadas] = useState<string[]>(
+    producto?.related_words?.split(", ").filter(Boolean) || []
+  );
   const navigate = useNavigate();
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -110,34 +110,19 @@ export default function LaunchProducto() {
       const nuevoRecurso = await response.json();
       console.log("Recurso creado:", nuevoRecurso);
 
-      const prompt = promptBuilder2();
-      console.log("Prompt: ", prompt);
+      setProductId(nuevoRecurso.id);
+
       setProducto(payload2);
-      setPrompt(prompt);
 
       navigate("/launchVentas");
     } catch (err) {
       console.error("Error de red:", err);
       alert("Error de red o del servidor.");
     }
-  };
-
-  const promptBuilder2 = () => {
-    const t1 = "Ofrezco un " + pors.toLowerCase() + " llamado " + nombreProducto + ". ";
-    const t2 = "Consiste en: " + descripcion;
-    const t3 = "Por favor escribe una sentencia en inglés que describa mi producto (procura no mencionar el nombre de mi producto) y mi empresa para realizar una búsqueda de noticias. También dame 3 hashtags en inglés que hayan sido populares, que pueda buscar en redes sociales y que se relacionen con mi empresa y con mi producto (procura que los hashtags no incluyan el nombre de mi producto). Separa la sentencia de los hashtags solo con el símbolo @.";
-
-    if (palabrasAsociadas.length > 0) {
-      const palabras = palabrasAsociadas.join(", ");
-      return promptAnterior + t1 + t2 + ", y se asocia con: " + palabras + ". " + t3;
-    } else {
-      return promptAnterior + t1 + t2 + ". " + t3;
-    }
-  }
-  
+  };  
 
   return(
-    <div className="flex flex-col items-center h-screen bg-white">
+    <div className="flex flex-col items-center min-h-screen bg-white">
       <ProgressBar activeStep={1} />
       <h1 className="text-4xl font-bold mt-2 text-center">Ahora, cuéntanos sobre el producto o servicio<br />que deseas analizar</h1>
       <p className="text-xl mt-10 text-center">¿Ofreces un producto o servicio?</p>

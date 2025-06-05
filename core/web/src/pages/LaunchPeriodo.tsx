@@ -3,10 +3,20 @@ import ProgressBar from "../components/ProgressBar";
 import SelectField from "../components/SelectField";
 import BlueButton from "../components/BlueButton";
 import WhiteButton from "../components/WhiteButton";
+import { useNavigate } from "react-router-dom";
 
 export default function LaunchPeriodo() {
   const tiempo: string[] = ["Mes", "Bimestre"];
   const [tiempoSeleccionado, setTiempoSeleccionado] = useState("");
+  const navigate = useNavigate();
+
+  const handleGuardar = () => {
+    navigate("/launchRegistroVentas");
+  }
+
+  const handleCancelar = () => {
+    navigate("/launchVentas");
+  }
 
   return (
     <div>
@@ -23,8 +33,8 @@ export default function LaunchPeriodo() {
         />
       </div>
       <div className="flex flex-row justify-center gap-100 p-10">
-        <WhiteButton text="Cancelar" width="200px" />
-        <BlueButton text="Guardar" width="200px" />
+        <WhiteButton text="Cancelar" width="200px" onClick={handleCancelar}/>
+        <BlueButton text="Guardar" width="200px" onClick={handleGuardar}/>
       </div>
 
 

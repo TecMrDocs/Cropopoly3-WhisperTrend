@@ -4,6 +4,8 @@ use common::{Application, ApplicationConfig};
 use config::Config;
 use database::Database;
 use tracing::info;
+pub mod test;
+
 
 mod common;
 mod config;
