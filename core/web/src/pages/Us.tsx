@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 
 const equipo = {
@@ -83,7 +82,7 @@ function Card({ miembro }: { miembro: any }) {
       <p className="text-center text-sm leading-tight font-medium text-white">
         {miembro.nombre}<br />
         <span className="text-xs font-normal">{miembro.matricula}</span><br />
-        <span className="text-xs text-blue-900 font-bold">{miembro.rol}</span>
+        <span className="text-xs text-white font-bold">{miembro.rol}</span>
       </p>
     </div>
   );
@@ -92,7 +91,7 @@ function Card({ miembro }: { miembro: any }) {
 export default function Us() {
   return (
     <div className="min-h-screen flex flex-col items-center">
-      <h1 className="text-3xl font-bold text-blue-900 mb-8">Nosotros</h1>
+      <h1 className="text-4xl font-bold text-white mb-8">Nosotros</h1>
       <Link
         to="/"
         className="bg-white font-sm px-3 rounded-full flex items-center gap-2 hover:scale-105 transition-transform"
@@ -100,6 +99,7 @@ export default function Us() {
         Regresar
         <span className="text-xl">←</span>
       </Link>
+      <br></br>
 
       {/* Nivel 1 */}
       <div className="flex justify-center gap-12 mb-10">

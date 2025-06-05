@@ -15,13 +15,13 @@ export default function Home() {
 
       <Link
         to="/nosotros"
-        className="mt-4 bg-white px-3 rounded-full flex items-center gap-2 hover:scale-105 transition-transform"
+        className="mt-4 bg-white px-3 rounded-3xl flex items-center gap-2 hover:scale-105 transition-transform"
       >
-        Conócenos
+        <p className='text-md'>Conócenos</p>
       </Link>
 
-      <div className="bg-white text-black text-center p-8 mt-11 max-w-4xl rounded shadow-md">
-        <p>
+      <div className="bg-white text-black text-center md:p-8 p-4 mt-11 max-w-4xl rounded-3xl shadow-md  ">
+        <p className='md:text-lg text-sm'>
           Whispertrend es tu plataforma de inteligencia de mercado. Nosotros sabemos que las tendencias y
           noticias en redes sociales pueden impulsar o afectar tu negocio en minutos. WhisperTrend te
           permite monitorearlas, medir su impacto, y detectar oportunidades o amenazas antes que nadie.
