@@ -11,25 +11,39 @@ import UniformTrendPlot from '@/components/UniformTrendPlot';
 import MensajeInicial from '@/components/dashboard/mensajeInicial';
 import TasasGraficaDinamica from '@/components/dashboard/TasaGraficaDinamica';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
+
+
+// Objeto de mapeo que convierte nombres legibles de contenido a identificadores únicos del sistema
 const mapeoTipos = {
+  
+  // Ventas
   'Ventas': 'ventas',
+
+  // Hashtags
   '#EcoFriendly': 'hashtag1',
   '#SustainableFashion': 'hashtag2',
   '#NuevosMateriales': 'hashtag3',
+
+  //Noticias
   'Noticia1': 'noticia1',
   'Noticia2': 'noticia2',
   'Noticia3': 'noticia3'
 };
 
+
+// Genera dinámicamente los datos de tasas de interacción y viralidad para todas las redes sociales
 const generarDatosTasasDinamico = () => {
+  // Definición de las calculadoras y sus resultados
   const calculadoras = [
     { id: 'insta', resultado: resultadoInstaCalc, colorInteraccion: '#e91e63', colorViralidad: '#f06292' }, // Instagram
     { id: 'x', resultado: resultadoXCalc, colorInteraccion: '#dc2626', colorViralidad: '#f97316' },         // X
     { id: 'reddit', resultado: resultadoRedditCalc, colorInteraccion: '#2563eb', colorViralidad: '#06b6d4' } // Reddit
   ];
 
+  //Objeto principal donde se almacenarán las tasas
   const datosTasas: any = {};
 
+  // Iterar sobre cada calculadora y sus hashtags para generar las tasas
   calculadoras.forEach(calc => {
     if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
       calc.resultado.hashtags.forEach((hashtag: any) => {
@@ -39,6 +53,7 @@ const generarDatosTasasDinamico = () => {
           color: calc.colorInteraccion
         };
 
+        // Crea entrada para tasa de Viralidad del hashtag específico
         datosTasas[`vir_${calc.id}_${hashtag.id}`] = {
           nombre: `Tasa de viralidad ${calc.resultado.emoji || ''} ${hashtag.nombre}`,
           datos: hashtag.datosViralidad,
@@ -48,34 +63,46 @@ const generarDatosTasasDinamico = () => {
     }
   });
 
-  // Fallbacks con colores consistentes
+  //Datos por defecto para tasas de interacción y viralidad de hashtags específicos
+  // Asegura que siempre existan las tasas principales, incluso si no hay datos específicos
+  // Utiliza el hashtag 'eco' como referencia principal, o crea valores vacíos
+
+  //Instagram
   datosTasas['int_insta'] = datosTasas['int_insta_eco'] || { 
     nombre: 'Tasa de interacción Instagram', 
     datos: [], 
     color: '#e91e63' 
   };
+
+  //Instagram
   datosTasas['vir_insta'] = datosTasas['vir_insta_eco'] || { 
     nombre: 'Tasa de viralidad Instagram', 
     datos: [], 
     color: '#f06292' 
   };
 
+  //X
   datosTasas['int_x'] = datosTasas['int_x_eco'] || { 
     nombre: 'Tasa de interacción X', 
     datos: [], 
     color: '#dc2626' 
   };
+
+  //X
   datosTasas['vir_x'] = datosTasas['vir_x_eco'] || { 
     nombre: 'Tasa de viralidad X', 
     datos: [], 
     color: '#f97316' 
   };
 
+  //Reddit
   datosTasas['int_reddit'] = datosTasas['int_reddit_eco'] || { 
     nombre: 'Tasa de interacción Reddit', 
     datos: [], 
     color: '#2563eb' 
   };
+
+  //Reddit
   datosTasas['vir_reddit'] = datosTasas['vir_reddit_eco'] || { 
     nombre: 'Tasa de viralidad Reddit', 
     datos: [], 
@@ -85,23 +112,28 @@ const generarDatosTasasDinamico = () => {
   return datosTasas;
 };
 
+// Ejecuta la función para obtener todas las tasas organizadas
 const datosTasas = generarDatosTasasDinamico();
 
+//Obtiene los IDs de tasas de interacción y viralidad para un hashtag específico en todas las redes sociales
 const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
+  // Array que acumulará todos los IDs de tasas encontrados
   const ids: string[] = [];
+  // Define las calculadoras disponibles con sus resultados correspondientes
   const calculadoras = [
     { id: 'insta', resultado: resultadoInstaCalc },
     { id: 'x', resultado: resultadoXCalc },
     { id: 'reddit', resultado: resultadoRedditCalc }
   ];
 
+ // Busca el hashtag específico en los resultados de esta calculadora
   calculadoras.forEach(calc => {
     const hashtag = calc.resultado.hashtags.find(h => h.nombre === hashtagId);
     if (hashtag) {
       ids.push(`int_${calc.id}_${hashtag.id}`, `vir_${calc.id}_${hashtag.id}`);
     }
   });
-
+  // Si no se encontró el hashtag, devuelve un array vacío
   return ids.length > 0 ? ids : [];
 };
 
@@ -313,7 +345,6 @@ const hashtagsDinamicos = [
                 </div>
               </div>
               
-              {/* Badge de información */}
               <div className="bg-gradient-to-r from-blue-100/80 to-indigo-100/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/50">
                 <div className="flex items-center">
                   <span className="text-blue-600 mr-2">💡</span>
@@ -324,7 +355,6 @@ const hashtagsDinamicos = [
               </div>
             </div>
 
-            {/* Contenedor del menú con efecto glassmorphism */}
             <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-4 border border-white/40 shadow-inner">
               <MenuComponentes
                 modoVisualizacion={modoVisualizacion}
@@ -340,14 +370,11 @@ const hashtagsDinamicos = [
           </div>
         </div>
         
-        {/* Interpretación - Span completo */}
         <div className="relative bg-gradient-to-br from-white via-green-50/40 to-emerald-50/60 shadow-2xl rounded-3xl p-8 border-2 border-green-200/30 backdrop-blur-lg overflow-hidden lg:col-span-2">
-          {/* Decoraciones de fondo */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-emerald-500/20 rounded-full blur-3xl -translate-y-16 translate-x-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-teal-400/20 to-cyan-400/20 rounded-full blur-2xl translate-y-12 -translate-x-12"></div>
           
           <div className="relative z-10">
-            {/* Header elegante */}
             <div className="mb-6 pb-4 border-b border-green-200/50">
               <div className="flex items-center mb-3">
                 <div className="relative">
