@@ -56,7 +56,7 @@ export default function WebRouter(){
       <Route path="/RegistroU" element={<Unprotected>{loadLayout(MainLayout, Registro)}</Unprotected>} />
       <Route path="/confirmacionCorreo" element={loadLayout(MainLayout, EmailConfirmation)} />
       <Route path="/holaDeNuevo" element={loadLayout(MainLayout, HolaDeNuevo)} />
-      <Route path="/changePassword" element={loadLayout(MainLayout, ChangePassword)} />
+      <Route path="/changePassword" element={loadLayout(AuthLayout, ChangePassword)} />
       <Route path="/actualizarPlan" element={loadLayout(MainLayout, ActualizarPlan)} />
       <Route path="/resumen" element={loadLayout(MainLayout, Resumen)} />
       <Route path="/newResource" element={loadLayout(LaunchLayout, NewResource)}  />
