@@ -1,17 +1,19 @@
-import { createContext} from 'react';
-import { NavigateFunction } from 'react-router-dom';
-
+import { createContext } from 'react';
 
 export type AuthContextType = {
   isLoading: boolean;
-  isAuthenticated: boolean;
+  isAuthenticated: boolean;      // verdadero sólo tras haber pasado 2FA
+  needsVerification: boolean;    // verdadero tras un login exitoso, hasta que pase el 2FA
   signOut: () => void;
   signIn: (email: string, password: string) => void;
+  verifyCode: (code: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   isAuthenticated: false,
+  needsVerification: false,
   signOut: () => {},
   signIn: () => {},
-})
+  verifyCode: async () => {},
+});

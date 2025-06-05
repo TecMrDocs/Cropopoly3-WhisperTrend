@@ -26,7 +26,7 @@ export default function EditarProducto() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MywiZXhwIjoxNzQ5MjI4MTIwfQ.ysOpkiGz9d07Dm-d1og-xAoSFIf-V7laT8xWp4COPfc";
+  const token = localStorage.getItem("token");
 
   // Cargar los datos del producto
   useEffect(() => {

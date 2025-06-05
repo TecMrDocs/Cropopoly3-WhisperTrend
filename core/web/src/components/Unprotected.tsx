@@ -5,11 +5,16 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function Unprotected({ children }: { children: React.ReactNode}){
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, needsVerification } = useAuth();
 
   useEffect(() => {
     if(isAuthenticated) navigate("/dashboard");
-  }, [isAuthenticated, navigate]);
+
+    // Si no está autenticado y necesita verificación, redirigimos a la pantalla de 2FA
+    if(!isAuthenticated && needsVerification){ 
+      navigate("/holaDeNuevo");
+    }
+  }, [isAuthenticated, needsVerification,navigate]);
 
   return <>{children}</>
 }

@@ -65,7 +65,6 @@ export default function Login() {
 
     try {
       await signIn(email, password);
-      navigate("/dashboard");
     } catch(error: any){
       if(error.response?.status === 401){
         setApiError("Email o contraseña incorrectos");
