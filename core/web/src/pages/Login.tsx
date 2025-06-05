@@ -147,7 +147,7 @@ export default function Login() {
                 No tienes cuenta?{" "}
                 <span
                   onClick={() => navigate("/RegistroU")}
-                  className="text-[#41c0af] underline cursor-pointer font-medium hover:text-blue-600 transition-colors"
+                  className="text-[#3aadc4] underline cursor-pointer font-medium hover:text-blue-600 transition-colors"
                 >
                   Regístrate
                 </span>
@@ -155,7 +155,7 @@ export default function Login() {
               <p>
                 <span
                   onClick={() => navigate("/ChangePassword")}
-                  className="text-[#41c0af] underline cursor-pointer font-medium hover:text-blue-600 transition-colors"
+                  className="text-[#3aadc4] underline cursor-pointer font-medium hover:text-blue-600 transition-colors"
                 >
                   Olvidé mi contraseña
                 </span>
@@ -163,7 +163,7 @@ export default function Login() {
               <p>
                 <span
                   onClick={() => navigate("/avisoPrivacidad")}
-                  className="text-[#41c0af] underline cursor-pointer font-medium hover:text-blue-600 transition-colors"
+                  className="text-[#3aadc4] underline cursor-pointer font-medium hover:text-blue-600 transition-colors"
                 >
                   Aviso de privacidad
                 </span>
