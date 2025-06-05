@@ -80,32 +80,43 @@ export default function EditarDatos() {
           {ventas.map((venta, index) => (
             <tr key={index}>
               <td className="border border-black px-4 py-2">
+                <label htmlFor={`mes-${index}`} className="sr-only">Mes</label>
                 <input
+                  id={`mes-${index}`}
                   value={venta.mes}
                   onChange={(e) => handleChange(index, "mes", e.target.value)}
                   className="w-full p-1 text-center"
+                  aria-label={`Mes fila ${index + 1}`}
                 />
               </td>
               <td className="border border-black px-4 py-2">
+                <label htmlFor={`año-${index}`} className="sr-only">Año</label>
                 <input
+                  id={`año-${index}`}
                   value={venta.año}
                   onChange={(e) => handleChange(index, "año", e.target.value)}
                   className="w-full p-1 text-center"
+                  aria-label={`Año fila ${index + 1}`}
                 />
               </td>
               <td className="border border-black px-4 py-2">
+                <label htmlFor={`cantidad-${index}`} className="sr-only">Cantidad</label>
                 <input
+                  id={`cantidad-${index}`}
                   value={venta.cantidad}
                   onChange={(e) => handleChange(index, "cantidad", e.target.value)}
                   className="w-full p-1 text-center"
+                  aria-label={`Cantidad fila ${index + 1}`}
                 />
               </td>
               <td className="border border-black px-4 py-2">
                 <button
+                  aria-label={`Eliminar fila ${index + 1}`}
                   onClick={() => borrarFila(index)}
                   className="text-red-600 hover:text-red-800"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={18} aria-hidden="true" />
+                  <span className="sr-only">{`Eliminar fila ${index + 1}`}</span>
                 </button>
               </td>
             </tr>
