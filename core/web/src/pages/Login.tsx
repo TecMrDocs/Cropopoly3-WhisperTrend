@@ -81,7 +81,7 @@ export default function Login() {
   // Página de inicio de sesión con formulario y mensajes de error
   return (
     <LogoBackground>
-      <div className="flex flex-1 justify-center items-center md:p-8 p-4">
+      <div className="flex flex-1 justify-center items-center md:p-8 p-4 ">
         <div>
           <h1 className="text-center mb-4 text-[#141652] text-2xl font-semibold">Bienvenid@</h1>
           <h2 className="text-center mb-4 text-[#141652] text-xl">Inicia sesión</h2>
