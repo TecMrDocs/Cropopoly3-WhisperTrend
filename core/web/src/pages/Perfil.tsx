@@ -3,6 +3,7 @@ import BlueButton from "../components/BlueButton";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import { useState } from "react";
 import SaveAlert from "../components/saveAlert";
+
 type PerfilData = {
   name: string;
   lastName: string;
@@ -27,13 +28,9 @@ export default function Perfil() {
   const handleInputChange = (field: keyof PerfilData, value: string) => {
     setUserFormData(prev => ({
       ...prev,
-      [field]:value,
+      [field]: value,
     }));
   };
-
-
-
-
 
   const handleSave = () => {
     setShowAlert(true);
@@ -42,74 +39,72 @@ export default function Perfil() {
     }, 3000);
   }
 
-  return(
-    <div>
-      <div className='flex items-center justify-center'>
+  return (
+    <div className="px-24">
+      <div className='flex items-center justify-center text-center'>
         <h1 className="text-3xl font-bold">Edita tus datos personales</h1>
       </div>
-      <br></br>
-      <div className='flex flex-row gap-6 justify-center'>
-         <TextFieldWHolder 
-              id="Nombre"
-              placeholder="Ingrese su nombre" 
-              width="300px" 
-              label="Nombre(s)"
-              onChange={(e) => handleInputChange("name", e.target.value)}/>
-         <TextFieldWHolder 
-              id="Apellido"
-              placeholder="Ingrese su apellido(s)" 
-              width="300px" 
-              label="Apellido(s)" 
-              onChange={(e) => handleInputChange("lastName", e.target.value)}
-              value={userFormData.lastName}
-              />
-      </div>
-      <br></br>
-      <div className="flex flex-col gap-5 items-center justify-center">
-        <TextFieldWHolder 
-            id="Correo"
-            placeholder="mail@example.com" 
-            width="600px" 
-            label="Correo electrónico" 
-            onChange={(e) => handleInputChange("email", e.target.value)}
-            value={userFormData.email}
+      <div className='grid grid-cols-2 gap-6 justify-center pt-7'>
+        <TextFieldWHolder
+          id="Nombre"
+          placeholder="Ingrese su nombre"
+          width="100%"
+          label="Nombre(s)"
+          onChange={(e) => handleInputChange("name", e.target.value)} />
+        <TextFieldWHolder
+          id="Apellido"
+          placeholder="Ingrese su apellido(s)"
+          width="100%"
+          label="Apellido(s)"
+          onChange={(e) => handleInputChange("lastName", e.target.value)}
+          value={userFormData.lastName}
         />
-        <TextFieldWHolder 
-            id="Confirma correo"
-            label="Confirma tu correo" 
-            width="600px" 
-            
-            />
-        <TextFieldWHolder 
-            id="Telefono"
-            label="Número telefónico" 
-            width="600px" 
-            placeholder="+55 12 1234 5678" 
-            onChange={(e) => handleInputChange("phone", e.target.value)}
-            value={userFormData.phone}
-            />
-        <TextFieldWHolder 
-            id="Puesto"
-            label="Puesto o cargo en la empresa" 
-            width="600px" 
-            onChange={(e) => handleInputChange("job", e.target.value)}
-            value={userFormData.job}
-            />
-        <TextFieldWHolder 
-            id="Contraseña"
-            label="Contraseña" 
-            width="600px" 
-            onChange={(e) => handleInputChange("password", e.target.value)}
-            value={userFormData.password}
-            />
-        <TextFieldWHolder id="Confirma contraseña" label="Confirma tu contraseña" width="600px" />
       </div>
-      <br></br>
-
-      <div className="flex flex-row justify-center gap-10">
-        <WhiteButton text="Cancelar" width="300px" />
-        <BlueButton text="Guardar" width="300px" onClick={handleSave}/>
-
+      <div className="grid grid-cols-1 gap-5 items-center justify-center">
+        <TextFieldWHolder
+          id="Correo"
+          placeholder="mail@example.com"
+          width="100%"
+          label="Correo electrónico"
+          onChange={(e) => handleInputChange("email", e.target.value)}
+          value={userFormData.email}
+        />
+        <TextFieldWHolder
+          id="Confirma correo"
+          label="Confirma tu correo"
+          width="100%"
+        />
+        <TextFieldWHolder
+          id="Telefono"
+          label="Número telefónico"
+          width="100%"
+          placeholder="+55 12 1234 5678"
+          onChange={(e) => handleInputChange("phone", e.target.value)}
+          value={userFormData.phone}
+        />
+        <TextFieldWHolder
+          id="Puesto"
+          label="Puesto o cargo en la empresa"
+          width="100%"
+          onChange={(e) => handleInputChange("job", e.target.value)}
+          value={userFormData.job}
+        />
+        <TextFieldWHolder
+          id="Contraseña"
+          label="Contraseña"
+          width="100%"
+          onChange={(e) => handleInputChange("password", e.target.value)}
+          value={userFormData.password}
+        />
+        <TextFieldWHolder
+          id="Confirma contraseña"
+          label="Confirma tu contraseña"
+          width="100%"
+        />
+      </div>
+      <div className="grid grid-cols-2 justify-center gap-10 pt-7">
+        <WhiteButton text="Cancelar" width="100%" />
+        <BlueButton text="Guardar" width="100%" onClick={handleSave} />
       </div>
       {showAlert && <SaveAlert />}
     </div>
