@@ -13,6 +13,7 @@ type TextAreaFieldProps = {
   placeholder?: string; // Texto del placeholder, por defecto es 'Escribe tu mensaje...'
   value?: string; // Valor del campo de texto, si no se proporciona se usa el estado interno
   onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; // Función a ejecutar al cambiar el valor del campo de texto
+  id?: string; // Id del campo de texto
 };
 
 export default function TextAreaField({
