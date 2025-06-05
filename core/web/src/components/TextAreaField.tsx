@@ -1,13 +1,18 @@
+/**
+ * Componente: TextAreaField
+ * Authors: Arturo Barrios Mendoza
+ * Descripción: Componente de campo de texto personalizado con soporte para longitud máxima y placeholder.
+ */
+
 import React, { useState } from 'react';
 
 type TextAreaFieldProps = {
-  label?: string;
-  width?: string;
-  maxLength?: number;
-  placeholder?: string;
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  id?: string;
+  label?: string; // Etiqueta del campo de texto
+  width?: string; // Ancho del campo de texto, por defecto es '400px'
+  maxLength?: number; // Longitud máxima del campo de texto, por defecto es 500
+  placeholder?: string; // Texto del placeholder, por defecto es 'Escribe tu mensaje...'
+  value?: string; // Valor del campo de texto, si no se proporciona se usa el estado interno
+  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; // Función a ejecutar al cambiar el valor del campo de texto
 };
 
 export default function TextAreaField({
@@ -19,10 +24,13 @@ export default function TextAreaField({
   onChange,
   id,
 }: TextAreaFieldProps) {
+  // Estado interno para manejar el valor del campo de texto si no se proporciona un valor externo
   const [internalValue, setInternalValue] = useState('');
 
+  // Si se proporciona un valor, se usa ese; de lo contrario, se usa el estado interno
   const currentValue = value ?? internalValue;
 
+  // Maneja el cambio en el campo de texto, asegurándose de no exceder la longitud máxima
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (e.target.value.length <= maxLength) {
       if (onChange) {

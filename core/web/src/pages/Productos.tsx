@@ -51,19 +51,27 @@ export default function Productos() {
 
   const handleDelete = async () => {
     if (!resourceToDelete) return;
-
+  
     try {
       const res = await fetch(`${API_URL}resource/${resourceToDelete}`, {
-        ...getConfig(),
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...getConfig().headers,
+        },
       });
-
-      if (res.ok) {
-        setResources(resources.filter(r => r.id !== resourceToDelete));
-        setShowModal(false);
+  
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Error del servidor: ${errorText}`);
       }
+  
+      setResources(prev => prev.filter(r => r.id !== resourceToDelete));
+      setShowModal(false);
+      setResourceToDelete(null);
     } catch (error) {
       console.error("Error eliminando recurso:", error);
+      alert("Ocurrió un error al eliminar el recurso.");
     }
   };
 

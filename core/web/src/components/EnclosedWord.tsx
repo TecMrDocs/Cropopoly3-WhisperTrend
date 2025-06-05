@@ -1,3 +1,9 @@
+/**
+ * Componente: EnclosedWord
+ * Authors: Arturo Barrios Mendoza
+ * Descripción: Es un componente que muestra una palabra encerrada en un cuadro con un fondo degradado.
+ */
+
 export default function EnclosedWord({ word }: { word: string }) {
   return (
     <div className="flex items-center justify-center">

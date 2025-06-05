@@ -1,6 +1,12 @@
+/**
+ * Componente: ButtonAdd
+ * Authors: Arturo Barrios Mendoza
+ * Descripción: Botón para añadir palabras.
+ */
+
 type ButtonAddProps = {
-  width?: string;
-  onClick?: () => void;
+  width?: string; // Ancho del botón, por defecto es '40px'
+  onClick?: () => void; // Función a ejecutar al hacer clic
 };
 
 export default function ButtonAdd({ width = '40px', onClick }: ButtonAddProps) {

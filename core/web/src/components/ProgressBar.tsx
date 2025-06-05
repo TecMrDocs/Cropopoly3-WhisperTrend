@@ -1,3 +1,9 @@
+/**
+ * Componente: ProgressBar
+ * Authors: Arturo Barrios Mendoza
+ * Descripción: Es la barra de progreso del área Launch.
+ */
+
 import { ReactElement } from 'react';
 import { LiaIndustrySolid } from "react-icons/lia";
 import { GiCardboardBox } from "react-icons/gi";
@@ -5,16 +11,17 @@ import { LuChartNoAxesCombined } from "react-icons/lu";
 import { MdOutlineTravelExplore } from "react-icons/md";
 
 type Step = {
-  icon: ReactElement;
-  text: string;
-  color: string;
-  tooltip?: string;
+  icon: ReactElement; // Icono del paso
+  text: string; // Texto descriptivo del paso (debajo)
+  color: string; // Color de fondo del círculo del paso
+  tooltip?: string; // Texto del tooltip que se muestra al pasar el mouse sobre el paso (al pasar el mouse encima)
 };
 
 type ProgressBarProps = {
-  activeStep: number;
+  activeStep: number; // Índice del paso activo (0 para el primer paso, 1 para el segundo, etc.)
 };
 
+// Data de los pasos de la barra de progreso
 const steps: Step[] = [
   {
     icon: <LiaIndustrySolid />,
