@@ -2,6 +2,7 @@ use crate::scraping::{
     instagram::InstagramScraper,
     notices::{NoticesScraper, Params},
     reddit::RedditScraper,
+    twitter::TwitterScraper,
     trends::TrendsScraper,
 };
 use actix_web::{HttpResponse, Responder, get, post, web};
@@ -14,6 +15,12 @@ struct Query {
     startdatetime: String,
     enddatetime: String,
     language: String,
+}
+
+#[get("/twitter/login")]
+pub async fn get_login_twitter() -> impl Responder {
+    let posts = TwitterScraper::login().await;
+    HttpResponse::Ok().finish()
 }
 
 #[get("/reddit/get-simple-posts/{keyword}")]
@@ -137,4 +144,5 @@ pub fn routes() -> actix_web::Scope {
         .service(get_details)
         .service(get_trends)
         .service(get_instagram_posts_from_hashtag)
+        .service(get_login_twitter)
 }
