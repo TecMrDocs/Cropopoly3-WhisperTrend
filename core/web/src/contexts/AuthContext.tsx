@@ -5,7 +5,8 @@ export type AuthContextType = {
   isAuthenticated: boolean;      // verdadero sólo tras haber pasado 2FA
   needsVerification: boolean;    // verdadero tras un login exitoso, hasta que pase el 2FA
   signOut: () => void;
-  signIn: (email: string, password: string) => void;
+  // signIn: (email: string, password: string) => void;
+  signIn: (email: string, password: string) => Promise<void>; 
   verifyCode: (code: string) => Promise<void>;
 }
 
@@ -14,6 +15,7 @@ export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   needsVerification: false,
   signOut: () => {},
-  signIn: () => {},
+  // signIn: () => {},
+  signIn: () => Promise.resolve(),
   verifyCode: async () => {},
 });

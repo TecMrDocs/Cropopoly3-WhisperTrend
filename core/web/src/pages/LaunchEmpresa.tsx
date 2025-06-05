@@ -175,7 +175,14 @@ export default function LaunchEmpresa() {
       <h1 className="text-4xl font-bold mt-2 text-center">Primero, cuéntanos sobre tu empresa</h1>
       <p className="text-xl mt-10 text-center">¿Cuál es el nombre de tu empresa?</p>
       <div className="mt-3">
-        <TextFieldWHolder placeholder="Escribe el nombre de tu empresa" width="600px" value={nombreEmpresa} onChange={(e) => setNombreEmpresa(e.target.value)} />
+        <TextFieldWHolder 
+          id="nombreEmpresa" 
+          label="Nombre de la empresa" 
+          placeholder="Escribe el nombre de tu empresa" 
+          width="600px" 
+          value={nombreEmpresa} 
+          onChange={(e) => setNombreEmpresa(e.target.value)} 
+        />
         {errors.nombreEmpresa && (
           <p className="text-red-500 text-sm mt-1">{errors.nombreEmpresa}</p>
         )}
@@ -207,7 +214,15 @@ export default function LaunchEmpresa() {
       
       <p className="text-xl mt-10 text-center">¿En qué país y ciudades desarrollas tus operaciones?</p>
       <div className="mt-3">
-        <TextAreaField placeholder="Escribe el país y las ciudades" maxLength={200} width="600px" value={operaciones} onChange={(e) => setOperaciones(e.target.value)} />
+        <TextAreaField 
+          label="Operaciones"
+          id="operaciones"
+          placeholder="Escribe el país y las ciudades" 
+          maxLength={200} 
+          width="600px" 
+          value={operaciones} 
+          onChange={(e) => setOperaciones(e.target.value)} 
+        />
         {errors.operaciones && (
           <p className="text-red-500 text-sm mt-1">{errors.operaciones}</p>
         )}
@@ -215,7 +230,14 @@ export default function LaunchEmpresa() {
       
       <p className="text-xl mt-3 text-center">¿Cuántas sucursales o establecimientos tienes?</p>
       <div className="mt-3">
-        <TextFieldWHolder placeholder="Escribe tu número de sucursales" width="260px" value={sucursales} onChange={(e) => setSucursales(e.target.value)} />
+        <TextFieldWHolder 
+          id="sucursales"
+          label="Número de sucursales"
+          placeholder="Escribe tu número de sucursales" 
+          width="260px" 
+          value={sucursales} 
+          onChange={(e) => setSucursales(e.target.value)} 
+        />
         {errors.sucursales && (
           <p className="text-red-500 text-sm mt-1">{errors.sucursales}</p>
         )}

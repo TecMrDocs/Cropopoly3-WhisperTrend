@@ -40,6 +40,15 @@ export default function Registro() {
     confirmPassword: ""
   });
 
+  // Estado para manejar el cumplimiento de criterios de contraseña
+  const [passwordCriteria, setPasswordCriteria] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    specialChar: false,
+  });
+
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
 
@@ -83,7 +92,7 @@ export default function Registro() {
     } else if (!formData.email.includes("@")) {
       newErrors.email = "El correo debe contener @";
       valid = false;
-    } else if (!/^[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$/.test(formData.email)) {
+    } else if (!/^[a-z0-9_]+@[a-z]+\.[a-z]+(\.[a-z]+)?$/.test(formData.email)) {
       newErrors.email = "El correo no tiene un formato válido";
       valid = false;
     }
@@ -101,17 +110,32 @@ export default function Registro() {
     if (!formData.position.trim()) {
       newErrors.position = "El puesto o cargo es requerido";
       valid = false;
-    } else if (!/^[a-zA-Z\s]+$/.test(formData.position)) {
+    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(formData.position)) {
       newErrors.position = "El puesto o cargo solo puede contener letras y espacios";
       valid = false;
     }
 
     // Valida contraseña
+    // if (!formData.password) {
+    //   newErrors.password = "La contraseña es requerida";
+    //   valid = false;
+    // } else if (formData.password.length < 8) {
+    //   newErrors.password = "La contraseña debe tener al menos 8 caracteres";
+    //   valid = false;
+    // }
+
+    // Validación de criterios de contraseña
     if (!formData.password) {
       newErrors.password = "La contraseña es requerida";
       valid = false;
-    } else if (formData.password.length < 8) {
-      newErrors.password = "La contraseña debe tener al menos 8 caracteres";
+    } else if (!(
+      passwordCriteria.length &&
+      passwordCriteria.uppercase &&
+      passwordCriteria.lowercase &&
+      passwordCriteria.number &&
+      passwordCriteria.specialChar
+    )) {
+      newErrors.password = "Debe cumplir con todos los requisitos";
       valid = false;
     }
 
@@ -129,6 +153,24 @@ export default function Registro() {
   };
 
   // Maneja el cambio de valor en los campos del formulario
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    setFormData(prev => ({
+      ...prev,
+      password: value
+    }));
+
+    setPasswordCriteria({
+      length: value.length >= 8,
+      uppercase: /[A-Z]/.test(value),
+      lowercase: /[a-z]/.test(value),
+      number: /\d/.test(value),
+      specialChar: /[@$!%*?&]/.test(value),
+    });
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -164,19 +206,16 @@ export default function Registro() {
         num_branches: formData.num_branches
       };
 
-      // console.log("Datos válidos:", JSON.stringify(dataToSend, null, 2));
-      // console.log("Enviando datos a la API...");
       try {
         await user.user.register(dataToSend);
-        console.log("Registro exitoso");
         navigate("/confirmacionCorreo");
 
       } catch (error: any) {
         console.error("Error al registrar el usuario:", error);
 
-        if(error.response){
-          const { status , data} = error.response;
-          if (status === 400){
+        if (error.response) {
+          const { status, data } = error.response;
+          if (status === 400) {
             setApiError(data.message || "Datos de registro inválidos");
 
           } else if (status === 409) {
@@ -203,7 +242,7 @@ export default function Registro() {
   // Renderiza el formulario de registro
 
   return (
-    <div>
+    <div className="p-7">
       <div className='flex items-center justify-center'>
         <h1 className="text-center mb-4 text-[#141652] text-2xl font-semibold">Registro de usuario</h1>
       </div>
@@ -269,7 +308,7 @@ export default function Registro() {
               value={formData.email}
               onChange={handleChange}
               hasError={!!errors.email}
-              placeholder="Ingrese su correo electrónico"
+              placeholder="Ingrese su correo electrónico ej. test@gmail.com"
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -325,13 +364,21 @@ export default function Registro() {
               type="password"
               name="password"
               value={formData.password}
-              onChange={handleChange}
+              onChange={handlePasswordChange}
               hasError={!!errors.password}
               placeholder="Ingrese su contraseña"
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
             )}
+            <div className="text-sm text-gray-600 mt-2">
+              <p className={passwordCriteria.length ? "text-green-500" : "text-red-500"}>✓ Mínimo 8 caracteres</p>
+              <p className={passwordCriteria.uppercase ? "text-green-500" : "text-red-500"}>✓ Al menos una mayúscula</p>
+              <p className={passwordCriteria.lowercase ? "text-green-500" : "text-red-500"}>✓ Al menos una minúscula</p>
+              <p className={passwordCriteria.number ? "text-green-500" : "text-red-500"}>✓ Al menos un número</p>
+              <p className={passwordCriteria.specialChar ? "text-green-500" : "text-red-500"}>✓ Al menos un carácter especial (@$!%*?&)</p>
+            </div>
+
           </div>
 
           <div className="w-full">
@@ -355,24 +402,19 @@ export default function Registro() {
           </div>
         </div>
 
-        <br />
-        <br />
-
-        <div className="flex flex-row justify-center gap-10">
-          <WhiteButton
-            text="Cancelar"
-            // width="20%"
-
-            width="300px"
-            onClick={handleCancel}
-          />
-          <BlueButton
-            text={loading ? "Registrando..." : "Crear cuenta"}
-            // width="100%"
-
-            width="300px"
-            type="submit"
-          />
+        <div className="max-w-3xl mx-auto w-full pt-7">
+          <div className="grid grid-cols-[2fr_5fr] justify-center gap-5 w-full">
+            <WhiteButton
+              text="Cancelar"
+              width="100%"
+              onClick={handleCancel}
+            />
+            <BlueButton
+              text={loading ? "Registrando..." : "Crear cuenta"}
+              width="100%"
+              type="submit"
+            />
+          </div>
         </div>
       </form>
     </div>

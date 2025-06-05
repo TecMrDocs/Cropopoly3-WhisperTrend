@@ -22,6 +22,7 @@ export default function TextAreaField({
   placeholder = 'Escribe tu mensaje...',
   value,
   onChange,
+  id,
 }: TextAreaFieldProps) {
   // Estado interno para manejar el valor del campo de texto si no se proporciona un valor externo
   const [internalValue, setInternalValue] = useState('');
@@ -42,9 +43,17 @@ export default function TextAreaField({
 
   return (
     <div className="flex flex-col gap-1" style={{ width }}>
-      {label && <label className="text-md font-semibold">{label}</label>}
+      {label && (
+        <label 
+          htmlFor={id}
+          className="text-md font-semibold"
+        >
+          {label}
+        </label>
+      )}
       <div className="p-[3px] rounded-[10px] bg-gradient-to-r from-[#00BFB3] to-[#0091D5] inline-block">
         <textarea
+          id={id}
           placeholder={placeholder}
           value={currentValue}
           onChange={handleChange}

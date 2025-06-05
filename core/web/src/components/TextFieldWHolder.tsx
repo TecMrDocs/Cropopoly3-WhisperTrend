@@ -18,7 +18,7 @@ type TextFieldWHolderProps = {
 
 export default function TextFieldWHolder({ 
   placeholder = '', 
-  width = '200px',
+  width = '100%',
   value,
   onChange,
   label,
@@ -29,8 +29,15 @@ export default function TextFieldWHolder({
 }: TextFieldWHolderProps) {
   return (
     <div className="flex flex-col gap-1">
-      {label && <label className="text-md text-gray-700 font-bold ">{label}</label>}
-      {/* <div className="p-[3px] rounded-3xl bg-gradient-to-r from-[#00BFB3] to-[#0091D5] inline-block"> */}
+      {label && (
+        <label 
+          htmlFor={id}
+          className="text-sm sm:text-md text-gray-700 font-bold "
+        >
+          {label}
+        </label>
+      )}
+     
       <div 
         className={`p-[3px] rounded-3xl inline-block ${
           hasError 

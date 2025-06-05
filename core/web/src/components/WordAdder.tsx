@@ -25,6 +25,8 @@ export default function WordAdder({ onAdd }: WordAdderProps) {
   return (
     <div className="flex flex-row items-center justify-center gap-6">
       <TextFieldWHolder 
+        id="Palabra asociada"
+        label="Palabras asociadas"
         placeholder="Agrega una palabra asociada con tu producto" 
         width="400px"
         value={inputWord}

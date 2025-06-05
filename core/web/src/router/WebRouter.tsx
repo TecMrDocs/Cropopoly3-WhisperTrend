@@ -29,8 +29,12 @@ import ActualizarPlan from "../pages/ActualizarPlan";
 import Us from "../pages/Us";
 import HolaDeNuevo from "../pages/HolaDeNuevo";
 import NewResource from "../pages/NewResource";
+import RegistroVentas from "../pages/RegistroVentas";
+import PrevioRegistroVentas from "../pages/PrevioRegistroVentas";
+import ConfirmaProducto from "../pages/ConfirmaProducto";
 import Protected from "../components/Protected";
 import Unprotected from "../components/Unprotected";
+import AuthLayout from "@/layouts/authLayout";
 
 
 export default function WebRouter(){
@@ -48,7 +52,7 @@ export default function WebRouter(){
       <Route path="/" element={<Unprotected>{loadLayout(LandingLayout, Home)}</Unprotected>} />
       <Route path="/nosotros" element={<Unprotected>{loadLayout(LandingLayout, Us)}</Unprotected>} />
       <Route path="/avisoPrivacidad" element={loadLayout(MainLayout, PrivacyNotice)} />
-      <Route path="/login" element={<Unprotected>{loadLayout(MainLayout, Login)}</Unprotected>} />
+      <Route path="/login" element={<Unprotected>{loadLayout(AuthLayout, Login)}</Unprotected>} />
       <Route path="/RegistroU" element={<Unprotected>{loadLayout(MainLayout, Registro)}</Unprotected>} />
       <Route path="/confirmacionCorreo" element={loadLayout(MainLayout, EmailConfirmation)} />
       <Route path="/holaDeNuevo" element={loadLayout(MainLayout, HolaDeNuevo)} />
@@ -56,6 +60,11 @@ export default function WebRouter(){
       <Route path="/actualizarPlan" element={loadLayout(MainLayout, ActualizarPlan)} />
       <Route path="/resumen" element={loadLayout(MainLayout, Resumen)} />
       <Route path="/newResource" element={loadLayout(LaunchLayout, NewResource)}  />
+      <Route path="/previoRegistroVentas" element={loadLayout(LaunchLayout, PrevioRegistroVentas)} />
+      <Route path="/registroVentas" element={loadLayout(LaunchLayout, RegistroVentas)} />
+      <Route path="/confirmaProducto" element={loadLayout(LaunchLayout, ConfirmaProducto)} />
+      
+      {/* Rutas de autenticación */}
       
       {/* Rutas protegidas - requieren autenticación */}
       <Route path="/dashboard" element={<Protected>{loadLayout(ProfileLayout, Dashboard)}</Protected>} />

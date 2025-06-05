@@ -173,6 +173,7 @@ export default function EditarProducto() {
         />
 
         <TextFieldWHolder
+          id="Nombre producto"
           label="Nombre del producto o servicio:"
           width="700px"
           placeholder="Ej. Bolso Marianne"
@@ -181,6 +182,7 @@ export default function EditarProducto() {
         />
 
         <TextAreaField
+          id="Descripcion"
           label="Descripción del producto o servicio"
           placeholder="Ej. Bolso de piel sintética para mujer"
           width="700px"
@@ -189,9 +191,10 @@ export default function EditarProducto() {
         />
 
         <div className="flex flex-col gap-2" style={{ width: "700px" }}>
-          <label className="text-base font-medium">Palabras asociadas</label>
+          <label className="text-base font-medium" htmlFor="Palabras asociadas">Palabras asociadas</label>
           <div className="flex gap-2">
             <input
+              id="Palabras asociadas"
               type="text"
               placeholder="Ej. Elegancia"
               value={palabra}
@@ -199,6 +202,7 @@ export default function EditarProducto() {
               className="w-full border-none outline-none p-2 px-4 rounded-[6px] bg-white text-base text-black shadow-md"
             />
             <button
+              aria-label="Agregar palabra"
               onClick={handleAgregar}
               className="bg-gradient-to-r from-[#00BFB3] to-[#0091D5] p-2 px-4 rounded-[6px] text-white hover:scale-[1.05] transition"
             >
@@ -214,6 +218,7 @@ export default function EditarProducto() {
               >
                 {p}
                 <button
+                  aria-label="Eliminar palabra"
                   onClick={() => eliminarPalabra(p)}
                   className="hover:text-red-600"
                 >
