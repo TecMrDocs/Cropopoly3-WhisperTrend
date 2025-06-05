@@ -31,6 +31,7 @@ import HolaDeNuevo from "../pages/HolaDeNuevo";
 import NewResource from "../pages/NewResource";
 import Protected from "../components/Protected";
 import Unprotected from "../components/Unprotected";
+import AuthLayout from "@/layouts/authLayout";
 
 
 export default function WebRouter(){
@@ -48,7 +49,7 @@ export default function WebRouter(){
       <Route path="/" element={<Unprotected>{loadLayout(LandingLayout, Home)}</Unprotected>} />
       <Route path="/nosotros" element={<Unprotected>{loadLayout(LandingLayout, Us)}</Unprotected>} />
       <Route path="/avisoPrivacidad" element={loadLayout(MainLayout, PrivacyNotice)} />
-      <Route path="/login" element={<Unprotected>{loadLayout(MainLayout, Login)}</Unprotected>} />
+      <Route path="/login" element={<Unprotected>{loadLayout(AuthLayout, Login)}</Unprotected>} />
       <Route path="/RegistroU" element={<Unprotected>{loadLayout(MainLayout, Registro)}</Unprotected>} />
       <Route path="/confirmacionCorreo" element={loadLayout(MainLayout, EmailConfirmation)} />
       <Route path="/holaDeNuevo" element={loadLayout(MainLayout, HolaDeNuevo)} />

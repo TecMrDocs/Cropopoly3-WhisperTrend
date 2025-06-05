@@ -12,7 +12,7 @@ type TextFieldWHolderProps = {
 
 export default function TextFieldWHolder({ 
   placeholder = '', 
-  width = '200px',
+  width = '100%',
   value,
   onChange,
   label,
@@ -26,7 +26,7 @@ export default function TextFieldWHolder({
       {label && (
         <label 
           htmlFor={id}
-          className="text-md text-gray-700 font-bold "
+          className="text-sm sm:text-md text-gray-700 font-bold "
         >
           {label}
         </label>
