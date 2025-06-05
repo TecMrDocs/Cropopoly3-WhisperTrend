@@ -3,7 +3,7 @@ import colorLogo from '../images/color-logo.png';
 export default function LogoBackground(props: any) {
   return (
     <div
-      className="min-h-screen flex bg-no-repeat bg-center md:bg-[length:125%]"
+      className="min-h-screen flex bg-no-repeat bg-center bg-cover md:bg-contain lg:bg-[length:125%]"
       style={{ backgroundImage: `url(${colorLogo})` }}
     >
       {props.children}
