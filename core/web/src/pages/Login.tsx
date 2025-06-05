@@ -70,7 +70,6 @@ export default function Login() {
       await signIn(email, password);
     } catch (error: any) {
       // const status = error.response?.status;
-      console.log("Esto es el error pipipi ", error)
       const message = typeof error.response?.data === "string"
         ? error.response.data
         : error.response?.data?.message || "Error al iniciar sesión";

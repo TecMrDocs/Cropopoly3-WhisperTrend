@@ -37,7 +37,6 @@ export default function Perfil() {
 
   const handleSave = () => {
     setShowAlert(true);
-    console.log(userFormData);
     setTimeout(() => {
       setShowAlert(false);
     }, 3000);

@@ -206,11 +206,8 @@ export default function Registro() {
         num_branches: formData.num_branches
       };
 
-      // console.log("Datos válidos:", JSON.stringify(dataToSend, null, 2));
-      // console.log("Enviando datos a la API...");
       try {
         await user.user.register(dataToSend);
-        console.log("Registro exitoso");
         navigate("/confirmacionCorreo");
 
       } catch (error: any) {
