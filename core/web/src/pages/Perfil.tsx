@@ -51,11 +51,13 @@ export default function Perfil() {
       <br></br>
       <div className='flex flex-row gap-6 justify-center'>
          <TextFieldWHolder 
+              id="Nombre"
               placeholder="Ingrese su nombre" 
               width="300px" 
               label="Nombre(s)"
               onChange={(e) => handleInputChange("name", e.target.value)}/>
          <TextFieldWHolder 
+              id="Apellido"
               placeholder="Ingrese su apellido(s)" 
               width="300px" 
               label="Apellido(s)" 
@@ -66,6 +68,7 @@ export default function Perfil() {
       <br></br>
       <div className="flex flex-col gap-5 items-center justify-center">
         <TextFieldWHolder 
+            id="Correo"
             placeholder="mail@example.com" 
             width="600px" 
             label="Correo electrónico" 
@@ -73,11 +76,13 @@ export default function Perfil() {
             value={userFormData.email}
         />
         <TextFieldWHolder 
+            id="Confirma correo"
             label="Confirma tu correo" 
             width="600px" 
             
             />
         <TextFieldWHolder 
+            id="Telefono"
             label="Número telefónico" 
             width="600px" 
             placeholder="+55 12 1234 5678" 
@@ -85,18 +90,20 @@ export default function Perfil() {
             value={userFormData.phone}
             />
         <TextFieldWHolder 
+            id="Puesto"
             label="Puesto o cargo en la empresa" 
             width="600px" 
             onChange={(e) => handleInputChange("job", e.target.value)}
             value={userFormData.job}
             />
         <TextFieldWHolder 
+            id="Contraseña"
             label="Contraseña" 
             width="600px" 
             onChange={(e) => handleInputChange("password", e.target.value)}
             value={userFormData.password}
             />
-        <TextFieldWHolder label="Confirma tu contraseña" width="600px" />
+        <TextFieldWHolder id="Confirma contraseña" label="Confirma tu contraseña" width="600px" />
       </div>
       <br></br>
 
