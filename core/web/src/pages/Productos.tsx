@@ -124,7 +124,7 @@ export default function Productos() {
               <FiEdit2 
                 className="cursor-pointer hover:text-blue-600" 
                 size={20}
-                onClick={() => navigate(`/editar/${resource.id}`)}
+                onClick={() => navigate(`/editarProducto/${resource.id}`)}
               />
             </div>
           </div>

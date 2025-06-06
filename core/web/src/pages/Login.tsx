@@ -83,7 +83,7 @@ export default function Login() {
     <LogoBackground>
       <div className="min-h-screen flex items-center justify-center p-4 md:p-8">
         <div className="w-full max-w-md mx-auto">
-          <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 md:p-8 shadow-2xl border border-white/20">
+          <div className="bg-white backdrop-blur-sm rounded-3xl p-6 md:p-8 shadow-2xl border border-white/20">
             <h1 className="text-center mb-4 text-[#141652] text-2xl md:text-3xl font-semibold">
               Bienvenid@
             </h1>
@@ -144,7 +144,7 @@ export default function Login() {
 
             <div className="text-center mt-8 space-y-2 text-sm">
               <p className="text-gray-700">
-                No tienes cuenta?{" "}
+                ¿No tienes cuenta?{" "}
                 <span
                   onClick={() => navigate("/RegistroU")}
                   className="text-[#3aadc4] underline cursor-pointer font-medium hover:text-blue-600 transition-colors"
