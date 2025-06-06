@@ -1,38 +1,198 @@
-import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { usePrompt } from "../contexts/PromptContext";
+import { API_URL } from "@/utils/constants";
+import { getConfig } from "@/utils/auth";
 import BlueButton from "../components/BlueButton";
 import WhiteButton from "../components/WhiteButton";
 
-type Venta = {
+// Tipos
+type Mes = {
+  id: string;
   mes: string;
-  año: string;
-  cantidad: string;
+  año: number;
+  numeroMes: number;
+};
+
+type Ventas = {
+  [key: string]: string | null;
+};
+
+type SaleRequest = {
+  id: number;
+  resource_id: number;
+  month: number;
+  year: number;
+  units_sold: number;
+};
+
+// Generar meses dinámicos (últimos 12)
+const generarMesesAtras = (): Mes[] => {
+  const meses: Mes[] = [];
+  const nombresMeses = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ];
+
+  const fechaActual = new Date();
+  let mesActual = fechaActual.getMonth();
+  let añoActual = fechaActual.getFullYear();
+
+  for (let i = 0; i < 12; i++) {
+    const id = `${añoActual}-${String(mesActual + 1).padStart(2, '0')}`;
+    meses.unshift({
+      id,
+      mes: nombresMeses[mesActual],
+      año: añoActual,
+      numeroMes: mesActual + 1,
+    });
+
+    if (mesActual === 0) {
+      mesActual = 11;
+      añoActual--;
+    } else {
+      mesActual--;
+    }
+  }
+
+  return meses;
+};
+
+const getUserId = async (): Promise<number | null> => {
+  try {
+    const res = await fetch(`${API_URL}auth/check`, getConfig());
+    if (!res.ok) throw new Error("Token inválido");
+    const data = await res.json();
+    return data.id;
+  } catch (err) {
+    console.error("Error obteniendo user_id:", err);
+    return null;
+  }
 };
 
 export default function EditarDatos() {
-  const [ventas, setVentas] = useState<Venta[]>([
-    { mes: "Mayo", año: "2024", cantidad: "50" },
-    { mes: "Junio", año: "2024", cantidad: "193"},
-  ]);
-
   const navigate = useNavigate();
   const location = useLocation();
+  const [meses] = useState<Mes[]>(generarMesesAtras());
+  const [ventas, setVentas] = useState<Ventas>(
+    meses.reduce((acc, mes) => ({ ...acc, [mes.id]: "" }), {})
+  );
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { productId, setHasSalesData } = usePrompt();
 
-  const handleChange = (index: number, field: keyof Venta, value: string) => {
-    const actualizadas = [...ventas];
-    actualizadas[index][field] = value;
-    setVentas(actualizadas);
+  const handleChange = (id: string, value: string) => {
+    if (value && Number(value) < 0) {
+      setError("No se permiten valores negativos en las ventas");
+      return;
+    }
+    setVentas((prev) => ({ ...prev, [id]: value }));
+    setError(null);
   };
 
-  const agregarFila = () => {
-    setVentas([...ventas, { mes: "", año: "", cantidad: "" }]);
+  const handleGuardar = async () => {
+    const hasData = meses.some(mes => ventas[mes.id] && ventas[mes.id] !== "");
+    setHasSalesData(hasData);
+
+    if (!hasData) {
+      setError("Debes registrar al menos un mes de ventas para continuar");
+      return;
+    }
+
+    const userId = await getUserId();
+    if (!userId) {
+      alert("Token inválido. Inicia sesión de nuevo.");
+      return;
+    }
+
+    if (!productId) {
+      setError("Falta información del producto. Por favor, regresa al paso anterior.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const mesesConVentas = meses.filter(mes => ventas[mes.id]);
+      const requests = mesesConVentas.map(mes => {
+        const saleData: SaleRequest = {
+          id: userId,
+          resource_id: productId,
+          month: mes.numeroMes,
+          year: mes.año,
+          units_sold: Number(ventas[mes.id])
+        };
+
+        return fetch(`${API_URL}sale`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...getConfig().headers,
+          },
+          body: JSON.stringify(saleData)
+        });
+      });
+
+      const responses = await Promise.all(requests);
+
+      for (const res of responses) {
+        if (!res.ok) {
+          const msg = await res.text();
+          throw new Error(msg || "Error al guardar ventas");
+        }
+      }
+
+      console.log("Ventas guardadas exitosamente");
+      navigate("/launchConfirmacion");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Error inesperado al guardar ventas"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const borrarFila = (index: number) => {
-    const actualizadas = ventas.filter((_, i) => i !== index);
-    setVentas(actualizadas);
-  };
+  useEffect(() => {
+    const cargarVentas = async () => {
+      if (!productId) return;
+  
+      try {
+        const res = await fetch(`${API_URL}sale/resource/${productId}`, getConfig());
+  
+        if (!res.ok) throw new Error("No se pudieron obtener las ventas");
+  
+        const data: {
+          month: number;
+          year: number;
+          units_sold: number;
+        }[] = await res.json();
+  
+        // Agrupar por año-mes y sumar las ventas
+        const ventasAgrupadas: { [key: string]: number } = {};
+        for (const venta of data) {
+          const id = `${venta.year}-${String(venta.month).padStart(2, "0")}`;
+          ventasAgrupadas[id] = venta.units_sold;
+        }
+  
+        // Actualiza el estado `ventas` con los datos obtenidos
+        setVentas((prev) =>
+          meses.reduce((acc, mes) => {
+            const id = mes.id;
+            acc[id] = ventasAgrupadas[id]?.toString() || "";
+            return acc;
+          }, {} as Ventas)
+        );
+      } catch (error) {
+        console.error("Error cargando ventas existentes:", error);
+      }
+    };
+  
+    cargarVentas();
+  }, [productId]);  
 
   return (
     <div className="p-8">
@@ -62,79 +222,57 @@ export default function EditarDatos() {
         </div>
       </div>
 
-      <p className="text-center text-lg mb-4 w-[600px] mx-auto">
-        Si lo deseas, podrás poner algún campo vacío en caso de no contar con el dato del número de ventas que tuviste ese mes.
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative w-[80%] mx-auto mb-4">
+          {error}
+        </div>
+      )}
+
+      <p className="text-center text-lg mb-6 w-[600px] mx-auto">
+        Si lo deseas, podrás dejar campos vacíos si no cuentas con el dato del número de ventas que tuviste ese mes.
       </p>
 
       {/* Tabla editable */}
-      <table className="border border-black text-center mb-6 mx-auto">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-black px-4 py-2">Mes</th>
-            <th className="border border-black px-4 py-2">Año</th>
-            <th className="border border-black px-4 py-2">Número de ventas</th>
-            <th className="border border-black px-4 py-2">Eliminar</th>
-          </tr>
-        </thead>
-        <tbody>
-          {ventas.map((venta, index) => (
-            <tr key={index}>
-              <td className="border border-black px-4 py-2">
-                <label htmlFor={`mes-${index}`} className="sr-only">Mes</label>
-                <input
-                  id={`mes-${index}`}
-                  value={venta.mes}
-                  onChange={(e) => handleChange(index, "mes", e.target.value)}
-                  className="w-full p-1 text-center"
-                  aria-label={`Mes fila ${index + 1}`}
-                />
-              </td>
-              <td className="border border-black px-4 py-2">
-                <label htmlFor={`año-${index}`} className="sr-only">Año</label>
-                <input
-                  id={`año-${index}`}
-                  value={venta.año}
-                  onChange={(e) => handleChange(index, "año", e.target.value)}
-                  className="w-full p-1 text-center"
-                  aria-label={`Año fila ${index + 1}`}
-                />
-              </td>
-              <td className="border border-black px-4 py-2">
-                <label htmlFor={`cantidad-${index}`} className="sr-only">Cantidad</label>
-                <input
-                  id={`cantidad-${index}`}
-                  value={venta.cantidad}
-                  onChange={(e) => handleChange(index, "cantidad", e.target.value)}
-                  className="w-full p-1 text-center"
-                  aria-label={`Cantidad fila ${index + 1}`}
-                />
-              </td>
-              <td className="border border-black px-4 py-2">
-                <button
-                  aria-label={`Eliminar fila ${index + 1}`}
-                  onClick={() => borrarFila(index)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  <Trash2 size={18} aria-hidden="true" />
-                  <span className="sr-only">{`Eliminar fila ${index + 1}`}</span>
-                </button>
-              </td>
+      <div className="overflow-x-auto w-[90%] mx-auto">
+        <table className="min-w-full table-auto border border-black text-center">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border border-black px-4 py-2">Mes</th>
+              <th className="border border-black px-4 py-2">Año</th>
+              <th className="border border-black px-4 py-2">Número de ventas</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {meses.map((fila) => (
+              <tr key={fila.id}>
+                <td className="border border-black px-4 py-2">{fila.mes}</td>
+                <td className="border border-black px-4 py-2">{fila.año}</td>
+                <td className="border border-black px-4 py-2">
+                  <input
+                    type="number"
+                    className="w-full p-1 border border-gray-300 rounded"
+                    placeholder="Ej. 120"
+                    value={ventas[fila.id] || ""}
+                    onChange={(e) => handleChange(fila.id, e.target.value)}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      {/* Botón para agregar fila */}
-      <button
-        onClick={agregarFila}
-        className="flex items-center gap-2 text-blue-600 mb-6 hover:scale-105 transition mx-auto"
-      >
-        <Plus /> Agregar fila
-      </button>
-
-      <div className="flex flex-row justify-center gap-10 mt-4">
-        <WhiteButton text="Cancelar" width="300px" />
-        <BlueButton text="Guardar" width="300px" />
+      <div className="flex flex-row justify-center gap-10 mt-8">
+        <WhiteButton
+          text="Cancelar"
+          width="200px"
+          onClick={() => navigate("/launchVentas")}
+        />
+        <BlueButton
+          text={isLoading ? "Guardando..." : "Guardar"}
+          width="200px"
+          onClick={handleGuardar}
+        />
       </div>
     </div>
   );

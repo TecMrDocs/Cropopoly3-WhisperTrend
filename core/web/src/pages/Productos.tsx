@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FiTrash2, FiEdit2, FiPlus } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from "@/utils/constants";
