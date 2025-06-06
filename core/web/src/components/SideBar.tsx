@@ -7,17 +7,6 @@ import { GoQuestion } from "react-icons/go";
 import { TbLogout } from "react-icons/tb";
 import LogoutModal from './LogOut';
 
-function SideBarItem({ to, ariaLabel, icon, text, isExpanded }: { to: string, ariaLabel: string, icon: React.ReactNode, text: string, isExpanded: boolean }) {
-  return (
-    <li>
-      <Link to={to} className={`flex items-center ${isExpanded ? 'justify-start px-3' : 'justify-center'} hover:bg-white/10 rounded-xl transition-colors duration-200`} aria-label={ariaLabel}>
-        {icon}
-        {isExpanded && <span className="ml-2">{text}</span>}
-      </Link>
-    </li>
-  )
-}
-
 const SideBar: FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -33,20 +22,42 @@ const SideBar: FC = () => {
       onMouseLeave={() => setIsExpanded(false)}
     >
       <nav>
-        <ul className="grid grid-cols-1 gap-4 py-4">
-          <SideBarItem to="/perfil" ariaLabel="Edición de los datos del perfil" icon={<CiUser className="w-10 h-10" />} text="Perfil" isExpanded={isExpanded} />
-          <SideBarItem to="/empresa" ariaLabel="Edición de los datos de la empresa" icon={<FaRegBuilding className="w-10 h-10" />} text="Empresa" isExpanded={isExpanded} />
-          <SideBarItem to="/productos" ariaLabel="Página de los productos" icon={<CiBoxes className="w-11 h-11" />} text="Productos" isExpanded={isExpanded} />
-          <SideBarItem to="/acercaDe" ariaLabel="Página de acerca de" icon={<GoQuestion className="w-10 h-10" />} text="Acerca de" isExpanded={isExpanded} />
+        <ul className="space-y-2">
           <li>
-            <span
+            <Link to="/perfil" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200" aria-label="Edición de los datos del perfil ">
+              <CiUser className="w-10 h-10" />
+              {isExpanded && <span className="ml-2">Perfil</span>}
+              
+            </Link>
+          </li>
+          <li>
+            <Link to="/empresa" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200" aria-label="Edición de los datos de la empresa">
+              <FaRegBuilding className="w-10 h-10" />
+              {isExpanded && <span className="ml-2">Empresa</span>}
+            </Link>
+          </li>
+          <li>
+            <Link to="/productos" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200" aria-label="Página de los productos">
+              <CiBoxes className="w-11 h-11" />
+              {isExpanded && <span className="ml-2">Productos</span>}
+            </Link>
+          </li>
+          <li>
+            <Link to="/acercaDe" className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200" aria-label="Página de acerca de">
+              <GoQuestion className="w-10 h-10" />
+              {isExpanded && <span className="ml-2">Acerca de</span>}
+            </Link>
+          </li>
+          <li>
+            <button
+              // onClick={handleLogout}
               onClick={() => setMostrarModal(true)}
-              className={`flex items-center ${isExpanded ? 'justify-start px-3' : 'justify-center'} hover:bg-white/10 rounded-xl transition-colors duration-200 w-full text-left`}
+              className="flex items-center p-2 hover:bg-white/10 rounded-xl transition-colors duration-200 w-full text-left"
               aria-label="Cerrar sesión"
             >
               <TbLogout className="w-10 h-10" />
-              {isExpanded && <span className="ml-2 text-nowrap">Cerrar Sesión</span>}
-            </span>
+              {isExpanded && <span className="ml-2">Cerrar Sesión</span>}
+            </button>
           </li>
         </ul>
       </nav>
