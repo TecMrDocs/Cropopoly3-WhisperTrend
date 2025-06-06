@@ -25,26 +25,26 @@ lazy_static! {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SimplePost {
     time: String,
-    title: String,
-    vote: u32,
-    comments: u32,
-    subreddit: String,
+    pub title: String,
+    pub vote: u32,
+    pub comments: u32,
+    pub subreddit: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SimplePostWithMembers {
     time: String,
-    title: String,
-    vote: u32,
-    comments: u32,
-    subreddit: String,
-    members: u32,
+    pub title: String,
+    pub vote: u32,
+    pub comments: u32,
+    pub subreddit: String,
+    pub members: u32,
 }
 
 pub struct RedditScraper;
 
 impl RedditScraper {
-    fn get_simple_post(element: ElementRef) -> anyhow::Result<SimplePost> {
+    pub fn get_simple_post(element: ElementRef) -> anyhow::Result<SimplePost> {
         let time_element = element.select(&TIME_SELECTOR).next();
         let title_element = element.select(&POST_TITLE_SELECTOR).next();
 

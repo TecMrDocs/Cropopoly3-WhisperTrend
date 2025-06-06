@@ -8,14 +8,14 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct RedditMetrics {
-    keyword: String,
-    posts: Vec<SimplePostWithMembers>,
+    pub keyword: String,
+    pub posts: Vec<SimplePostWithMembers>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct InstagramMetrics {
-    keyword: String,
-    posts: Vec<InstagramPost>,
+    pub keyword: String,
+    pub posts: Vec<InstagramPost>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]

@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use tracing::warn;
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Query {
+pub struct Query {
     query: String,
     startdatetime: String,
     enddatetime: String,
