@@ -3,6 +3,7 @@ import { FiTrash2, FiEdit2, FiPlus } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from "@/utils/constants";
 import { getConfig } from "@/utils/auth";
+import { usePrompt } from "../contexts/PromptContext";
 
 interface Resource {
   id: number;
@@ -19,6 +20,8 @@ export default function Productos() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [resourceToDelete, setResourceToDelete] = useState<number | null>(null);
+
+  const { setProducto, setProductId } = usePrompt();
 
   const getUserId = async (): Promise<number | null> => {
     try {
@@ -83,6 +86,26 @@ export default function Productos() {
     return <div className="min-h-screen flex justify-center items-center">Cargando...</div>;
   }
 
+  const handleEditClick = async (resourceId: number) => {
+    try {
+      const res = await fetch(`${API_URL}resource/${resourceId}`, getConfig());
+      if (!res.ok) throw new Error("Error al obtener recurso");
+      const data = await res.json();
+  
+      setProducto({
+        r_type: data.r_type,
+        name: data.name,
+        description: data.description,
+        related_words: data.related_words,
+      });
+      setProductId(data.id);
+  
+      navigate(`/editarProducto`);
+    } catch (error) {
+      console.error("Error obteniendo recurso:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen relative p-8">
       <h1 className="text-5xl font-bold text-center mb-12">Mis productos y servicios</h1>
@@ -124,7 +147,7 @@ export default function Productos() {
               <FiEdit2 
                 className="cursor-pointer hover:text-blue-600" 
                 size={20}
-                onClick={() => navigate(`/editarProducto/${resource.id}`)}
+                onClick={() => handleEditClick(resource.id)}
               />
             </div>
           </div>

@@ -6,15 +6,7 @@ import WhiteButton from "../components/WhiteButton";
 import SelectField from "../components/SelectField";
 import TextAreaField from "../components/TextAreaField";
 import { Plus, Trash2 } from "lucide-react";
-
-// Interfaz para el estado recibido
-interface ProductoState {
-  id: number;
-  name: string;
-  description: string;
-  r_type: string;
-  related_words: string;
-}
+import { usePrompt } from "../contexts/PromptContext";
 
 export default function EditarProducto() {
   const [palabra, setPalabra] = useState("");
@@ -26,38 +18,41 @@ export default function EditarProducto() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const { producto, productId, userId, setUserId } = usePrompt();
   const token = localStorage.getItem("token");
 
-  // Cargar los datos del producto
   useEffect(() => {
-    const state = location.state as ProductoState;
-    if (state) {
-      const { name, description, r_type, related_words } = state;
-      setNombre(name || "");
-      setDescripcion(description || "");
-      setTipo(r_type || "");
-      setPalabras(related_words ? related_words.split(",").map(p => p.trim()) : []);
+    if (producto) {
+      setNombre(producto.name || "");
+      setDescripcion(producto.description || "");
+      setTipo(producto.r_type || "");
+      setPalabras(
+        producto.related_words
+          ? producto.related_words.split(",").map((p) => p.trim())
+          : []
+      );
     }
-  }, [location.state]);
+  }, [producto]);
 
-  // Obtener el user_id
-  const getUserId = async (): Promise<number | null> => {
-    try {
-      const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
-        headers: {
-          token: token,
-        },
-      });
-
-      if (!res.ok) throw new Error("Error al verificar usuario");
-
-      const data = await res.json();
-      return data.id;
-    } catch (err) {
-      console.error("Error obteniendo user_id:", err);
-      return null;
-    }
-  };
+  useEffect(() => {
+    const cargarUserId = async () => {
+      if (!userId) {
+        try {
+          const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
+            headers: {
+              token: token || "",
+            },
+          });
+          if (!res.ok) throw new Error("Error al verificar usuario");
+          const data = await res.json();
+          setUserId(data.id);
+        } catch (err) {
+          console.error("Error obteniendo user_id:", err);
+        }
+      }
+    };
+    cargarUserId();
+  }, []);
 
   const validar = () => {
     if (!tipo.trim() || !nombre.trim() || !descripcion.trim()) {
@@ -81,17 +76,8 @@ export default function EditarProducto() {
 
   const handleSubmit = async () => {
     if (!validar()) return;
-
-    const state = location.state as ProductoState;
-    const productId = state?.id;
-    if (!productId) {
-      alert("No se encontró el ID del producto.");
-      return;
-    }
-
-    const userId = await getUserId();
-    if (!userId) {
-      alert("No se pudo obtener el usuario.");
+    if (!productId || !userId) {
+      alert("Faltan datos del producto o usuario.");
       return;
     }
 
@@ -109,7 +95,7 @@ export default function EditarProducto() {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            token: token,
+            token: token || "",
           },
           body: JSON.stringify(payload),
         }
@@ -191,7 +177,9 @@ export default function EditarProducto() {
         />
 
         <div className="flex flex-col gap-2" style={{ width: "700px" }}>
-          <label className="text-base font-medium" htmlFor="Palabras asociadas">Palabras asociadas</label>
+          <label className="text-base font-medium" htmlFor="Palabras asociadas">
+            Palabras asociadas
+          </label>
           <div className="flex gap-2">
             <input
               id="Palabras asociadas"
