@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { API_URL } from "@/utils/constants";
+import { getConfig } from "@/utils/auth";
 import BlueButton from "../components/BlueButton";
 import TextFieldWHolder from "../components/TextFieldWHolder";
 import WhiteButton from "../components/WhiteButton";
@@ -7,6 +9,7 @@ import SelectField from "../components/SelectField";
 import TextAreaField from "../components/TextAreaField";
 import { Plus, Trash2 } from "lucide-react";
 import { usePrompt } from "../contexts/PromptContext";
+import user from "@/utils/api/user";
 
 export default function EditarProducto() {
   const [palabra, setPalabra] = useState("");
@@ -38,11 +41,7 @@ export default function EditarProducto() {
     const cargarUserId = async () => {
       if (!userId) {
         try {
-          const res = await fetch("http://127.0.0.1:8080/api/v1/auth/check", {
-            headers: {
-              token: token || "",
-            },
-          });
+          const res = await fetch(`${API_URL}auth/check`, getConfig());
           if (!res.ok) throw new Error("Error al verificar usuario");
           const data = await res.json();
           setUserId(data.id);
@@ -82,6 +81,7 @@ export default function EditarProducto() {
     }
 
     const payload = {
+      user_id: userId,
       r_type: tipo,
       name: nombre,
       description: descripcion,
@@ -89,17 +89,15 @@ export default function EditarProducto() {
     };
 
     try {
-      const response = await fetch(
-        `http://127.0.0.1:8080/api/v1/resource/${userId}/${productId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            token: token || "",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(`${API_URL}resource/${productId}`, {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Accept": "*/*",
+                  ...getConfig().headers,
+                },
+                body: JSON.stringify(payload),
+              });
 
       if (!response.ok) {
         const msg = await response.text();
@@ -108,9 +106,9 @@ export default function EditarProducto() {
         return;
       }
 
-      const actualizado = await response.json();
-      console.log("Recurso actualizado:", actualizado);
-      navigate("/launchVentas");
+      //const actualizado = await response.json();
+      //console.log("Recurso actualizado:", actualizado);
+      navigate("/productos");
     } catch (err) {
       console.error("Error de red:", err);
       alert("Error de red o del servidor.");
