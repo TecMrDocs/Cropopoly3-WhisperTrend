@@ -25,12 +25,25 @@ pub struct Credentials {
     pub password: String,
 }
 
+#[derive(Debug, Clone, Deserialize, Validate)]
+pub struct UserUpdateData {
+    #[validate(length(min = 1, max = 20))]
+    pub name: String,
+    #[validate(length(min = 1, max = 20))]
+    pub last_name: String,
+    #[validate(length(min = 1, max = 20))]
+    pub phone: String,
+    #[validate(length(min = 1, max = 20))]
+    pub position: String,
+}
+
 #[derive(Validate, Clone)]
 #[macros::diesel_default(schema::users)]
 #[diesel(primary_key(id))]
 #[macros::database(create, delete(id), get(email, id), get_all)]
 #[macros::database(update(id))]
 #[macros::database(update(id{business_name,industry,company_size,scope,locations,num_branches}))]
+#[macros::database(update(id{name,last_name,phone,position}))]
 
 pub struct User {
     #[serde(skip_deserializing)]

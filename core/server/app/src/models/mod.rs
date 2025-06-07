@@ -1,4 +1,4 @@
-pub use user::{User, Credentials, BusinessData};
+pub use user::{User, Credentials, BusinessData, UserUpdateData};
 pub use resource::Resource;
 pub use sale::Sale;
 pub use admin::{Admin, AdminCredentials};

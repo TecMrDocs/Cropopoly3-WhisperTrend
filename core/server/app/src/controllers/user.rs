@@ -1,7 +1,7 @@
 use crate::{
     database::DbResponder,
     //middlewares,
-    models::{User, BusinessData},
+    models::{User, BusinessData, UserUpdateData},
 };
 use actix_web::{
     // HttpMessage, 
@@ -88,7 +88,36 @@ pub async fn update_user_business_data(
     Err(error::ErrorInternalServerError("Failed to update user business data"))
 }
 
+#[post("/update/profile/{id}")]
+pub async fn update_user_profile_data(
+    req: HttpRequest,
+    data: web::Json<UserUpdateData>,
+) -> Result<impl Responder> {
+    let Some(id_str) = req.match_info().get("id") else {
+        return Err(error::ErrorBadRequest("Missing user ID"));
+    };
 
+    let id = id_str.parse::<i32>().map_err(|_| error::ErrorBadRequest("Invalid ID"))?;
+
+    if let Err(_) = data.validate() {
+        return Ok(HttpResponse::BadRequest().body("Datos inválidos"));
+    }
+
+    let result = User::update_name_and_last_name_and_phone_and_position_by_id(
+        id,
+        data.name.clone(),
+        data.last_name.clone(),
+        data.phone.clone(),
+        data.position.clone(),
+    )
+    .await
+    .to_web();
+
+    match result {
+        Ok(_) => Ok(HttpResponse::Ok().finish()),
+        Err(_) => Err(error::ErrorInternalServerError("Error actualizando perfil de usuario")),
+    }
+}
 
 pub fn routes() -> actix_web::Scope {
     web::scope("/user")
@@ -96,4 +125,5 @@ pub fn routes() -> actix_web::Scope {
         .service(get_user)
         .service(get_all_users)
         .service(update_user_business_data)
+        .service(update_user_profile_data)
 }
