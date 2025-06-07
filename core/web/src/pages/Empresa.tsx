@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/utils/constants";
 import { getConfig } from "@/utils/auth";
@@ -8,11 +8,9 @@ import SelectField from "../components/SelectField";
 import TextAreaField from "../components/TextAreaField";
 import WhiteButton from "../components/WhiteButton";
 import BlueButton from "../components/BlueButton";
-import SaveAlert from "../components/saveAlert";
 
 export default function Empresa() {
   const navigate = useNavigate();
-  const [showAlert, setShowAlert] = useState(false);
   const { setEmpresa } = usePrompt();
 
   const industrias: string[] = ["Manufactura", "Moda", "Alimentos", "Tecnología", "Salud"];
@@ -29,6 +27,9 @@ export default function Empresa() {
   const [operaciones, setOperaciones] = useState("");
   const [sucursales, setSucursales] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const [showModal, setShowModal] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(true);
 
   const validarFormulario = () => {
     const nuevosErrores: { [key: string]: string } = {};
@@ -50,10 +51,6 @@ export default function Empresa() {
     return Object.keys(nuevosErrores).length === 0;
   };
 
-  const handleReturn = () => {
-    navigate("/launchProcess");
-  };
-
   const getUserId = async (): Promise<number | null> => {
     try {
       const res = await fetch(`${API_URL}auth/check`, getConfig());
@@ -65,6 +62,35 @@ export default function Empresa() {
       return null;
     }
   };
+
+  useEffect(() => {
+    const fetchBusinessData = async () => {
+      try {
+        const userId = await getUserId();
+        if (!userId) return;
+  
+        const res = await fetch(`${API_URL}user/${userId}`, getConfig());
+        if (!res.ok) throw new Error("Error al obtener datos del usuario");
+  
+        const data = await res.json();
+  
+        setNombreEmpresa(data.business_name || "");
+        setIndustria(data.industry || "");
+        setOperaciones(data.locations || "");
+        setAlcance(data.scope || "");
+        setSucursales(data.num_branches || "");
+  
+        if (data.company_size === "micro empresa") setNumEmpleados("10 o menos");
+        else if (data.company_size === "pequeña empresa") setNumEmpleados("Entre 11 y 50");
+        else if (data.company_size === "empresa mediana") setNumEmpleados("Entre 51 y 250");
+        else if (data.company_size === "empresa grande") setNumEmpleados("Más de 250");
+      } catch (err) {
+        console.error("Error al cargar los datos de la empresa:", err);
+      }
+    };
+  
+    fetchBusinessData();
+  }, []);
 
   const handleSubmit = async () => {
     if (!validarFormulario()) return;
@@ -99,42 +125,16 @@ export default function Empresa() {
         },
         body: JSON.stringify(payload),
       });
-
-      if (!res.ok) {
-        const msg = await res.text();
-        console.error("Error al registrar empresa:", msg);
-        alert("No se pudo registrar la empresa.");
-        return;
-      }
-
-      const prompt = promptBuilder1();
-      console.log("Prompt: ", prompt);
+    
+      setIsSuccess(res.ok);
       setEmpresa(payload);
-
-      // navigate("/launchProducto", { state: { prompt } });
     } catch (err) {
       console.error("Error de red:", err);
-      alert("Ocurrió un error inesperado.");
+      setIsSuccess(false);
+    } finally {
+      setShowModal(true);
     }
-    setShowAlert(true);
-    setTimeout(() => {
-      setShowAlert(false);
-    }, 3000);
   };
-
-  const promptBuilder1 = () => {
-    let ne = "";
-    if (numEmpleados === "10 o menos") ne = "micro empresa";
-    else if (numEmpleados === "Entre 11 y 50") ne = "pequeña empresa";
-    else if (numEmpleados === "Entre 51 y 250") ne = "empresa mediana";
-    else if (numEmpleados === "Más de 250") ne = "empresa grande";
-
-    const t1 = "Me dedico a la industria de " + industria + ". ";
-    const t2 = "Tengo una " + ne + " con alcance " + alcance + " y " + sucursales + " sucursales. ";
-    const t3 = "Desarrollo mis operaciones en " + operaciones + ". ";
-
-    return t1 + t2 + t3;
-  }
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-white">
@@ -220,10 +220,31 @@ export default function Empresa() {
         )}
       </div>
       <div className="flex justify-between items-center w-[80%] mt-10 pb-10">
-        <WhiteButton text="Regresar" width="200px" onClick={handleReturn} />
-        <BlueButton text="Continuar" width="200px" onClick={handleSubmit} />
+        <WhiteButton text="Cancelar" width="200px" onClick={() => navigate("/productos")} />
+        <BlueButton text="Guardar" width="200px" onClick={handleSubmit} />
       </div>
-      {showAlert && <SaveAlert />}
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-xl p-8 text-center space-y-6 w-[90%] max-w-md shadow-lg">
+            <h3 className="text-xl font-bold text-[#141652]">
+              {isSuccess ? "Cambios realizados con éxito" : "Ocurrió un error"}
+            </h3>
+            <p className="text-sm text-gray-700">
+              {isSuccess
+                ? "La información de la empresa fue actualizada correctamente."
+                : "No se pudieron guardar los cambios. Por favor, intenta de nuevo más tarde."}
+            </p>
+            <button
+              onClick={() => navigate("/productos")}
+              className="mt-4 px-6 py-2 bg-gradient-to-r from-[#00BFB3] to-[#0091D5] text-white rounded-full hover:scale-105 transition"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
