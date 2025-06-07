@@ -13,7 +13,7 @@ const SideBar: FC = () => {
 
   return (
     <div
-      className={`h-1/2 text-white p-2 rounded-2xl m-5 transition-all duration-300 ease-in-out ${isExpanded ? 'w-48' : 'w-20'
+      className={`hidden md:block h-1/2 text-white p-2 rounded-2xl m-5 transition-all duration-300 ease-in-out ${isExpanded ? 'w-48' : 'w-20'
         }`}
       style={{
         background: 'radial-gradient(circle at 0% 0%, #2563eb, #34d399)'
