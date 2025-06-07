@@ -106,6 +106,28 @@ export default function Productos() {
     }
   };
 
+  const handleViewClick = async (resourceId: number) => {
+    try {
+      const res = await fetch(`${API_URL}resource/${resourceId}`, getConfig());
+      if (!res.ok) throw new Error("Error al obtener el producto");
+  
+      const data = await res.json();
+  
+      setProductId(data.id);
+      setProducto({
+        r_type: data.r_type,
+        name: data.name,
+        description: data.description,
+        related_words: data.related_words,
+      });
+  
+      navigate("/loading");
+    } catch (error) {
+      console.error("Error al ver producto:", error);
+      alert("Ocurrió un error al preparar el análisis.");
+    }
+  };
+
   return (
     <div className="min-h-screen relative p-8">
       <h1 className="text-5xl font-bold text-center mb-12">Mis productos y servicios</h1>
@@ -128,8 +150,7 @@ export default function Productos() {
             <p className="text-2xl font-bold text-blue-400 text-center">{resource.name}</p>
 
             <button
-              // onClick={() => navigate(`/detalle/${resource.id}`)}
-              onClick={() => navigate(`/dashboard`)}
+              onClick={() => handleViewClick(resource.id)}
               className="cursor-pointer bg-gradient-to-r from-blue-500 to-teal-400 text-white font-semibold px-6 py-2 rounded-full"
             >
               Ver
