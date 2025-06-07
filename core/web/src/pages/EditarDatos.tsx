@@ -81,6 +81,11 @@ export default function EditarDatos() {
   const [error, setError] = useState<string | null>(null);
   const { productId, setHasSalesData } = usePrompt();
 
+  const [showModal, setShowModal] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(true);
+
+
+
   const handleChange = (id: string, value: string) => {
     if (value && Number(value) < 0) {
       setError("No se permiten valores negativos en las ventas");
@@ -144,7 +149,9 @@ export default function EditarDatos() {
       }
 
       console.log("Ventas guardadas exitosamente");
-      navigate("/launchConfirmacion");
+      //navigate("/launchConfirmacion");
+      setIsSuccess(true);
+      setShowModal(true);
     } catch (err) {
       setError(
         err instanceof Error
@@ -266,7 +273,7 @@ export default function EditarDatos() {
         <WhiteButton
           text="Cancelar"
           width="200px"
-          onClick={() => navigate("/launchVentas")}
+          onClick={() => navigate("/productos")}
         />
         <BlueButton
           text={isLoading ? "Guardando..." : "Guardar"}
@@ -274,6 +281,28 @@ export default function EditarDatos() {
           onClick={handleGuardar}
         />
       </div>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-xl p-8 text-center space-y-6 w-[90%] max-w-md shadow-lg">
+            <h3 className="text-xl font-bold text-[#141652]">
+              {isSuccess ? "Cambios realizados con éxito" : "Ocurrió un error"}
+            </h3>
+            <p className="text-sm text-gray-700">
+              {isSuccess
+                ? "La información del producto fue actualizada correctamente."
+                : "No se pudieron guardar los cambios. Por favor, intenta de nuevo más tarde."}
+            </p>
+            <button
+              onClick={() => navigate("/productos")}
+              className="mt-4 px-6 py-2 bg-gradient-to-r from-[#00BFB3] to-[#0091D5] text-white rounded-full hover:scale-105 transition"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

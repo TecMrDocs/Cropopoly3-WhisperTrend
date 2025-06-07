@@ -18,6 +18,9 @@ export default function EditarProducto() {
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
 
+  const [showModal, setShowModal] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(true);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -108,10 +111,14 @@ export default function EditarProducto() {
 
       //const actualizado = await response.json();
       //console.log("Recurso actualizado:", actualizado);
-      navigate("/productos");
+      //navigate("/productos");
+      setIsSuccess(true);
+      setShowModal(true);
     } catch (err) {
       console.error("Error de red:", err);
-      alert("Error de red o del servidor.");
+      //alert("Error de red o del servidor.");
+      setIsSuccess(false);
+      setShowModal(true);
     }
   };
 
@@ -217,9 +224,30 @@ export default function EditarProducto() {
       </div>
 
       <div className="flex flex-row justify-center gap-10 mt-10">
-        <WhiteButton text="Regresar" width="300px" onClick={() => navigate(-1)} />
-        <BlueButton text="Continuar" width="300px" onClick={handleSubmit} />
+        <WhiteButton text="Cancelar" width="300px" onClick={() => navigate(-1)} />
+        <BlueButton text="Guardar" width="300px" onClick={handleSubmit} />
       </div>
+      
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-xl p-8 text-center space-y-6 w-[90%] max-w-md shadow-lg">
+            <h3 className="text-xl font-bold text-[#141652]">
+              {isSuccess ? "Cambios realizados con éxito" : "Ocurrió un error"}
+            </h3>
+            <p className="text-sm text-gray-700">
+              {isSuccess
+                ? "La información del producto fue actualizada correctamente."
+                : "No se pudieron guardar los cambios. Por favor, intenta de nuevo más tarde."}
+            </p>
+            <button
+              onClick={() => navigate("/productos")}
+              className="mt-4 px-6 py-2 bg-gradient-to-r from-[#00BFB3] to-[#0091D5] text-white rounded-full hover:scale-105 transition"
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
