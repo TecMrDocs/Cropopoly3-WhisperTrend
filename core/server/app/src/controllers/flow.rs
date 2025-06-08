@@ -99,9 +99,15 @@ async fn generate_prompt_from_flow(
 
     let hashtags_block = parts.get(1).map(|s| s.trim()).unwrap_or("");
     let re = Regex::new(r"#\w+").unwrap();
+    /*
     let hashtags: Vec<String> = re
         .find_iter(hashtags_block)
         .map(|m| m.as_str().to_string())
+        .collect();
+    */
+    let hashtags: Vec<String> = re
+        .find_iter(hashtags_block)
+        .map(|m| m.as_str().strip_prefix('#').unwrap_or(m.as_str()).to_string())
         .collect();
 
     let today = chrono::Utc::now().naive_utc().date();
@@ -111,6 +117,7 @@ async fn generate_prompt_from_flow(
 
     let trends_payload = serde_json::json!({
         "query": sentence,
+        "hashtags": hashtags, // Incluir los hashtags aquí
         "startdatetime": six_months_ago.to_string(),
         "enddatetime": today.to_string(),
         "language": "English"

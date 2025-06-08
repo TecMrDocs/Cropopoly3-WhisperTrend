@@ -12,6 +12,7 @@ use tracing::warn;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Query {
     query: String,
+    hashtags: Option<Vec<String>>,
     startdatetime: String,
     enddatetime: String,
     language: String,
@@ -119,7 +120,8 @@ pub async fn get_trends(query: web::Json<Query>) -> actix_web::Result<impl Respo
 
     let params = Params::new(query.query, start_date, end_date, query.language);
 
-    match TrendsScraper::get_trends(params).await {
+    // Usar la nueva función que incluye hashtags
+    match TrendsScraper::get_trends_with_hashtags(params, query.hashtags).await {
         Ok(trends) => Ok(HttpResponse::Ok().json(trends)),
         Err(e) => {
             warn!("Failed to get trends: {}", e);
