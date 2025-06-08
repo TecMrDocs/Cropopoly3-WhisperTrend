@@ -17,8 +17,8 @@ lazy_static! {
         Regex::new(r"^([\d,.]+)\s*([kKmM]il|mill[oó]n|mills?|[kKMGTP])?$").unwrap();
 
     pub static ref SCRAPER: Arc<Scraper> = Arc::new(Scraper::new::<&str>(
-        None,
-        // Config::get_browserlekss_ws(),
+        // None,
+        Config::get_browserless_ws(),
         Config::get_workers_scraper(),
         vec![
             BlockResource::Stylesheet,
