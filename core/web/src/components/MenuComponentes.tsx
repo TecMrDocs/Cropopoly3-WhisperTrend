@@ -1,11 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import {
-  LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid,
-} from 'recharts';
-
-import { resultadoXCalc } from '../mathCalculus/XCalc';
-import { resultadoRedditCalc } from '../mathCalculus/RedditCalc';
-import { resultadoInstaCalc } from '../mathCalculus/InstaCalc';
+import {LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid,} from 'recharts';
 
 const calcularCorrelacion = (datos: any[]): number => {
   if (!datos || datos.length === 0) return 0;
@@ -25,196 +19,61 @@ const calcularCorrelacion = (datos: any[]): number => {
 
 const coloresHashtags = ['#16a34a', '#3b82f6', '#94a3b8', '#e91e63', '#8b5cf6', '#f59e0b'];
 
-const generarHashtagsDinamicos = () => {
-  const calculadoras = [
-    { 
-      id: 'insta', 
-      nombre: 'Instagram', 
-      resultado: resultadoInstaCalc,
-      plataforma: '📸'
-    },
-    { 
-      id: 'x', 
-      nombre: 'X (Twitter)', 
-      resultado: resultadoXCalc,
-      plataforma: '🐦'
-    },
-    { 
-      id: 'reddit', 
-      nombre: 'Reddit', 
-      resultado: resultadoRedditCalc,
-      plataforma: '🔴'
+// Componente de Consolidación extraído de MenuComponentes para usarlo independientemente
+const Consolidacion = ({ datosDelSistema, cargandoDatos }: { datosDelSistema: any, cargandoDatos?: boolean }) => {
+  const [seleccionadas, setSeleccionadas] = useState<string[]>(['insta']); // Por defecto muestra Instagram
+  
+  // 🆕 CAMBIO: Usar datos reales del sistema
+  const hashtagsDinamicos = useMemo(() => {
+    console.log('🔍 DEBUG - cargandoDatos:', cargandoDatos);
+    console.log('🔍 DEBUG - datosDelSistema:', datosDelSistema);
+
+    // Si está cargando o no hay datos, mostrar mensaje
+    if (cargandoDatos || !datosDelSistema) {
+      console.log('🔍 DEBUGGING - Mostrando cargando');
+
+      return [
+        { id: 'cargando', nombre: 'Cargando...', correlacion: 0, color: '#gray', datos: { interaccion: [] } }
+      ];
     }
-  ];
 
+    console.log('🔍 DEBUGGING - Hashtags originales:', datosDelSistema.metadatos.hashtagsOriginales);
 
-  const hashtagsUnicos = new Set<string>();
-  const hashtagsMap = new Map<string, any>();
+    // Usar datos reales del sistema
+    return datosDelSistema.metadatos.hashtagsOriginales.map((hashtag: any, index:any) => {
+      console.log('🔍 PROCESANDO HASHTAG:', hashtag);
 
-  calculadoras.forEach((calc, calcIndex) => {
-    if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
-      calc.resultado.hashtags.forEach((hashtag: any) => {
-        const hashtagNombre = hashtag.nombre;
-        
-        if (!hashtagsUnicos.has(hashtagNombre)) {
-          hashtagsUnicos.add(hashtagNombre);
-          
-          let totalCorrelacionInteraccion = 0;
-          let totalCorrelacionViralidad = 0;
-          let contadorPlataformas = 0;
-          
-          calculadoras.forEach(calcTmp => {
-            if (calcTmp.resultado.hashtags && Array.isArray(calcTmp.resultado.hashtags)) {
-              const hashtagEncontrado = calcTmp.resultado.hashtags.find((h: any) => h.nombre === hashtagNombre);
-              if (hashtagEncontrado) {
-                totalCorrelacionInteraccion += calcularCorrelacion(hashtagEncontrado.datosInteraccion);
-                totalCorrelacionViralidad += calcularCorrelacion(hashtagEncontrado.datosViralidad);
-                contadorPlataformas++;
-              }
-            }
-          });
-          
-          const correlacionPromedio = Math.round(
-            ((totalCorrelacionInteraccion + totalCorrelacionViralidad) / 2) / Math.max(contadorPlataformas, 1)
-          );
-
-          hashtagsMap.set(hashtagNombre, {
-            id: hashtagNombre, 
-            nombre: hashtagNombre,
-            correlacion: correlacionPromedio,
-            plataforma: `${contadorPlataformas} plataformas`, 
-            color: coloresHashtags[hashtagsMap.size % coloresHashtags.length],
-            hashtag: hashtagNombre,
-            hashtagId: hashtag.id,
-            insights: {
-              mejorDia: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'][Math.floor(Math.random() * 5)],
-              mejorHora: ['09:00-11:00', '12:00-14:00', '14:00-16:00', '18:00-20:00'][Math.floor(Math.random() * 4)],
-              engagement: `+${Math.round(correlacionPromedio * 0.5)}%`,
-              recomendacion: `Incrementar contenido con ${hashtagNombre} en todas las plataformas`
-            },
-            datos: {
-              interaccion: hashtag.datosInteraccion,
-              viralidad: hashtag.datosViralidad
-            }
-          });
+      // Calcular correlación promedio de todas las plataformas
+      let totalCorrelacion = 0;
+      let contador = 0;
+      
+      ['resultadoInstaCalc', 'resultadoRedditCalc', 'resultadoXCalc'].forEach(plataforma => {
+        const hashtagData = datosDelSistema[plataforma]?.hashtags?.find((h: any) => h.nombre === hashtag);
+        if (hashtagData) {
+          const promedioInt = hashtagData.datosInteraccion.reduce((sum: any, d:any) => sum + d.tasa, 0) / hashtagData.datosInteraccion.length;
+          const promedioVir = hashtagData.datosViralidad.reduce((sum:any, d:any) => sum + d.tasa, 0) / hashtagData.datosViralidad.length;
+          totalCorrelacion += (promedioInt + promedioVir) / 2;
+          contador++;
         }
       });
-    }
-  });
-
-  return Array.from(hashtagsMap.values());
-};
-
-const generarOpcionesTasas = () => {
-  const calculadoras = [
-    { 
-      id: 'insta', 
-      nombre: 'Instagram', 
-      resultado: resultadoInstaCalc,
-      plataforma: resultadoInstaCalc.emoji || '📸',
-      colorInteraccion: '#e91e63',
-      colorViralidad: '#f06292'
-    },
-    { 
-      id: 'x', 
-      nombre: 'X (Twitter)', 
-      resultado: resultadoXCalc,
-      plataforma: resultadoXCalc.emoji || '🐦',
-      colorInteraccion: '#dc2626',
-      colorViralidad: '#f97316'
-    },
-    {
-      id: 'reddit',
-      nombre: 'Reddit', 
-      resultado: resultadoRedditCalc,
-      plataforma: resultadoRedditCalc.emoji || '🔴',
-      colorInteraccion: '#2563eb',
-      colorViralidad: '#06b6d4'
-    }
-  ];
-
-  const opcionesTasas: any[] = [];
-
-  calculadoras.forEach((calc) => {
-    if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
-      calc.resultado.hashtags.forEach((hashtag: any) => {
-        opcionesTasas.push({
-          id: `int_${calc.id}_${hashtag.id}`,
-          nombre: `Tasa de interacción ${calc.plataforma} ${hashtag.nombre}`,
-          correlacion: calcularCorrelacion(hashtag.datosInteraccion),
-          color: calc.colorInteraccion,
-          datos: hashtag.datosInteraccion,
-          plataforma: calc.nombre,
-          hashtag: hashtag.nombre,
-          hashtagId: hashtag.id
-        });
-
-        opcionesTasas.push({
-          id: `vir_${calc.id}_${hashtag.id}`,
-          nombre: `Tasa de viralidad ${calc.plataforma} ${hashtag.nombre}`,
-          correlacion: calcularCorrelacion(hashtag.datosViralidad),
-          color: calc.colorViralidad,
-          datos: hashtag.datosViralidad,
-          plataforma: calc.nombre,
-          hashtag: hashtag.nombre,
-          hashtagId: hashtag.id
-        });
-      });
-    } else {
-      opcionesTasas.push({
-        id: `int_${calc.id}`,
-        nombre: `Tasa de interacción ${calc.plataforma} ${calc.resultado.hashtag}`,
-        correlacion: calcularCorrelacion(calc.resultado.datosInteraccion),
-        color: calc.colorInteraccion,
-        datos: calc.resultado.datosInteraccion,
-        plataforma: calc.nombre
-      });
-
-      opcionesTasas.push({
-        id: `vir_${calc.id}`,
-        nombre: `Tasa de viralidad ${calc.plataforma} ${calc.resultado.hashtag}`,
-        correlacion: calcularCorrelacion(calc.resultado.datosViralidad),
-        color: calc.colorViralidad,
-        datos: calc.resultado.datosViralidad,
-        plataforma: calc.nombre
-      });
-    }
-  });
-
-  return opcionesTasas;
-};
-
-
-
-// 🔥 FUNCIÓN HELPER PARA OBTENER TASAS POR HASHTAG ESPECÍFICO
-const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
-  // Verificar que el hashtagId es exactamente como aparece en tus datos
-  console.log("MenuComponentes: Obteniendo tasas para hashtag:", hashtagId);
-  
-  const hashtagMap: { [key: string]: string } = {
-    '#EcoFriendly': 'eco',
-    '#SustainableFashion': 'sustainable', 
-    '#NuevosMateriales': 'materiales'
-  };
-  
-  const tag = hashtagMap[hashtagId];
-  if (!tag) {
-    console.warn(`MenuComponentes: No se encontró mapping para el hashtag: ${hashtagId}`);
-    return ['int_insta_eco']; // Fallback
-  }
-  
-  // Estos IDs deben coincidir exactamente con los que tienes en tus datos
-  return [
-    `int_insta_${tag}`, `vir_insta_${tag}`,
-    `int_x_${tag}`, `vir_x_${tag}`,
-    `int_reddit_${tag}`, `vir_reddit_${tag}`
-  ];
-};
-
-// Componente de Consolidación extraído de MenuComponentes para usarlo independientemente
-const Consolidacion = () => {
-  const [seleccionadas, setSeleccionadas] = useState<string[]>(['insta']); // Por defecto muestra Instagram
-  const hashtagsDinamicos = useMemo(() => generarHashtagsDinamicos(), []);
+      
+      const correlacion = contador > 0 ? Math.round(totalCorrelacion / contador) : 0;
+      const colores = ['#16a34a', '#3b82f6', '#94a3b8', '#e91e63', '#8b5cf6'];
+      
+      // 🆕 USAR DATOS REALES PARA LA GRÁFICA
+      const datosInteraccion = datosDelSistema.resultadoInstaCalc.hashtags.find((h:any) => h.nombre === hashtag)?.datosInteraccion || [];
+      
+      return {
+        id: hashtag.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(),
+        nombre: hashtag,
+        correlacion,
+        color: colores[index % colores.length],
+        datos: {
+          interaccion: datosInteraccion  // 🆕 DATOS REALES
+        }
+      };
+    });
+  }, [datosDelSistema, cargandoDatos]);
 
   // Función para alternar selección de una calculadora
   const toggleSeleccion = (hashtagId: string) => {
@@ -223,31 +82,32 @@ const Consolidacion = () => {
     );
   };
 
-  // Combinar datos de los hashtags seleccionados
-  const combinarDatosInteraccion = () => {
-    const todasFechas = Array.from(
-      new Set(
-        seleccionadas.flatMap(
-          (id) => {
-            const hashtag = hashtagsDinamicos.find((h) => h.id === id);
-            return hashtag?.datos.interaccion.map((d: any) => d.fecha) || [];
-          }
-        )
-      )
-    );
+const combinarDatosInteraccion = () => {
+   if (!datosDelSistema) return [];
+   
+   const todasFechas = Array.from(
+     new Set(
+       seleccionadas.flatMap(
+         (id) => {
+           const hashtag = hashtagsDinamicos.find((h:any) => h.id === id);
+           return hashtag?.datos?.interaccion?.map((d: any) => d.fecha) || [];
+         }
+       )
+     )
+   );
 
-    return todasFechas.map((fecha) => {
-      const item: any = { fecha };
-      seleccionadas.forEach((id) => {
-        const hashtag = hashtagsDinamicos.find((h) => h.id === id);
-        const dato = hashtag?.datos.interaccion.find((d: any) => d.fecha === fecha);
-        item[id] = dato ? dato.tasa : 0;
-      });
-      return item;
-    });
-  };
+   return todasFechas.map((fecha) => {
+     const item: any = { fecha };
+     seleccionadas.forEach((id) => {
+       const hashtag = hashtagsDinamicos.find((h:any) => h.id === id);
+       const dato = hashtag?.datos?.interaccion?.find((d: any) => d.fecha === fecha);
+       item[id] = dato ? dato.tasa : 0;
+     });
+     return item;
+   });
+ };
 
-  const datosCombinados = combinarDatosInteraccion();
+ const datosCombinados = combinarDatosInteraccion();
 
   return (
     <div className="bg-white p-4 rounded-lg shadow">
@@ -255,7 +115,7 @@ const Consolidacion = () => {
 
       {/* Botones tipo bolitas para seleccionar hashtags */}
       <div className="flex gap-4 justify-center mb-6 flex-wrap">
-        {hashtagsDinamicos.map((hashtag) => (
+        {hashtagsDinamicos.map((hashtag:any) => (
           <div
             key={hashtag.id}
             onClick={() => toggleSeleccion(hashtag.id)}
@@ -279,7 +139,7 @@ const Consolidacion = () => {
             <Tooltip formatter={(value) => `${value}%`} />
             <Legend />
             {seleccionadas.map((id) => {
-              const hashtag = hashtagsDinamicos.find((h) => h.id === id);
+              const hashtag = hashtagsDinamicos.find((h:any) => h.id === id);
               return (
                 <Line
                   key={id}
@@ -308,6 +168,8 @@ type MenuComponentesProps = {
   hashtagSeleccionado: string;
   onTasasSeleccionadas?: (tasasIds: string[]) => void;
   onHashtagsNoticiasSeleccionados?: (hashtagsIds: string[]) => void;
+  datosDelSistema?: any;     
+  cargandoDatos?: boolean;   
 };
 
 const MenuComponentes: React.FC<MenuComponentesProps> = ({ 
@@ -318,11 +180,172 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
   onEcoFriendlyClick,
   hashtagSeleccionado,
   onTasasSeleccionadas,
-  onHashtagsNoticiasSeleccionados
+  onHashtagsNoticiasSeleccionados,
+  datosDelSistema,
+  cargandoDatos
 }) => {
-  // 🧙‍♂️ GENERAMOS LOS HASHTAGS DINÁMICAMENTE
-  const hashtagsDinamicos = useMemo(() => generarHashtagsDinamicos(), []);
-  const opcionesTasas = useMemo(() => generarOpcionesTasas(), []);
+  
+  // ✅ FUNCIÓN PARA GENERAR OPCIONES DE TASAS - AHORA DENTRO DEL COMPONENTE
+  const generarOpcionesTasas = () => {
+    if (!datosDelSistema) return [];
+    
+    const calculadoras = [
+      { 
+        id: 'insta', 
+        nombre: 'Instagram', 
+        resultado: datosDelSistema.resultadoInstaCalc,
+        plataforma: datosDelSistema.resultadoInstaCalc.emoji || '📸',
+        colorInteraccion: '#e91e63',
+        colorViralidad: '#f06292'
+      },
+      { 
+        id: 'x', 
+        nombre: 'X (Twitter)', 
+        resultado: datosDelSistema.resultadoXCalc,
+        plataforma: datosDelSistema.resultadoXCalc.emoji || '🐦',
+        colorInteraccion: '#dc2626',
+        colorViralidad: '#f97316'
+      },
+      {
+        id: 'reddit',
+        nombre: 'Reddit', 
+        resultado: datosDelSistema.resultadoRedditCalc,
+        plataforma: datosDelSistema.resultadoRedditCalc.emoji || '🔴',
+        colorInteraccion: '#2563eb',
+        colorViralidad: '#06b6d4'
+      }
+    ];
+
+    const opcionesTasas: any[] = [];
+
+    calculadoras.forEach((calc) => {
+      if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
+        calc.resultado.hashtags.forEach((hashtag: any) => {
+          opcionesTasas.push({
+            id: `int_${calc.id}_${hashtag.id}`,
+            nombre: `Tasa de interacción ${calc.plataforma} ${hashtag.nombre}`,
+            correlacion: calcularCorrelacion(hashtag.datosInteraccion),
+            color: calc.colorInteraccion,
+            datos: hashtag.datosInteraccion,
+            plataforma: calc.nombre,
+            hashtag: hashtag.nombre,
+            hashtagId: hashtag.id
+          });
+
+          opcionesTasas.push({
+            id: `vir_${calc.id}_${hashtag.id}`,
+            nombre: `Tasa de viralidad ${calc.plataforma} ${hashtag.nombre}`,
+            correlacion: calcularCorrelacion(hashtag.datosViralidad),
+            color: calc.colorViralidad,
+            datos: hashtag.datosViralidad,
+            plataforma: calc.nombre,
+            hashtag: hashtag.nombre,
+            hashtagId: hashtag.id
+          });
+        });
+      } else {
+        opcionesTasas.push({
+          id: `int_${calc.id}`,
+          nombre: `Tasa de interacción ${calc.plataforma} ${calc.resultado.hashtag}`,
+          correlacion: calcularCorrelacion(calc.resultado.datosInteraccion),
+          color: calc.colorInteraccion,
+          datos: calc.resultado.datosInteraccion,
+          plataforma: calc.nombre
+        });
+
+        opcionesTasas.push({
+          id: `vir_${calc.id}`,
+          nombre: `Tasa de viralidad ${calc.plataforma} ${calc.resultado.hashtag}`,
+          correlacion: calcularCorrelacion(calc.resultado.datosViralidad),
+          color: calc.colorViralidad,
+          datos: calc.resultado.datosViralidad,
+          plataforma: calc.nombre
+        });
+      }
+    });
+
+    return opcionesTasas;
+  };
+
+  // ✅ FUNCIÓN PARA OBTENER TASAS POR HASHTAG - AHORA DENTRO DEL COMPONENTE
+  const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
+    console.log("🔍 MenuComponentes: Obteniendo tasas DINÁMICAMENTE para hashtag:", hashtagId);
+    
+    if (!datosDelSistema) {
+      console.warn("❌ No hay datos del sistema disponibles");
+      return [];
+    }
+
+    const ids: string[] = [];
+    
+    // Buscar en Instagram
+    const hashtagInsta = datosDelSistema.resultadoInstaCalc?.hashtags?.find((h: any) => h.nombre === hashtagId);
+    if (hashtagInsta) {
+      console.log(`✅ Encontrado en Instagram: ${hashtagId} -> ${hashtagInsta.id}`);
+      ids.push(`int_insta_${hashtagInsta.id}`, `vir_insta_${hashtagInsta.id}`);
+    }
+    
+    // Buscar en Reddit  
+    const hashtagReddit = datosDelSistema.resultadoRedditCalc?.hashtags?.find((h: any) => h.nombre === hashtagId);
+    if (hashtagReddit) {
+      console.log(`✅ Encontrado en Reddit: ${hashtagId} -> ${hashtagReddit.id}`);
+      ids.push(`int_reddit_${hashtagReddit.id}`, `vir_reddit_${hashtagReddit.id}`);
+    }
+    
+    // Buscar en X
+    const hashtagX = datosDelSistema.resultadoXCalc?.hashtags?.find((h: any) => h.nombre === hashtagId);
+    if (hashtagX) {
+      console.log(`✅ Encontrado en X: ${hashtagId} -> ${hashtagX.id}`);
+      ids.push(`int_x_${hashtagX.id}`, `vir_x_${hashtagX.id}`);
+    }
+    
+    console.log("✅ IDs encontrados dinámicamente:", ids);
+    return ids;
+  };
+  
+  // 🔧 HASHTAGS DINÁMICOS ACTUALIZADOS - USAR DATOS DEL SISTEMA
+  const hashtagsDinamicos = useMemo(() => {
+    console.log('🔍 DEBUG - cargandoDatos:', cargandoDatos);
+    console.log('🔍 DEBUG - datosDelSistema:', datosDelSistema);
+    // Si está cargando o no hay datos, mostrar mensaje
+    if (cargandoDatos || !datosDelSistema) {
+      return [
+        { id: 'cargando', nombre: 'Cargando...', correlacion: 0, color: '#gray' }
+      ];
+    }
+
+    // Usar datos reales del sistema
+    return datosDelSistema.metadatos.hashtagsOriginales.map((hashtag: any, index: any) => {
+      // Calcular correlación promedio de todas las plataformas
+      let totalCorrelacion = 0;
+      let contador = 0;
+      
+      ['resultadoInstaCalc', 'resultadoRedditCalc', 'resultadoXCalc'].forEach(plataforma => {
+        const hashtagData = datosDelSistema[plataforma]?.hashtags?.find((h: any) => h.nombre === hashtag);
+        if (hashtagData) {
+          const promedioInt = hashtagData.datosInteraccion.reduce((sum: any, d: any) => sum + d.tasa, 0) / hashtagData.datosInteraccion.length;
+          const promedioVir = hashtagData.datosViralidad.reduce((sum: any, d: any) => sum + d.tasa, 0) / hashtagData.datosViralidad.length;
+          totalCorrelacion += (promedioInt + promedioVir) / 2;
+          contador++;
+        }
+      });
+      
+      const correlacion = contador > 0 ? Math.round(totalCorrelacion / contador) : 0;
+      const colores = ['#16a34a', '#3b82f6', '#94a3b8', '#e91e63', '#8b5cf6'];
+      
+      return {
+        id: hashtag.replace(/[^a-zA-Z0-9]/g, '').toLowerCase(),
+        nombre: hashtag,
+        correlacion,
+        color: colores[index % colores.length],
+        datos: {
+          interaccion: datosDelSistema.resultadoInstaCalc.hashtags.find((h: any) => h.nombre === hashtag)?.datosInteraccion || []
+        }
+      };
+    });
+  }, [datosDelSistema, cargandoDatos]);
+
+  const opcionesTasas = useMemo(() => generarOpcionesTasas(), [datosDelSistema]);
   
   // Estado para controlar la visibilidad del componente de Consolidación
   const [mostrarConsolidacion, setMostrarConsolidacion] = useState<boolean>(false);
@@ -335,28 +358,28 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
   // Estado para guardar los hashtags de noticias seleccionados
   const [hashtagsNoticiasSeleccionados, setHashtagsNoticiasSeleccionados] = useState<string[]>(['pielesSinteticas']);
 
-  // 🔥 LISTA DE HASHTAGS DINÁMICOS - ESTA ES LA CLAVE DEL FIX
-  const hashtagsDinamicosLista = [
-  ...resultadoXCalc.hashtags,
-  ...resultadoInstaCalc.hashtags,
-  ...resultadoRedditCalc.hashtags
-].map(h => h.nombre);
+  const hashtagsDinamicosLista = datosDelSistema?.metadatos?.hashtagsOriginales || [];
 
-  // 🚀 FUNCIÓN CORREGIDA QUE MANEJA TODOS LOS HASHTAGS
-  const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 'normalizado') => {
-    console.log("MenuComponentes: Clic en item:", itemId); // Para depuración
-    
-    setHashtagSeleccionado(itemId);
-    
-    // 🔥 VERIFICAR SI ES CUALQUIER HASHTAG DINÁMICO
-    if (hashtagsDinamicosLista.includes(itemId)) {
+const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 'normalizado') => {
+    console.log("🔍 CLICK en hashtag:", itemId);
+    console.log("🔍 Lista disponible:", hashtagsDinamicosLista);
+
+    // 🔧 Buscar el hashtag que coincida (ignorando # y mayúsculas/minúsculas)
+    const hashtagEncontrado = hashtagsDinamicosLista.find((hashtag: any) => 
+      hashtag.replace('#', '').toLowerCase() === itemId.toLowerCase()
+    );
+
+    if (hashtagEncontrado) {
+      console.log("🔍 Hashtag encontrado:", hashtagEncontrado);
+      
+      setHashtagSeleccionado(hashtagEncontrado); // Usar el hashtag correcto
       setMostrarDesgloseTasas(true);
       setMostrarDesgloseNoticias(false);
       setMostrarConsolidacion(false);
       
       // 🚀 NUEVO: Cambiar las tasas seleccionadas al hashtag correspondiente
-      const nuevasTasas = obtenerTasasPorHashtag(itemId);
-      console.log("MenuComponentes: Nuevas tasas para", itemId, ":", nuevasTasas);
+      const nuevasTasas = obtenerTasasPorHashtag(hashtagEncontrado);
+      console.log("MenuComponentes: Nuevas tasas para", hashtagEncontrado, ":", nuevasTasas);
       
       setTasasSeleccionadas(nuevasTasas);
       
@@ -366,16 +389,18 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
       }
       
       // Llamar a la función del padre para actualizar la visualización
-      onSeleccionItem(itemId);
+      onSeleccionItem(hashtagEncontrado);
       return; // Salir temprano para evitar ocultar la gráfica
     } 
     // Si es Noticia1, mostrar el desglose de hashtags de noticias
     else if (itemId === 'Noticia1') {
+      setHashtagSeleccionado(itemId);
       setMostrarDesgloseNoticias(true);
       setMostrarDesgloseTasas(false);
       setMostrarConsolidacion(false);
     } 
     else {
+      setHashtagSeleccionado(itemId);
       setMostrarDesgloseTasas(false);
       setMostrarDesgloseNoticias(false);
       
@@ -393,18 +418,24 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
 
   // Función para manejar toggle de tasas con callback al padre
   const handleTasaToggle = (tasaId: string) => {
+    console.log("🔍 TOGGLE - Tasa clickeada:", tasaId);
+    console.log("🔍 TOGGLE - Estado actual:", tasasSeleccionadas);
+    
     setTasasSeleccionadas(prev => {
       let nuevaSeleccion;
       if (prev.includes(tasaId)) {
+        console.log("🔍 TOGGLE - Deseleccionando tasa");
         nuevaSeleccion = prev.filter(id => id !== tasaId);
         if (nuevaSeleccion.length === 0) {
+          console.log("🔍 TOGGLE - No se permite selección vacía");
           return prev; // No permitir selección vacía
         }
       } else {
+        console.log("🔍 TOGGLE - Seleccionando tasa");
         nuevaSeleccion = [...prev, tasaId];
       }
       
-      console.log("MenuComponentes: Toggle tasa, nuevas tasas:", nuevaSeleccion);
+      console.log("🔍 TOGGLE - Nueva selección:", nuevaSeleccion);
       
       // Llamar al callback del padre
       if (onTasasSeleccionadas) {
@@ -515,15 +546,16 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
               </div>
             </div>
             <div className="mt-3 space-y-4">
+
               {hashtagsDinamicos
-                .sort((a, b) => b.correlacion - a.correlacion) // Ordenar por correlación
-                .map((hashtag) => (
+                .sort((a: any, b: any) => b.correlacion - a.correlacion) // Ordenar por correlación
+                .map((hashtag:any) => (
                 <div key={hashtag.id} className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div
                       className={getCircleStyle(hashtag)}
                       style={{ backgroundColor: hashtag.color }}
-                      onClick={() => handleItemClick(hashtag.id, 'original')}
+                      onClick={() => handleItemClick(hashtag.id)}
                     ></div>
                     <span className={`text-gray-800 ${isActive(hashtag.id) ? 'font-bold' : 'font-medium'}`}>
                       {hashtag.nombre} - Correlación: {hashtag.correlacion}%
@@ -540,7 +572,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
             </div>
           </div>
         )}
-
 
         {mostrarDesgloseTasas && (
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50">
@@ -563,6 +594,9 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
                 const tasasDelHashtagActual = opcionesTasas.filter(tasa => {
                   return tasa.hashtag === hashtagSeleccionado;
                 });
+
+                console.log("🔍 RENDER - tasasSeleccionadas:", tasasSeleccionadas);
+                console.log("🔍 RENDER - tasasDelHashtagActual:", tasasDelHashtagActual);
 
                if (tasasDelHashtagActual.length === 0) {
                   return <div className="text-gray-500">No se encontraron tasas para {hashtagSeleccionado}</div>;
@@ -716,7 +750,7 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
 
         {mostrarConsolidacion && (
           <div className="mt-6 border-t pt-6">
-            <Consolidacion />
+            <Consolidacion datosDelSistema={datosDelSistema} cargandoDatos={cargandoDatos} />
           </div>
         )}
       </div>
@@ -725,5 +759,3 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
 };
 
 export default MenuComponentes;
-
-
