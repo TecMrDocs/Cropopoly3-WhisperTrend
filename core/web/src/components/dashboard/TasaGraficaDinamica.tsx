@@ -62,11 +62,11 @@ export default function TasasGraficaDinamica({ tasasIds, datosTasas }: { tasasId
               textAnchor="end"
               height={80}
             />
-<YAxis 
-  domain={[0, 'dataMax + 10']} 
-  tickFormatter={(value) => `${value}%`}
-  tick={{ fontSize: 11 }}
-/>
+              <YAxis 
+                domain={[0, 'dataMax + 10']} 
+                tickFormatter={(value) => `${value}%`}
+                tick={{ fontSize: 11 }}
+              />
             <Tooltip 
               formatter={(value: number, name: string) => {
                 const tasa = datosTasas[name as keyof typeof datosTasas];

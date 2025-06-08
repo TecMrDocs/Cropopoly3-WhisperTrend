@@ -6,7 +6,6 @@ import type { ResultadoInstagramCalculado } from './CalculosInstagram';
 import type { ResultadoRedditCalculado } from './CalculosReddit';
 import type { ResultadoXCalculado } from './CalculosX';
 
-// 📊 Tipos para insights y comparaciones
 interface HashtagComparativo {
   nombre: string;
   id: string;
@@ -54,13 +53,12 @@ interface RankingPlataforma {
 }
 
 interface DashboardData {
-  // Datos originales de las calculadoras
   resultadoInstaCalc: ResultadoInstagramCalculado;
   resultadoRedditCalc: ResultadoRedditCalculado;
   resultadoXCalc: ResultadoXCalculado;
   noticias: Noticia[];
   
-  // Nuevos datos consolidados
+
   consolidacion: {
     resumenEjecutivo: {
       totalHashtags: number;
@@ -81,7 +79,6 @@ interface DashboardData {
     };
   };
   
-  // Metadatos
   metadatos: {
     timestamp: string;
     hashtagsOriginales: string[];
@@ -97,9 +94,7 @@ interface DashboardData {
 
 class ConsolidacionDatos {
   
-  /**
-   * 🎯 FUNCIÓN PRINCIPAL - Consolida todos los datos para el Dashboard
-   */
+
   static procesarParaDashboard(resultadoFinal: ResultadoFinal): DashboardData {
     console.log('🔧 [ConsolidacionDatos] Iniciando consolidación final...');
     
@@ -151,9 +146,6 @@ class ConsolidacionDatos {
     return dashboardData;
   }
 
-  /**
-   * 📈 Crear comparaciones detalladas entre hashtags
-   */
   private static crearComparacionHashtags(datos: ResultadoFinal): HashtagComparativo[] {
     const hashtags = datos.metadatos.hashtagsOriginales;
     
@@ -223,9 +215,7 @@ class ConsolidacionDatos {
     });
   }
 
-  /**
-   * 🏆 Generar ranking de plataformas
-   */
+
   private static generarRankingPlataformas(datos: ResultadoFinal): RankingPlataforma[] {
     const plataformas = [
       {
@@ -260,13 +250,10 @@ class ConsolidacionDatos {
       .sort((a, b) => b.puntuacion - a.puntuacion);
   }
 
-  /**
-   * 💡 Generar insights automáticos
-   */
+
   private static generarInsights(datos: ResultadoFinal, comparativos: HashtagComparativo[]): Insight[] {
     const insights: Insight[] = [];
     
-    // Insight: Hashtag con mejor rendimiento
     const mejorHashtag = comparativos.reduce((mejor, actual) => 
       actual.puntuacionGlobal > mejor.puntuacionGlobal ? actual : mejor
     );
@@ -281,7 +268,6 @@ class ConsolidacionDatos {
       recomendacion: `Enfocar estrategia en ${mejorHashtag.mejorPlataforma} para este hashtag`
     });
     
-    // Insight: Plataforma con mejor engagement
     let mejorPlataformaNombre = 'Instagram';
     let mejorPromedio = 0;
     
@@ -312,7 +298,6 @@ class ConsolidacionDatos {
       recomendacion: `Incrementar inversión en contenido para ${mejorPlataformaNombre}`
     });
     
-    // Insight: Hashtag con potencial desaprovechado
     const hashtagPotencial = comparativos.find(h => {
       const diferencias = [
         h.rendimiento.instagram.interaccionPromedio,
@@ -320,7 +305,7 @@ class ConsolidacionDatos {
         h.rendimiento.x.interaccionPromedio
       ].sort((a, b) => b - a);
       
-      return diferencias[0] - diferencias[1] > 2; // Gran diferencia entre plataformas
+      return diferencias[0] - diferencias[1] > 2; 
     });
     
     if (hashtagPotencial) {
@@ -333,7 +318,6 @@ class ConsolidacionDatos {
       });
     }
     
-    // Insight: Noticias relevantes
     if (datos.noticias.length > 0) {
       insights.push({
         tipo: 'info',
@@ -346,29 +330,23 @@ class ConsolidacionDatos {
     return insights;
   }
 
-  /**
-   * 📋 Generar recomendaciones estratégicas
-   */
+
   private static generarRecomendaciones(comparativos: HashtagComparativo[], ranking: RankingPlataforma[]): string[] {
     const recomendaciones: string[] = [];
     
-    // Recomendación basada en mejor plataforma
     const mejorPlatform = ranking[0];
     recomendaciones.push(`Priorizar contenido en ${mejorPlatform.plataforma} (puntuación: ${mejorPlatform.puntuacion.toFixed(1)})`);
     
-    // Recomendación basada en hashtag líder
     const hashtagLider = comparativos.reduce((mejor, actual) => 
       actual.puntuacionGlobal > mejor.puntuacionGlobal ? actual : mejor
     );
     recomendaciones.push(`Aumentar frecuencia de posts con ${hashtagLider.nombre} en ${hashtagLider.mejorPlataforma}`);
     
-    // Recomendación para hashtags con bajo rendimiento
     const hashtagsBajos = comparativos.filter(h => h.puntuacionGlobal < 1);
     if (hashtagsBajos.length > 0) {
       recomendaciones.push(`Revisar estrategia para ${hashtagsBajos.length} hashtag(s) con bajo rendimiento`);
     }
     
-    // Recomendación temporal
     const horaActual = new Date().getHours();
     if (horaActual >= 9 && horaActual <= 17) {
       recomendaciones.push('Considerar publicar contenido adicional en horario laboral para maximizar alcance');
@@ -377,9 +355,7 @@ class ConsolidacionDatos {
     return recomendaciones;
   }
 
-  /**
-   * 📊 Calcular métricas globales
-   */
+
   private static calcularMetricasGlobales(datos: ResultadoFinal) {
     const totalInteracciones = [
       ...datos.resultadoInstaCalc.hashtags.flatMap(h => h.datosRaw.likes || []),
@@ -405,17 +381,13 @@ class ConsolidacionDatos {
     };
   }
 
-  /**
-   * 📋 Crear resumen ejecutivo
-   */
+
   private static crearResumenEjecutivo(datos: ResultadoFinal, comparativos: HashtagComparativo[], ranking: RankingPlataforma[]) {
     const mejorHashtag = comparativos.reduce((mejor, actual) => 
       actual.puntuacionGlobal > mejor.puntuacionGlobal ? actual : mejor
     );
     
     const tasaGlobal = comparativos.reduce((sum, h) => sum + h.puntuacionGlobal, 0) / comparativos.length;
-    
-    // Calcular tendencia (simplificado)
     const tendenciaGeneral: 'subiendo' | 'bajando' | 'estable' = tasaGlobal > 2 ? 'subiendo' : tasaGlobal < 1 ? 'bajando' : 'estable';
     
     return {
@@ -427,9 +399,7 @@ class ConsolidacionDatos {
     };
   }
 
-  /**
-   * 🔧 Funciones helper
-   */
+
   private static calcularPromedio(valores: number[]): number {
     if (valores.length === 0) return 0;
     const suma = valores.reduce((sum, val) => sum + val, 0);

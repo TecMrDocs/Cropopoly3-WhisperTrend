@@ -101,6 +101,145 @@ const generarDatosTasasDinamico = (datosDelSistema: any) => {
   return datosTasas;
 };
 
+// 🆕 NUEVO COMPONENTE: Visualización de Noticias
+const VisualizacionNoticia = ({ noticiaId, datosDelSistema }: { noticiaId: string, datosDelSistema: any }) => {
+  // Extraer el índice de la noticia del ID
+  const indiceNoticia = parseInt(noticiaId.replace('noticia_', ''));
+  const noticia = datosDelSistema?.noticias?.[indiceNoticia];
+
+  if (!noticia) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="text-6xl mb-4">📰</div>
+          <h3 className="text-xl font-bold text-gray-600">Noticia no encontrada</h3>
+        </div>
+      </div>
+    );
+  }
+
+  // Calcular correlación simulada
+  const correlacion = 60 + (indiceNoticia * 8);
+  const colorCorrelacion = correlacion >= 75 ? 'text-green-600' : correlacion >= 65 ? 'text-yellow-600' : 'text-red-600';
+  const iconoCorrelacion = correlacion >= 75 ? '📈' : correlacion >= 65 ? '📊' : '📉';
+
+  return (
+    <div className="h-full flex flex-col bg-gradient-to-br from-white to-purple-50 rounded-2xl p-6">
+      {/* Header con ícono de noticia */}
+      <div className="text-center mb-6">
+        <div className="text-6xl mb-4">📰</div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">Análisis de Noticia</h2>
+        <div className="w-16 h-1 bg-purple-500 mx-auto rounded-full"></div>
+      </div>
+
+      {/* Contenido principal */}
+      <div className="flex-1 space-y-6">
+        {/* Título de la noticia */}
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-purple-100">
+          <h3 className="text-xl font-bold text-gray-800 leading-tight">
+            {noticia.title}
+          </h3>
+        </div>
+
+        {/* Descripción */}
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-purple-100">
+          <h4 className="text-sm font-semibold text-purple-600 mb-3 uppercase tracking-wide">
+            Descripción
+          </h4>
+          <p className="text-gray-700 leading-relaxed">
+            {noticia.description}
+          </p>
+        </div>
+
+        {/* Keywords */}
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-purple-100">
+          <h4 className="text-sm font-semibold text-purple-600 mb-3 uppercase tracking-wide">
+            Palabras Clave
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {noticia.keywords.map((keyword: string, index: number) => (
+              <span 
+                key={index}
+                className="px-3 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-full text-sm font-medium border border-purple-200"
+              >
+                #{keyword}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Métricas de análisis */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white rounded-xl p-4 shadow-lg border border-purple-100 text-center">
+            <div className="text-2xl mb-2">{iconoCorrelacion}</div>
+            <div className={`text-2xl font-bold ${colorCorrelacion}`}>
+              {correlacion}%
+            </div>
+            <div className="text-sm text-gray-600">Correlación</div>
+          </div>
+          
+          <div className="bg-white rounded-xl p-4 shadow-lg border border-purple-100 text-center">
+            <div className="text-2xl mb-2">🔗</div>
+            <div className="text-sm text-purple-600 font-medium">
+              <a 
+                href={noticia.url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                Ver fuente
+              </a>
+            </div>
+            <div className="text-xs text-gray-500">URL externa</div>
+          </div>
+        </div>
+
+        {/* Gráfica simulada de impacto */}
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-purple-100">
+          <h4 className="text-sm font-semibold text-purple-600 mb-4 uppercase tracking-wide">
+            Impacto Estimado en Redes Sociales
+          </h4>
+          <div className="space-y-3">
+            {[
+              { plataforma: 'Instagram', porcentaje: correlacion + 5, color: 'bg-pink-500' },
+              { plataforma: 'Reddit', porcentaje: correlacion - 10, color: 'bg-orange-500' },
+              { plataforma: 'X (Twitter)', porcentaje: correlacion + 2, color: 'bg-blue-500' }
+            ].map((item, index) => (
+              <div key={index} className="flex items-center">
+                <div className="w-20 text-sm font-medium text-gray-600">
+                  {item.plataforma}
+                </div>
+                <div className="flex-1 bg-gray-200 rounded-full h-3 mx-3">
+                  <div 
+                    className={`${item.color} h-3 rounded-full transition-all duration-1000 ease-out`}
+                    style={{ width: `${Math.max(item.porcentaje, 0)}%` }}
+                  ></div>
+                </div>
+                <div className="w-12 text-sm font-semibold text-gray-700">
+                  {Math.max(item.porcentaje, 0)}%
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer con timestamp */}
+        <div className="text-center">
+          <div className="text-xs text-gray-500">
+            Análisis generado: {new Date().toLocaleDateString('es-ES', { 
+              day: 'numeric', 
+              month: 'long', 
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const HashtagsNoticiasGrafica = ({ hashtagsIds }: { hashtagsIds: string[] }) => {
   if (!hashtagsIds || hashtagsIds.length === 0) {
     return <div>Selecciona al menos un hashtag para visualizar</div>;
@@ -186,16 +325,25 @@ export default function Dashboard() {
   };
 
   const handleSeleccionItem = (itemId: string) => {
+    console.log('🔍 Dashboard recibió selección:', itemId);
+    
     if (itemId === '') {
       setMostrarTendenciaUniforme(false);
       setHashtagSeleccionado('');
       setMostrandoDesgloseTasas(false); 
     } else {
-      setMostrarTendenciaUniforme(true);
       setHashtagSeleccionado(itemId);
       
-      const esHashtagDinamico = hashtagsDinamicos.includes(itemId);
-      setMostrandoDesgloseTasas(esHashtagDinamico);
+      // 🆕 Verificar si es una noticia
+      if (itemId.startsWith('noticia_')) {
+        console.log('📰 Es una noticia, no mostrar tendencias');
+        setMostrarTendenciaUniforme(false);
+        setMostrandoDesgloseTasas(false);
+      } else {
+        setMostrarTendenciaUniforme(true);
+        const esHashtagDinamico = hashtagsDinamicos.includes(itemId);
+        setMostrandoDesgloseTasas(esHashtagDinamico);
+      }
       
       // MenuComponentes se encarga de generar las tasas correctas
       // y las envía através de onTasasSeleccionadas
@@ -206,8 +354,6 @@ export default function Dashboard() {
     console.log("🔍 Dashboard recibiendo nuevas tasas:", tasasIds);
     setTasasSeleccionadas(tasasIds);
     console.log("🔍 Dashboard tasas actualizadas a:", tasasIds);
-
-
   };
 
   const handleHashtagsNoticiasSeleccionados = (hashtagsIds: string[]) => {
@@ -236,6 +382,11 @@ export default function Dashboard() {
     
     if (hashtagSeleccionado === 'Ventas') {
       return <VentasCalc />;
+    }
+    
+    // 🆕 NUEVO: Mostrar visualización de noticias
+    if (hashtagSeleccionado.startsWith('noticia_')) {
+      return <VisualizacionNoticia noticiaId={hashtagSeleccionado} datosDelSistema={datosDelSistema} />;
     }
     
     if (mostrandoDesgloseTasas && tasasSeleccionadas.length > 0) {
@@ -291,6 +442,8 @@ export default function Dashboard() {
                         ? "📊 Visualización de Tendencias"
                         : hashtagSeleccionado === 'Ventas'
                         ? "💰 Análisis de Ventas"
+                        : hashtagSeleccionado.startsWith('noticia_')
+                        ? "📰 Análisis de Noticia"
                         : mostrandoDesgloseTasas && tasasSeleccionadas.length > 0
                         ? "📈 Comparativa de Tasas Seleccionadas"
                         : hashtagsNoticiasSeleccionados.length > 0 && hashtagSeleccionado === 'Noticia1'
@@ -315,6 +468,8 @@ export default function Dashboard() {
                         ? <>Aquí podrás ver tus <span className="text-blue-600 font-semibold">tendencias</span></>
                         : hashtagSeleccionado === 'Ventas'
                         ? "Ventas del Bolso Marianne - Período Enero-Abril 2025"
+                        : hashtagSeleccionado.startsWith('noticia_')
+                        ? "Análisis detallado de noticia con impacto en redes sociales"
                         : "Visualización activa - Datos actualizados"
                       }
                     </p>

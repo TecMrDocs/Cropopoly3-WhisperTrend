@@ -163,22 +163,17 @@ class CalculosReddit {
     };
   }
 
-  /**
-   * 🎲 Función específica para generar ID automático basado en hashtag
-   */
+
   static generarIdHashtag(hashtag: string, index: number): string {
-    // Limpiar el hashtag para crear un ID válido
     const hashtagLimpio = hashtag
-      .replace(/[^a-zA-Z0-9]/g, '') // Quitar caracteres especiales
+      .replace(/[^a-zA-Z0-9]/g, '') 
       .toLowerCase()
-      .substring(0, 15); // Máximo 15 caracteres
+      .substring(0, 15); 
     
     return `${hashtagLimpio}_${index}`;
   }
 
-  /**
-   * 📊 Función para calcular estadísticas adicionales específicas de Reddit
-   */
+
   static calcularEstadisticasReddit(data: HashtagRedditData) {
     const totalUpVotes = data.upVotes.reduce((sum, val) => sum + val, 0);
     const totalComentarios = data.comentarios.reduce((sum, val) => sum + val, 0);
@@ -194,16 +189,12 @@ class CalculosReddit {
     };
   }
 
-  /**
-   * 🔍 Función helper para obtener datos de un hashtag específico
-   */
+
   static obtenerDatosHashtag(resultado: ResultadoRedditCalculado, hashtagId: string): HashtagCalculado | undefined {
     return resultado.hashtags.find(h => h.id === hashtagId);
   }
 
-  /**
-   * 📋 Función helper para obtener lista de hashtags disponibles
-   */
+
   static obtenerListaHashtags(resultado: ResultadoRedditCalculado): Array<{id: string, nombre: string}> {
     return resultado.hashtags.map(h => ({
       id: h.id,
@@ -211,13 +202,9 @@ class CalculosReddit {
     }));
   }
 
-  /**
-   * 🏆 Función para obtener el hashtag con mejor rendimiento
-   */
+
   static obtenerMejorHashtag(resultado: ResultadoRedditCalculado): HashtagCalculado | null {
     if (resultado.hashtags.length === 0) return null;
-    
-    // Buscar el hashtag con mayor tasa de interacción promedio
     let mejorHashtag = resultado.hashtags[0];
     let mejorPromedio = 0;
     
@@ -233,7 +220,6 @@ class CalculosReddit {
   }
 }
 
-// 🚀 Exportar para uso en otros módulos
 export default CalculosReddit;
 export type { 
   HashtagRedditData, 
