@@ -17,8 +17,6 @@ const calcularCorrelacion = (datos: any[]): number => {
   return Math.min(Math.max(correlacion, 45), 95);
 };
 
-const coloresHashtags = ['#16a34a', '#3b82f6', '#94a3b8', '#e91e63', '#8b5cf6', '#f59e0b'];
-
 // Componente de Consolidación extraído de MenuComponentes para usarlo independientemente
 const Consolidacion = ({ datosDelSistema, cargandoDatos }: { datosDelSistema: any, cargandoDatos?: boolean }) => {
   const [seleccionadas, setSeleccionadas] = useState<string[]>(['insta']); // Por defecto muestra Instagram
@@ -173,11 +171,9 @@ type MenuComponentesProps = {
 };
 
 const MenuComponentes: React.FC<MenuComponentesProps> = ({ 
-  modoVisualizacion,
   setModoVisualizacion, 
   setHashtagSeleccionado,
   onSeleccionItem,
-  onEcoFriendlyClick,
   hashtagSeleccionado,
   onTasasSeleccionadas,
   onHashtagsNoticiasSeleccionados,
@@ -345,6 +341,32 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
     });
   }, [datosDelSistema, cargandoDatos]);
 
+  // 🆕 NOTICIAS DINÁMICAS - USAR DATOS REALES DEL SISTEMA
+  const noticiasDinamicas = useMemo(() => {
+    if (cargandoDatos || !datosDelSistema || !datosDelSistema.noticias) {
+      return [
+        { id: 'cargando', titulo: 'Cargando noticias...', correlacion: 0, color: '#gray' }
+      ];
+    }
+
+    // Usar noticias reales del sistema
+    return datosDelSistema.noticias.map((noticia: any, index: number) => {
+      // Calcular correlación simulada basada en keywords
+      const correlacionBase = 60 + (index * 8); // Valores entre 60-84%
+      const coloresNoticias = ['#9333ea', '#f59e0b', '#059669']; // Púrpura, ámbar, verde
+      
+      return {
+        id: `noticia_${index}`,
+        titulo: noticia.title,
+        descripcion: noticia.description,
+        url: noticia.url,
+        keywords: noticia.keywords,
+        correlacion: correlacionBase,
+        color: coloresNoticias[index % coloresNoticias.length]
+      };
+    });
+  }, [datosDelSistema, cargandoDatos]);
+
   const opcionesTasas = useMemo(() => generarOpcionesTasas(), [datosDelSistema]);
   
   // Estado para controlar la visibilidad del componente de Consolidación
@@ -360,8 +382,31 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
 
   const hashtagsDinamicosLista = datosDelSistema?.metadatos?.hashtagsOriginales || [];
 
+  // 🆕 FUNCIÓN DINÁMICA PARA OBTENER ÍCONO DEL HASHTAG
+  const getIconoHashtag = (nombre: string): string => {
+    const nombreLower = nombre.toLowerCase();
+    if (nombreLower.includes('eco') || nombreLower.includes('green') || nombreLower.includes('verde')) return '🌱';
+    if (nombreLower.includes('sustain') || nombreLower.includes('recicl') || nombreLower.includes('reciclados')) return '♻️';
+    if (nombreLower.includes('material') || nombreLower.includes('nuevo') || nombreLower.includes('innovation')) return '🧪';
+    if (nombreLower.includes('moda') || nombreLower.includes('fashion')) return '👗';
+    if (nombreLower.includes('friendly')) return '🌿';
+    return '📈'; // Ícono por defecto
+  };
+
 const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 'normalizado') => {
-    console.log("🔍 CLICK en hashtag:", itemId);
+    console.log("🔍 CLICK en item:", itemId);
+    
+    // 🆕 Verificar si es una noticia
+    if (itemId.startsWith('noticia_')) {
+      console.log("📰 Es una noticia:", itemId);
+      setHashtagSeleccionado(itemId);
+      setMostrarDesgloseNoticias(true);
+      setMostrarDesgloseTasas(false);
+      setMostrarConsolidacion(false);
+      onSeleccionItem(itemId);
+      return;
+    }
+
     console.log("🔍 Lista disponible:", hashtagsDinamicosLista);
 
     // 🔧 Buscar el hashtag que coincida (ignorando # y mayúsculas/minúsculas)
@@ -391,13 +436,6 @@ const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 
       // Llamar a la función del padre para actualizar la visualización
       onSeleccionItem(hashtagEncontrado);
       return; // Salir temprano para evitar ocultar la gráfica
-    } 
-    // Si es Noticia1, mostrar el desglose de hashtags de noticias
-    else if (itemId === 'Noticia1') {
-      setHashtagSeleccionado(itemId);
-      setMostrarDesgloseNoticias(true);
-      setMostrarDesgloseTasas(false);
-      setMostrarConsolidacion(false);
     } 
     else {
       setHashtagSeleccionado(itemId);
@@ -446,38 +484,6 @@ const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 
     });
   };
 
-  // Modificado para alternar hashtags de noticias seleccionados
-  const handleHashtagNoticiaClick = (hashtagId: string) => {
-    setHashtagsNoticiasSeleccionados(prev => {
-      if (prev.includes(hashtagId)) {
-        const nuevaSeleccion = prev.filter(id => id !== hashtagId);
-        if (nuevaSeleccion.length === 0) {
-          return prev;
-        }
-        
-        if (onHashtagsNoticiasSeleccionados) {
-          onHashtagsNoticiasSeleccionados(nuevaSeleccion);
-        }
-        return nuevaSeleccion;
-      } 
-      else {
-        const nuevaSeleccion = [...prev, hashtagId];
-        if (onHashtagsNoticiasSeleccionados) {
-          onHashtagsNoticiasSeleccionados(nuevaSeleccion);
-        }
-        return nuevaSeleccion;
-      }
-    });
-  };
-
-  const toggleConsolidacion = () => {
-    setMostrarConsolidacion(!mostrarConsolidacion);
-    if (!mostrarConsolidacion) {
-      setHashtagSeleccionado('');
-      onSeleccionItem(''); // Importante: notificar al padre
-    }
-  };
-
   // Efectos para notificar al padre cuando cambian las selecciones
   React.useEffect(() => {
     if (onTasasSeleccionadas) {
@@ -492,8 +498,6 @@ const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 
   }, [hashtagsNoticiasSeleccionados, onHashtagsNoticiasSeleccionados]);
 
   const isActive = (value: string) => value === hashtagSeleccionado;
-  const isTasaActive = (value: string) => tasasSeleccionadas.includes(value);
-  const isHashtagNoticiaActive = (value: string) => hashtagsNoticiasSeleccionados.includes(value);
 
   const getButtonStyle = (value: string) => {
     return isActive(value)
@@ -601,11 +605,12 @@ const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 
                if (tasasDelHashtagActual.length === 0) {
                   return <div className="text-gray-500">No se encontraron tasas para {hashtagSeleccionado}</div>;
                 }
+                
+                // 🆕 DINÁMICO: Buscar el hashtag en los datos del sistema
                 const hashtagActual = hashtagSeleccionado;
-                const hashtagColor = hashtagActual === '#EcoFriendly' ? 'text-green-700' : 
-                                   hashtagActual === '#SustainableFashion' ? 'text-purple-700' : 'text-amber-700';
-                const hashtagIcon = hashtagActual === '#EcoFriendly' ? '🌱' : 
-                                  hashtagActual === '#SustainableFashion' ? '♻️' : '🧪';
+                const hashtagData = hashtagsDinamicos.find((h: any) => h.nombre === hashtagActual);
+                const hashtagColor = hashtagData ? 'text-gray-700' : 'text-gray-700'; // Color del texto
+                const hashtagIcon = getIconoHashtag(hashtagActual); // Ícono dinámico
                 
                 return (
                   <div key={hashtagActual}>
@@ -671,7 +676,7 @@ const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 
         {mostrarDesgloseNoticias && (
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-purple-50 to-pink-50">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xl font-bold text-navy-900">A la alza pieles sintéticas en Milán - Correlación: 76%</h2>
+              <h2 className="text-xl font-bold text-navy-900">📰 Detalles de la Noticia</h2>
               <button
                 className="px-4 py-1 bg-gray-500 text-white rounded-full hover:bg-gray-600 transition"
                 onClick={() => {
@@ -683,67 +688,87 @@ const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 
                 Regresar
               </button>
             </div>
-            <div className="space-y-3">
-
-            </div>
+            
+            {(() => {
+              const noticiaSeleccionada = noticiasDinamicas.find((n: any) => n.id === hashtagSeleccionado);
+              if (!noticiaSeleccionada) {
+                return <div className="text-gray-500">Noticia no encontrada</div>;
+              }
+              
+              return (
+                <div className="space-y-4">
+                  <div className="bg-white p-4 rounded-lg border">
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">
+                      {noticiaSeleccionada.titulo}
+                    </h3>
+                    <p className="text-gray-600 mb-3">
+                      {noticiaSeleccionada.descripcion}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap gap-2">
+                        {noticiaSeleccionada.keywords.map((keyword: string, index: number) => (
+                          <span 
+                            key={index}
+                            className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium"
+                          >
+                            #{keyword}
+                          </span>
+                        ))}
+                      </div>
+                      <span className="text-sm font-medium text-purple-600">
+                        Correlación: {noticiaSeleccionada.correlacion}%
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-purple-100 p-3 rounded-lg">
+                    <div className="text-sm text-purple-800">
+                      <strong>🔗 URL:</strong> 
+                      <a 
+                        href={noticiaSeleccionada.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="ml-2 text-purple-600 hover:underline"
+                      >
+                        {noticiaSeleccionada.url}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
         {!mostrarDesgloseTasas && !mostrarDesgloseNoticias && !mostrarConsolidacion && (
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-purple-50 to-pink-50">
-            <h2 className="text-xl font-bold text-navy-900">Noticias</h2>
+            <h2 className="text-xl font-bold text-navy-900">📰 Noticias</h2>
             <div className="mt-3 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div
-                    className={`${getCircleStyle({ id: 'Noticia1' })} bg-purple-500`}
-                    onClick={() => handleItemClick('Noticia1', 'original')}
-                  ></div>
-                  <span className={`text-gray-800 ${isActive('Noticia1') ? 'font-bold' : 'font-medium'}`}>
-                    A la alza pieles sintéticas en Milán - Correlación: 76%
-                  </span>
+              {noticiasDinamicas.map((noticia: any) => (
+                <div key={noticia.id} className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div
+                      className={`${getCircleStyle({ id: noticia.id })} bg-purple-500`}
+                      style={{ backgroundColor: noticia.color }}
+                      onClick={() => handleItemClick(noticia.id, 'original')}
+                    ></div>
+                    <div className="flex-1">
+                      <span className={`text-gray-800 ${isActive(noticia.id) ? 'font-bold' : 'font-medium'} block`}>
+                        {noticia.titulo}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        Correlación: {noticia.correlacion}%
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    className={getButtonStyle(noticia.id)}
+                    onClick={() => handleItemClick(noticia.id)}
+                  >
+                    Ver más
+                  </button>
                 </div>
-                <button
-                  className={getButtonStyle('Noticia1')}
-                  onClick={() => handleItemClick('Noticia1')}
-                >
-                  Ver más
-                </button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div
-                    className={`${getCircleStyle({ id: 'Noticia2' })} bg-amber-500`}
-                    onClick={() => handleItemClick('Noticia2', 'logaritmo')}
-                  ></div>
-                  <span className={`text-gray-800 ${isActive('Noticia2') ? 'font-bold' : 'font-medium'}`}>
-                    Materiales reciclados en bolsos
-                  </span>
-                </div>
-                <button
-                  className={getButtonStyle('Noticia2')}
-                  onClick={() => handleItemClick('Noticia2')}
-                >
-                  Ver más
-                </button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div
-                    className={`${getCircleStyle({ id: 'Noticia3' })} bg-teal-500`}
-                    onClick={() => handleItemClick('Noticia3', 'normalizado')}
-                  ></div>
-                  <span className={`text-gray-800 ${isActive('Noticia3') ? 'font-bold' : 'font-medium'}`}>
-                    Nuevos diseños eco-friendly
-                  </span>
-                </div>
-                <button
-                  className={getButtonStyle('Noticia3')}
-                  onClick={() => handleItemClick('Noticia3')}
-                >
-                  Ver más
-                </button>
-              </div>
+              ))}
             </div>
           </div>
         )}

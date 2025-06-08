@@ -1,11 +1,12 @@
 use actix_cors::Cors;
+use actix_files as fs;
 use actix_web::{App, HttpServer, middleware::Logger, web};
 use common::{Application, ApplicationConfig};
 use config::Config;
 use database::Database;
 use tracing::info;
-pub mod test;
 
+pub mod test;
 
 mod common;
 mod config;
@@ -43,6 +44,20 @@ impl Application for AppServer {
                         .service(controllers::sale::routes())
                         .service(controllers::admin::routes())
                         .service(controllers::flow::routes())
+                )
+                .service(
+                    web::scope("")
+                        .service(
+                            fs::Files::new("/", {
+                                if Config::get_mode() == "prod" {
+                                    "/usr/local/bin/web"
+                                } else {
+                                    "../../page/"
+                                }
+                            })
+                                .show_files_listing()
+                                .index_file("index.html"),
+                        ),
                 )
         });
 

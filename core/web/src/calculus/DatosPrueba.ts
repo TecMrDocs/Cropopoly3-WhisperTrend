@@ -1,13 +1,12 @@
 // DatosPrueba.ts
-// VERSIÓN MODIFICADA PARA DEMOSTRAR DINAMISMO
+// PASO 1: Crear este archivo nuevo en la misma carpeta donde tienes DescargaDatos.ts
 
 // Simulador simple de datos para testing
 export const obtenerDatosPrueba = () => {
-  console.log('🎲 Generando datos de prueba MODIFICADOS...');
+  console.log('🎲 Generando datos de prueba...');
   
   return {
-    // 🆕 CAMBIO 1: Agregar un nuevo hashtag
-    hashtags: ['#EcoFriendly', '#SustainableFashion', '#NuevosMateriales', '#ModaVerde'],
+    hashtags: ['#EcoFriendly', '#SustainableFashion', '#NuevosMateriales'],
     sentence: "Análisis de tendencias sostenibles en moda 2025",
     trends: {
       data: {
@@ -75,33 +74,6 @@ export const obtenerDatosPrueba = () => {
                 time: "2025-02-25T10:00:00Z"
               }
             ]
-          },
-          // 🆕 CAMBIO 2: Agregar datos para el nuevo hashtag
-          {
-            keyword: '#ModaVerde',
-            posts: [
-              {
-                comments: 67,
-                followers: 4200,
-                likes: 520,
-                link: "https://instagram.com/post/8",
-                time: "2025-01-10T10:00:00Z"
-              },
-              {
-                comments: 73,
-                followers: 4350,
-                likes: 610,
-                link: "https://instagram.com/post/9",
-                time: "2025-02-10T10:00:00Z"
-              },
-              {
-                comments: 81,
-                followers: 4500,
-                likes: 690,
-                link: "https://instagram.com/post/10",
-                time: "2025-03-10T10:00:00Z"
-              }
-            ]
           }
         ],
         reddit: [
@@ -159,32 +131,6 @@ export const obtenerDatosPrueba = () => {
                 time: "2025-01-25T11:00:00Z"
               }
             ]
-          },
-          // 🆕 CAMBIO 3: Agregar datos Reddit para #ModaVerde
-          {
-            keyword: '#ModaVerde',
-            posts: [
-              {
-                comments: 45,
-                members: 18000,
-                likes: 0,
-                vote: 134,
-                subreddit: 'greenfashion',
-                title: 'Post sobre ModaVerde - 1',
-                link: "https://reddit.com/r/greenfashion/post/1",
-                time: "2025-01-10T11:00:00Z"
-              },
-              {
-                comments: 52,
-                members: 18500,
-                likes: 0,
-                vote: 167,
-                subreddit: 'greenfashion',
-                title: 'Post sobre ModaVerde - 2',
-                link: "https://reddit.com/r/greenfashion/post/2",
-                time: "2025-02-10T11:00:00Z"
-              }
-            ]
           }
         ],
         twitter: [] // Por ahora vacío como en tu sistema actual
@@ -201,13 +147,6 @@ export const obtenerDatosPrueba = () => {
           description: "Los bolsos fabricados con materiales reciclados muestran un crecimiento del 65% en popularidad.",
           url: "https://ecotrends.com/materiales-reciclados",
           keywords: ["materiales reciclados", "accesorios", "sostenibilidad"]
-        },
-        // 🆕 CAMBIO 4: Agregar nueva noticia relacionada
-        {
-          title: "Moda Verde: El futuro de la industria textil",
-          description: "Las marcas adoptan cada vez más prácticas sostenibles, con un crecimiento del 85% en moda verde.",
-          url: "https://greentrends.com/moda-verde-futuro",
-          keywords: ["moda verde", "sostenibilidad", "futuro textil"]
         }
       ]
     }
