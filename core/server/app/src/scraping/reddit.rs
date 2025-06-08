@@ -7,21 +7,23 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::warn;
 
+// CSS selectors for Reddit elements
 const SUBREDDIT_SELECTOR_STR: &str = "faceplate-hovercard a";
 const MEMBERS_SELECTOR_STR: &str = "#subscribers faceplate-number";
 
 lazy_static! {
-    // posts
+    // Selectors for extracting post data
     static ref TIME_SELECTOR: Selector = Selector::parse("time").unwrap();
     static ref NUMBER_SELECTOR: Selector = Selector::parse("faceplate-number").unwrap();
     static ref POST_CONSUME_SELECTOR: Selector = Selector::parse("[consume-events]").unwrap();
     static ref POST_TITLE_SELECTOR: Selector = Selector::parse("[data-testid='post-title-text']").unwrap();
     static ref SUBREDDIT_SELECTOR: Selector = Selector::parse(SUBREDDIT_SELECTOR_STR).unwrap();
 
-    // members
+    // Selector for subreddit member count
     static ref MEMBERS_SELECTOR: Selector = Selector::parse(MEMBERS_SELECTOR_STR).unwrap();
 }
 
+/// Represents a simple Reddit post with basic information
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SimplePost {
     time: String,
@@ -31,6 +33,7 @@ pub struct SimplePost {
     pub subreddit: String,
 }
 
+/// Represents a Reddit post with additional member count information
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SimplePostWithMembers {
     time: String,
@@ -44,6 +47,7 @@ pub struct SimplePostWithMembers {
 pub struct RedditScraper;
 
 impl RedditScraper {
+    /// Extracts post data from a Reddit HTML element
     pub fn get_simple_post(element: ElementRef) -> anyhow::Result<SimplePost> {
         let time_element = element.select(&TIME_SELECTOR).next();
         let title_element = element.select(&POST_TITLE_SELECTOR).next();
@@ -73,6 +77,7 @@ impl RedditScraper {
                     vote: Utils::parse_human_number(&vote),
                     comments: Utils::parse_human_number(&comments),
                     subreddit: {
+                        // Convert relative URLs to absolute URLs
                         if subreddit.to_string().starts_with("/r/") {
                             format!("https://www.reddit.com{}", subreddit.to_string())
                         } else {
@@ -86,9 +91,11 @@ impl RedditScraper {
         Err(anyhow::anyhow!("Not found elements"))
     }
 
+    /// Scrapes Reddit posts by keyword search
     pub async fn get_simple_posts_by_keyword(keyword: String) -> Vec<SimplePost> {
         let content = SCRAPER
             .execute(move |context| {
+                // Set random user agent to avoid detection
                 let user_agent: String = UserAgent().fake();
                 context.set_user_agent(&user_agent);
                 std::thread::sleep(std::time::Duration::from_secs(3));
@@ -101,6 +108,7 @@ impl RedditScraper {
         let document = Html::parse_document(&content);
         let mut posts = Vec::new();
 
+        // Extract posts from search results
         for element in document.select(&POST_CONSUME_SELECTOR) {
             let post = Self::get_simple_post(element);
 
@@ -113,11 +121,13 @@ impl RedditScraper {
         posts
     }
 
+    /// Scrapes Reddit posts with additional member count for each subreddit
     pub async fn get_simple_posts_with_members(keyword: String) -> Vec<SimplePostWithMembers> {
         let simple_posts = Self::get_simple_posts_by_keyword(keyword).await;
         let mut futures = Vec::new();
         let scraper = Arc::clone(&SCRAPER);
 
+        // Create async tasks to fetch member count for each subreddit
         for post in simple_posts {
             let subreddit = post.subreddit.clone();
             let scraper_clone = Arc::clone(&scraper);
@@ -156,6 +166,7 @@ impl RedditScraper {
             futures.push(future);
         }
 
+        // Execute all futures concurrently and filter successful results
         let results = join_all(futures).await;
         results.into_iter().filter_map(|result| result).collect()
     }
