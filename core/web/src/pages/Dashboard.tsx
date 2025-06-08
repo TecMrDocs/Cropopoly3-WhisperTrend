@@ -1,59 +1,57 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import MenuComponentes from '../components/MenuComponentes';
 import InterpretacionDashboard from '../components/InterpretacionDashboard';
 import CorrelacionVentas from '../components/CorrelacionVentas';
 import VentasCalc from '../mathCalculus/VentasCalc';
-import { resultadoXCalc } from '../mathCalculus/XCalc';
-import { resultadoRedditCalc } from '../mathCalculus/RedditCalc';
-import { resultadoInstaCalc } from '../mathCalculus/InstaCalc';
 import PlotTrend from '@/components/PlotTrend';
 import UniformTrendPlot from '@/components/UniformTrendPlot';
 import MensajeInicial from '@/components/dashboard/mensajeInicial';
 import TasasGraficaDinamica from '@/components/dashboard/TasaGraficaDinamica';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
-
+import { crearConDatosPrueba } from '../calculus/DescargaDatos';
+import { procesarParaDashboard } from '../calculus/ConsolidacionDatos';
 
 // Objeto de mapeo que convierte nombres legibles de contenido a identificadores únicos del sistema
 const mapeoTipos = {
-  
   // Ventas
   'Ventas': 'ventas',
-
   // Hashtags
   '#EcoFriendly': 'hashtag1',
   '#SustainableFashion': 'hashtag2',
   '#NuevosMateriales': 'hashtag3',
-
   //Noticias
   'Noticia1': 'noticia1',
   'Noticia2': 'noticia2',
   'Noticia3': 'noticia3'
 };
 
+// ✅ Función para generar datos de tasas dinámicamente usando datos del sistema
+const generarDatosTasasDinamico = (datosDelSistema: any) => {
+  if (!datosDelSistema) {
+    console.log('⚠️ No hay datos del sistema, retornando datos vacíos');
+    return {};
+  }
 
-// Genera dinámicamente los datos de tasas de interacción y viralidad para todas las redes sociales
-const generarDatosTasasDinamico = () => {
-  // Definición de las calculadoras y sus resultados
+  // Definición de las calculadoras usando datos del sistema
   const calculadoras = [
-    { id: 'insta', resultado: resultadoInstaCalc, colorInteraccion: '#e91e63', colorViralidad: '#f06292' }, // Instagram
-    { id: 'x', resultado: resultadoXCalc, colorInteraccion: '#dc2626', colorViralidad: '#f97316' },         // X
-    { id: 'reddit', resultado: resultadoRedditCalc, colorInteraccion: '#2563eb', colorViralidad: '#06b6d4' } // Reddit
+    { id: 'insta', resultado: datosDelSistema.resultadoInstaCalc, colorInteraccion: '#e91e63', colorViralidad: '#f06292' },
+    { id: 'x', resultado: datosDelSistema.resultadoXCalc, colorInteraccion: '#dc2626', colorViralidad: '#f97316' },
+    { id: 'reddit', resultado: datosDelSistema.resultadoRedditCalc, colorInteraccion: '#2563eb', colorViralidad: '#06b6d4' }
   ];
 
-  //Objeto principal donde se almacenarán las tasas
   const datosTasas: any = {};
 
   // Iterar sobre cada calculadora y sus hashtags para generar las tasas
   calculadoras.forEach(calc => {
     if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
       calc.resultado.hashtags.forEach((hashtag: any) => {
+        // ✅ USAR LOS IDs REALES DEL SISTEMA
         datosTasas[`int_${calc.id}_${hashtag.id}`] = {
           nombre: `Tasa de interacción ${calc.resultado.emoji || ''} ${hashtag.nombre}`,
           datos: hashtag.datosInteraccion,
           color: calc.colorInteraccion
         };
 
-        // Crea entrada para tasa de Viralidad del hashtag específico
         datosTasas[`vir_${calc.id}_${hashtag.id}`] = {
           nombre: `Tasa de viralidad ${calc.resultado.emoji || ''} ${hashtag.nombre}`,
           datos: hashtag.datosViralidad,
@@ -63,47 +61,38 @@ const generarDatosTasasDinamico = () => {
     }
   });
 
-  //Datos por defecto para tasas de interacción y viralidad de hashtags específicos
-  // Asegura que siempre existan las tasas principales, incluso si no hay datos específicos
-  // Utiliza el hashtag 'eco' como referencia principal, o crea valores vacíos
-
-  //Instagram
-  datosTasas['int_insta'] = datosTasas['int_insta_eco'] || { 
+  // Datos por defecto para compatibilidad (si es necesario)
+  datosTasas['int_insta'] = datosTasas[`int_insta_${datosDelSistema.resultadoInstaCalc?.hashtags?.[0]?.id}`] || { 
     nombre: 'Tasa de interacción Instagram', 
     datos: [], 
     color: '#e91e63' 
   };
 
-  //Instagram
-  datosTasas['vir_insta'] = datosTasas['vir_insta_eco'] || { 
+  datosTasas['vir_insta'] = datosTasas[`vir_insta_${datosDelSistema.resultadoInstaCalc?.hashtags?.[0]?.id}`] || { 
     nombre: 'Tasa de viralidad Instagram', 
     datos: [], 
     color: '#f06292' 
   };
 
-  //X
-  datosTasas['int_x'] = datosTasas['int_x_eco'] || { 
+  datosTasas['int_x'] = datosTasas[`int_x_${datosDelSistema.resultadoXCalc?.hashtags?.[0]?.id}`] || { 
     nombre: 'Tasa de interacción X', 
     datos: [], 
     color: '#dc2626' 
   };
 
-  //X
-  datosTasas['vir_x'] = datosTasas['vir_x_eco'] || { 
+  datosTasas['vir_x'] = datosTasas[`vir_x_${datosDelSistema.resultadoXCalc?.hashtags?.[0]?.id}`] || { 
     nombre: 'Tasa de viralidad X', 
     datos: [], 
     color: '#f97316' 
   };
 
-  //Reddit
-  datosTasas['int_reddit'] = datosTasas['int_reddit_eco'] || { 
+  datosTasas['int_reddit'] = datosTasas[`int_reddit_${datosDelSistema.resultadoRedditCalc?.hashtags?.[0]?.id}`] || { 
     nombre: 'Tasa de interacción Reddit', 
     datos: [], 
     color: '#2563eb' 
   };
 
-  //Reddit
-  datosTasas['vir_reddit'] = datosTasas['vir_reddit_eco'] || { 
+  datosTasas['vir_reddit'] = datosTasas[`vir_reddit_${datosDelSistema.resultadoRedditCalc?.hashtags?.[0]?.id}`] || { 
     nombre: 'Tasa de viralidad Reddit', 
     datos: [], 
     color: '#06b6d4' 
@@ -111,33 +100,6 @@ const generarDatosTasasDinamico = () => {
 
   return datosTasas;
 };
-
-// Ejecuta la función para obtener todas las tasas organizadas
-const datosTasas = generarDatosTasasDinamico();
-
-//Obtiene los IDs de tasas de interacción y viralidad para un hashtag específico en todas las redes sociales
-const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
-  // Array que acumulará todos los IDs de tasas encontrados
-  const ids: string[] = [];
-  // Define las calculadoras disponibles con sus resultados correspondientes
-  const calculadoras = [
-    { id: 'insta', resultado: resultadoInstaCalc },
-    { id: 'x', resultado: resultadoXCalc },
-    { id: 'reddit', resultado: resultadoRedditCalc }
-  ];
-
- // Busca el hashtag específico en los resultados de esta calculadora
-  calculadoras.forEach(calc => {
-    const hashtag = calc.resultado.hashtags.find(h => h.nombre === hashtagId);
-    if (hashtag) {
-      ids.push(`int_${calc.id}_${hashtag.id}`, `vir_${calc.id}_${hashtag.id}`);
-    }
-  });
-  // Si no se encontró el hashtag, devuelve un array vacío
-  return ids.length > 0 ? ids : [];
-};
-
-
 
 const HashtagsNoticiasGrafica = ({ hashtagsIds }: { hashtagsIds: string[] }) => {
   if (!hashtagsIds || hashtagsIds.length === 0) {
@@ -153,27 +115,74 @@ const HashtagsNoticiasGrafica = ({ hashtagsIds }: { hashtagsIds: string[] }) => 
   );
 };
 
-
 export default function Dashboard() {
   const nombreProducto = "Bolso Mariana :D";
   const [modoVisualizacion, setModoVisualizacion] = useState<'original' | 'logaritmo' | 'normalizado'>('original');
-  const [hashtagSeleccionado, setHashtagSeleccionado] = useState<string>(''); // Cambié a string vacío para mostrar mensaje inicial
+  const [hashtagSeleccionado, setHashtagSeleccionado] = useState<string>('');
   const [mostrarTendenciaUniforme, setMostrarTendenciaUniforme] = useState<boolean>(false);
   const [mostrarConsolidacion, setMostrarConsolidacion] = useState<boolean>(true);
-  const [tasasSeleccionadas, setTasasSeleccionadas] = useState<string[]>(['int_insta_eco']); // 🔥 EMPEZAR CON ECOFRIENDLY
-  const [hashtagsNoticiasSeleccionados, setHashtagsNoticiasSeleccionados] = useState<string[]>(['pielesSinteticas']); // Estado para hashtags de noticias
-  const [mostrandoDesgloseTasas, setMostrandoDesgloseTasas] = useState<boolean>(false); // 🔥 NUEVO ESTADO
+  const [tasasSeleccionadas, setTasasSeleccionadas] = useState<string[]>([]);
+  const [hashtagsNoticiasSeleccionados, setHashtagsNoticiasSeleccionados] = useState<string[]>(['pielesSinteticas']);
+  const [mostrandoDesgloseTasas, setMostrandoDesgloseTasas] = useState<boolean>(false);
 
-const hashtagsDinamicos = [
-  ...resultadoXCalc.hashtags,
-  ...resultadoInstaCalc.hashtags,
-  ...resultadoRedditCalc.hashtags
-].map(h => h.nombre);
+  const [datosDelSistema, setDatosDelSistema] = useState<any>(null);
+  const [cargandoDatos, setCargandoDatos] = useState(true);
+
+  // ✅ Cargar datos del sistema integrado
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const descargaDatos = crearConDatosPrueba();
+        const resultado = await descargaDatos.obtenerResultadosCalculados();
+        const consolidado = procesarParaDashboard(resultado);
+        setDatosDelSistema(consolidado);
+        console.log('✅ Datos del sistema cargados:', consolidado);
+      } catch (error) {
+        console.error('❌ Error cargando datos:', error);
+      } finally {
+        setCargandoDatos(false);
+      }
+    };
+    
+    cargarDatos();
+  }, []);
+
+  // ✅ Generar datosTasas dinámicamente cuando tengamos datos del sistema
+  const datosTasas = useMemo(() => {
+    if (!datosDelSistema || cargandoDatos) {
+      return {};
+    }
+    return generarDatosTasasDinamico(datosDelSistema);
+  }, [datosDelSistema, cargandoDatos]);
+
+  // ✅ Obtener hashtags dinámicos del sistema
+  const hashtagsDinamicos = useMemo(() => {
+    if (!datosDelSistema) return [];
+    return datosDelSistema.metadatos?.hashtagsOriginales || [];
+  }, [datosDelSistema]);
+
+  // Debug para ver los IDs disponibles
+  console.log('🔍 DEBUG: Todos los IDs de tasas disponibles:', Object.keys(datosTasas));
+  console.log('🔍 DEBUG: Hashtags dinámicos disponibles:', hashtagsDinamicos);
 
   const handleEcoFriendlyClick = () => {
     setMostrarTendenciaUniforme(true);
     setHashtagSeleccionado('#EcoFriendly');
     setMostrandoDesgloseTasas(true); 
+  };
+
+  const probarSistemaCompleto = async () => {
+    try {
+      console.log('🧪 PROBANDO SISTEMA INTEGRADO...');
+      const descargaDatos = crearConDatosPrueba();
+      const resultado = await descargaDatos.obtenerResultadosCalculados();
+      const consolidado = procesarParaDashboard(resultado);
+      console.log('✅ ¡SISTEMA FUNCIONANDO!', consolidado);
+      alert('¡Éxito! Revisa la consola del navegador');
+    } catch (error) {
+      console.error('❌ Error:', error);
+      alert('Error - revisa la consola');
+    }
   };
 
   const handleSeleccionItem = (itemId: string) => {
@@ -188,16 +197,17 @@ const hashtagsDinamicos = [
       const esHashtagDinamico = hashtagsDinamicos.includes(itemId);
       setMostrandoDesgloseTasas(esHashtagDinamico);
       
-      if (esHashtagDinamico) {
-        const nuevasTasas = obtenerTasasPorHashtag(itemId);
-        console.log(`Cambiando a hashtag ${itemId}, nuevas tasas:`, nuevasTasas);
-        setTasasSeleccionadas(nuevasTasas);
-      }
+      // MenuComponentes se encarga de generar las tasas correctas
+      // y las envía através de onTasasSeleccionadas
     }
   };
 
   const handleTasasSeleccionadas = (tasasIds: string[]) => {
+    console.log("🔍 Dashboard recibiendo nuevas tasas:", tasasIds);
     setTasasSeleccionadas(tasasIds);
+    console.log("🔍 Dashboard tasas actualizadas a:", tasasIds);
+
+
   };
 
   const handleHashtagsNoticiasSeleccionados = (hashtagsIds: string[]) => {
@@ -229,6 +239,7 @@ const hashtagsDinamicos = [
     }
     
     if (mostrandoDesgloseTasas && tasasSeleccionadas.length > 0) {
+      console.log("🔍 Pasando a TasasGraficaDinamica:", tasasSeleccionadas);
       return <TasasGraficaDinamica tasasIds={tasasSeleccionadas} datosTasas={datosTasas} />;
     }
     
@@ -365,6 +376,8 @@ const hashtagsDinamicos = [
                 hashtagSeleccionado={hashtagSeleccionado}
                 onTasasSeleccionadas={handleTasasSeleccionadas}
                 onHashtagsNoticiasSeleccionados={handleHashtagsNoticiasSeleccionados}
+                datosDelSistema={datosDelSistema}
+                cargandoDatos={cargandoDatos} 
               />
             </div>
           </div>
