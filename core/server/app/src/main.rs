@@ -35,19 +35,24 @@ impl Application for AppServer {
         info!("Starting the server...");
         // inicializamos el cache de OTP
         let otp_cache = OtpCache::new();
+        let otp_cache_data = web::Data::new(otp_cache);   // wrap once
         let server = HttpServer::new(move || {
             App::new()
-                .app_data(web::Data::new(otp_cache.clone())) // Clonamos el cache para cada instancia de la app
+                .app_data(otp_cache_data.clone()) // Clonamos el cache para cada instancia de la app
                 .wrap(Cors::permissive().supports_credentials())
                 .wrap(Logger::default())
                 .service(
                     web::scope("/api/v1")
-                        .service(controllers::auth::routes())
-                        .service(controllers::auth_mfa::verify_mfa)
                         .service(
-                            web::scope("/check")
-                                .wrap(from_fn(middlewares::auth))
-                                .service(controllers::auth::check),
+                            web::scope("/auth")
+                                .service(controllers::auth::register)
+                                .service(controllers::auth::signin)  
+                                .service(controllers::auth_mfa::verify_mfa)
+                                .service(
+                                    web::scope("/check")
+                                        .wrap(from_fn(middlewares::auth))
+                                        .service(controllers::auth::check),
+                                ),
                         )
                         .service(controllers::web::routes())
                         .service(controllers::chat::routes())

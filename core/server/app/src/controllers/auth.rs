@@ -1,83 +1,79 @@
-// core/server/app/src/controllers/auth.rs
-use crate::{
-    cache::OtpCache,
-    config::{Claims, Config},
-    database::DbResponder,
-    middlewares,
-    models::{Credentials, User},
-};
+// src/controllers/auth.rs
+
+use crate::cache::OtpCache;
+use crate::config::Config;
+use crate::controllers::auth_mfa::MfaClaims;
+use crate::database::DbResponder;       // <-- Añádelo
+use crate::models::{Credentials, User};
+
 use actix_web::{
-    HttpMessage, HttpRequest, HttpResponse, Responder, Result, error, get, middleware::from_fn,
-    post, web,
+    error, get, middleware::from_fn, post, web,
+    HttpMessage, HttpRequest, HttpResponse, Responder,   // <-- HttpMessage aquí
 };
 use auth::{PasswordHasher, TokenService};
+use chrono::{Duration, Utc};
+use rand::rng;
 use serde_json::json;
-use tracing::error;
 use validator::Validate;
-use chrono::{Utc, Duration};             // Para Utc::now() y Duration::minutes()
-use rand::{Rng, thread_rng}; // Para generar números aleatorios
-// use crate::schema::resources::id; 
+
 
 #[post("/register")]
-pub async fn register(mut user: web::Json<User>) -> Result<impl Responder> {
-    if let Err(_) = user.validate() {
+pub async fn register(mut user: web::Json<User>) -> Result<impl Responder, actix_web::Error> {
+    if user.validate().is_err() {
         return Ok(HttpResponse::Unauthorized().body("Invalid data"));
     }
-
     if let Ok(None) = User::get_by_email(user.email.clone()).await {
         if let Ok(hash) = PasswordHasher::hash(&user.password) {
-            user.password = hash.to_string();
-
+            user.password = hash.into();
             let id = User::create(user.clone()).await.to_web()?;
             user.id = Some(id);
-
             return Ok(HttpResponse::Ok().finish());
         }
     } else {
         return Ok(HttpResponse::Unauthorized().body("Email already exists"));
     }
-
     Err(error::ErrorBadRequest("Failed"))
 }
 
 #[post("/signin")]
-pub async fn signin(profile: web::Json<Credentials>, otp_cache: web::Data<OtpCache>) -> impl Responder {
-
-    if let Ok(Some(user)) = User::get_by_email(profile.email.clone()).await {
-
-        if let Ok(true) = PasswordHasher::verify(&profile.password, &user.password) {
+pub async fn signin(
+    credentials: web::Json<Credentials>,
+    otp_cache: web::Data<OtpCache>,
+) -> impl Responder {
+    if let Ok(Some(user)) = User::get_by_email(credentials.email.clone()).await {
+        if PasswordHasher::verify(&credentials.password, &user.password).unwrap_or(false) {
             if let Some(id) = user.id {
-                // Generate 6-digit OTP
-                let mut rng = thread_rng();
-                let otp: u32 = rng.gen_range(0..1_000_000);
+                // OTP
+                let mut rng = rng();
+                let otp: u32 = rand::Rng::random_range(&mut rng, 0..1_000_000);
                 let otp_str = format!("{:06}", otp);
                 let expires_at = Utc::now() + Duration::minutes(5);
-                otp_cache.insert(id, (otp_str.clone(), expires_at));
-                if let Ok(token) =
-                    TokenService::<Claims>::create(&Config::get_secret_key(), Claims::new(id))
+                println!("OTP generado para el usuario {id}: {otp_str} (expira {expires_at})");
+                otp_cache.insert(id, (otp_str, expires_at));
+                // token intermedio
+                let exp = (Utc::now() + Duration::minutes(5)).timestamp() as usize;
+                let mfa_claims = MfaClaims { id, exp };
+                if let Ok(mfa_token) =
+                    TokenService::<MfaClaims>::create(&Config::get_secret_key(), mfa_claims)
                 {
-                    return HttpResponse::Ok().json(json!({ "token": token }));
+                    return HttpResponse::Ok().json(json!({ "mfa_token": mfa_token }));
                 }
             }
         }
     }
-
     HttpResponse::Unauthorized().body("Email or password is incorrect")
 }
 
-#[get("")]
-pub async fn check(req: HttpRequest) -> Result<impl Responder> {
-    if let Some(id) = req.extensions().get::<i32>() {
-        let user = User::get_by_id(*id).await.to_web()?;
-
-        return match user {
-            Some(user) => Ok(HttpResponse::Ok().json(user)),
-            None => Ok(HttpResponse::NotFound().finish()),
-        };
+#[get("/check")]
+pub async fn check(req: HttpRequest) -> Result<impl Responder, actix_web::Error> {
+    if let Some(user_id) = req.extensions().get::<i32>() {
+        if let Some(user) = User::get_by_id(*user_id).await.to_web()? {
+            return Ok(HttpResponse::Ok().json(user));
+        } else {
+            return Ok(HttpResponse::NotFound().finish());
+        }
     }
-
-    error!("No id found in request");
-    Ok(HttpResponse::Unauthorized().finish())
+    Err(error::ErrorUnauthorized("No id found in request"))
 }
 
 pub fn routes() -> actix_web::Scope {
@@ -86,7 +82,7 @@ pub fn routes() -> actix_web::Scope {
         .service(signin)
         .service(
             web::scope("/check")
-                .wrap(from_fn(middlewares::auth))
+                .wrap(from_fn(crate::middlewares::auth))
                 .service(check),
         )
 }

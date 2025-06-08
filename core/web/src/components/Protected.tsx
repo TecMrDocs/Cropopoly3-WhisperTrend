@@ -3,25 +3,22 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 
-export default function Protected({ children }: { children: React.ReactNode}){
+export default function Protected({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, needsVerification } = useAuth();
 
   useEffect(() => {
-    if(!isLoading && !isAuthenticated) {
-      navigate("/");
+    if (isLoading) return;          // aún no sabemos nada
+    if (needsVerification) {
+      navigate("/holaDeNuevo", { replace: true });
+    } else if (!isAuthenticated) {
+      navigate("/", { replace: true });
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, needsVerification, isLoading, navigate]);
 
-  // Mostrar loading mientras se verifica la autenticación
-  if(isLoading) {
-    return <div>Cargando...</div>;
-  }
+  if (isLoading)               return <div>Cargando…</div>;
+  if (!isAuthenticated)        return null;           // caerá en el useEffect
+  if (needsVerification)       return null;           // idem
 
-  // Solo renderizar children si está autenticado
-  if(!isAuthenticated) {
-    return null;
-  }
-
-  return <>{children}</>
+  return <>{children}</>;
 }

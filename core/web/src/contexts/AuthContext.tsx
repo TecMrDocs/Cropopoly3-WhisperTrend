@@ -1,3 +1,4 @@
+// core/web/src/contexts/AuthContext.tsx
 import { createContext } from 'react';
 
 export type AuthContextType = {

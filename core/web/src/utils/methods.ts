@@ -1,3 +1,4 @@
+//core/web/src/utils/methods.ts
 import { getConfig } from "./auth";
 import { API_URL } from "./constants";
 import axios from "axios";
