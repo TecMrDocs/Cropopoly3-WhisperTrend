@@ -29,7 +29,9 @@ export default function AnalysisLoading() {
     if (hasFetched.current) return;
     hasFetched.current = true;
 
-    // Función para realizar la petición al servidor y generar el prompt
+    // Función para realizar la petición al servidor y generar el prompt 
+
+    //esta es la llamada que necesito xd--> aqui llega todo
     const fetchPrompt = async () => {
       try {
         const res = await fetch(`${API_URL}flow/secure/generate-prompt`, {
@@ -43,8 +45,8 @@ export default function AnalysisLoading() {
 
         // Verifica si la respuesta es exitosa
         if (!res.ok) throw new Error("Error al generar prompt");
-        const data = await res.json();
-        console.log("Respuesta:", data);
+        const data = await res.json(); // --> aqui llega todo
+        console.log("Respuesta:", data); //es donde esta la llamada --> aqui llega todo
 
         // Si la respuesta es exitosa, redirige al usuario al dashboard
         navigate("/dashboard");

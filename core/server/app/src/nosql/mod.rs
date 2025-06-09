@@ -8,7 +8,7 @@ use std::env;
 use tracing::{info, error, warn};
 pub mod controllers;
 
-// 🔧 Cliente DynamoDB simple
+
 async fn get_dynamo_client() -> Client {
     let config = aws_config::defaults(BehaviorVersion::latest())
         .load()
@@ -18,13 +18,11 @@ async fn get_dynamo_client() -> Client {
     Client::new(&config)
 }
 
-// 📋 Nombre de tabla con prefijo
 fn get_table_name() -> String {
     let prefix = env::var("DYNAMODB_TABLE_PREFIX").unwrap_or_else(|_| "trendhash_".to_string());
     format!("{}hashtag_cache", prefix)
 }
 
-// 🧪 Test de conexión
 #[get("/test")]
 async fn test_connection() -> Result<impl Responder> {
     info!("🧪 Probando conexión con DynamoDB...");
@@ -82,7 +80,7 @@ async fn test_connection() -> Result<impl Responder> {
     }
 }
 
-// 🔧 Crear tabla si no existe
+// Crear tabla si no existe
 async fn ensure_table_exists(client: &Client, table_name: &str) -> Result<(), Box<dyn std::error::Error>> {
     match client.describe_table().table_name(table_name).send().await {
         Ok(_) => {
@@ -128,7 +126,6 @@ async fn ensure_table_exists(client: &Client, table_name: &str) -> Result<(), Bo
     }
 }
 
-// 💾 Guardar hashtag en DynamoDB
 #[post("/cache/hashtag")]
 async fn save_hashtag_cache(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
     info!("💾 Guardando hashtag en DynamoDB...");
@@ -136,7 +133,6 @@ async fn save_hashtag_cache(body: web::Json<serde_json::Value>) -> Result<impl R
     let client = get_dynamo_client().await;
     let table_name = get_table_name();
     
-    // Asegurar que la tabla exista
     if let Err(e) = ensure_table_exists(&client, &table_name).await {
         error!("❌ Error creando/verificando tabla: {:?}", e);
         return Ok(HttpResponse::InternalServerError().json(json!({
@@ -156,7 +152,6 @@ async fn save_hashtag_cache(body: web::Json<serde_json::Value>) -> Result<impl R
     let pk = format!("USER#{}", user_id);
     let sk = format!("HASHTAG#{}#{}", hashtag, timestamp);
     
-    // Crear item para DynamoDB
     let mut item = HashMap::new();
     item.insert("pk".to_string(), AttributeValue::S(pk.clone()));
     item.insert("sk".to_string(), AttributeValue::S(sk.clone()));
@@ -225,7 +220,7 @@ async fn save_hashtag_cache(body: web::Json<serde_json::Value>) -> Result<impl R
     }
 }
 
-// 📊 Obtener cache del dashboard
+
 #[get("/cache/dashboard/{user_id}/{resource_id}")]
 async fn get_dashboard_cache(path: web::Path<(i32, i32)>) -> Result<impl Responder> {
     let (user_id, resource_id) = path.into_inner();
@@ -240,7 +235,7 @@ async fn get_dashboard_cache(path: web::Path<(i32, i32)>) -> Result<impl Respond
         .key_condition_expression("pk = :pk")
         .expression_attribute_values(":pk", AttributeValue::S(pk.clone()))
         .limit(20)
-        .scan_index_forward(false) // Más recientes primero
+        .scan_index_forward(false) 
         .send()
         .await 
     {
@@ -308,7 +303,6 @@ async fn get_dashboard_cache(path: web::Path<(i32, i32)>) -> Result<impl Respond
     }
 }
 
-// 📈 Listar todos los hashtags
 #[get("/cache/list")]
 async fn list_all_hashtags() -> Result<impl Responder> {
     info!("📈 Listando todos los hashtags...");
@@ -318,7 +312,7 @@ async fn list_all_hashtags() -> Result<impl Responder> {
     
     match client.scan()
         .table_name(&table_name)
-        .limit(50) // Límite de seguridad
+        .limit(50) 
         .send()
         .await 
     {
@@ -375,7 +369,7 @@ async fn list_all_hashtags() -> Result<impl Responder> {
     }
 }
 
-// 🧠 Iniciar análisis (simulado)
+
 #[post("/analytics/start")]
 async fn start_analysis(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
     let analysis_id = format!("analysis_{}", chrono::Utc::now().timestamp());
@@ -395,7 +389,7 @@ async fn start_analysis(body: web::Json<serde_json::Value>) -> Result<impl Respo
     })))
 }
 
-// 📊 Obtener estado del análisis
+
 #[get("/analytics/status/{analysis_id}")]
 async fn get_analysis_status(path: web::Path<String>) -> Result<impl Responder> {
     let analysis_id = path.into_inner();
@@ -435,7 +429,6 @@ async fn get_analysis_status(path: web::Path<String>) -> Result<impl Responder> 
     })))
 }
 
-// 🏪 Poblar DynamoDB con hashtags hardcodeados
 #[post("/populate/hashtags")]
 async fn populate_hashtags() -> Result<impl Responder> {
     info!("🏪 Poblando DynamoDB con hashtags hardcodeados...");
@@ -443,7 +436,6 @@ async fn populate_hashtags() -> Result<impl Responder> {
     let client = get_dynamo_client().await;
     let table_name = get_table_name();
     
-    // Asegurar que la tabla exista
     if let Err(e) = ensure_table_exists(&client, &table_name).await {
         return Ok(HttpResponse::InternalServerError().json(json!({
             "error": "No se pudo crear/verificar tabla",
@@ -451,7 +443,6 @@ async fn populate_hashtags() -> Result<impl Responder> {
         })));
     }
     
-    // 🎸 DATOS HARDCODEADOS POR CATEGORÍA
     let hashtag_categories = vec![
         // GUITARRAS ELÉCTRICAS 🎸
         ("ElectricGuitar", "guitars", vec![
@@ -567,7 +558,7 @@ async fn populate_hashtags() -> Result<impl Responder> {
     let mut success_count = 0;
     let mut errors = vec![];
     
-    // 💾 Guardar cada hashtag con sus datos por plataforma
+
     for (hashtag, category, platforms) in hashtag_categories {
         for (platform, data) in platforms {
             let pk = format!("HASHTAG#{}", hashtag);
@@ -620,7 +611,7 @@ async fn populate_hashtags() -> Result<impl Responder> {
     })))
 }
 
-// 🔍 Buscar hashtags hardcodeados por categoría
+
 #[get("/hashtags/category/{category}")]
 async fn get_hashtags_by_category(path: web::Path<String>) -> Result<impl Responder> {
     let category = path.into_inner();
@@ -679,7 +670,7 @@ async fn get_hashtags_by_category(path: web::Path<String>) -> Result<impl Respon
     }
 }
 
-// 🚀 Todas las rutas
+// Todas las rutas
 pub fn routes() -> actix_web::Scope {
     web::scope("/nosql")
         .service(test_connection)
@@ -688,8 +679,8 @@ pub fn routes() -> actix_web::Scope {
         .service(list_all_hashtags)
         .service(start_analysis)
         .service(get_analysis_status)
-        .service(populate_hashtags)  // 🆕 NUEVO
-        .service(get_hashtags_by_category)  // 🆕 NUEVO
+        .service(populate_hashtags)  
+        .service(get_hashtags_by_category)  
         .service(controllers::analytics::routes())
         //.service(controllers::cache::routes())
 }
