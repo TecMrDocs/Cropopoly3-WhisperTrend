@@ -22,7 +22,7 @@ export default function AnalysisLoading() {
 
   const hasFetched = useRef(false); // Evita múltiples peticiones al servidor
   const navigate = useNavigate();
-  const { productId } = usePrompt(); // Obtenemos el ID del producto del contexto
+  const { productId, setAnalysisData } = usePrompt(); 
 
   // Efecto para realizar la petición al servidor una sola vez
   useEffect(() => {
@@ -46,19 +46,29 @@ export default function AnalysisLoading() {
         // Verifica si la respuesta es exitosa
         if (!res.ok) throw new Error("Error al generar prompt");
         const data = await res.json(); // --> aqui llega todo
-        console.log("Respuesta:", data); //es donde esta la llamada --> aqui llega todo
+        console.log("✅ [Loading] Datos obtenidos de la API:", data); //es donde esta la llamada --> aqui llega todo
+
+        setAnalysisData(data);
+        console.log("✅ [Loading] Datos guardados en PromptContext!");
+        
+        if (data.calculated_results?.hashtags?.length > 0) {
+          console.log("🚀 [Loading] ¡Datos con números del backend detectados!");
+          console.log("📊 [Loading] Hashtags calculados:", data.calculated_results.hashtags.length);
+        } else {
+          console.log("⚠️ [Loading] No hay números calculados del backend");
+        }
 
         // Si la respuesta es exitosa, redirige al usuario al dashboard
         navigate("/dashboard");
       } catch (err) {
-        console.error("Error en /loading:", err);
+        console.error("❌ [Loading] Error en /loading:", err);
         alert("Ocurrió un error al generar el prompt.");
         navigate("/launchConfirmacion");
       }
     };
 
     fetchPrompt();
-  }, []);
+  }, [productId, setAnalysisData, navigate]);
 
   return (
     <div className=" bg-white flex flex-col items-center justify-center text-center pt-20">
