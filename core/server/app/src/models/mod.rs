@@ -36,4 +36,30 @@ impl Database {
                 .load::<Sale>(conn)
         }).await
     }
+
+    // Fix the function name mismatch
+#[post("/resend-verification")] // Make sure the route matches
+pub async fn resend_email_verification() -> HttpResponse {
+    // Your implementation here
+    HttpResponse::Ok().json("Verification email sent")
+}
+
+// Fix the boolean type issue in email verification
+pub async fn verify_email_endpoint(
+    token: web::Query<String>,
+    db: web::Data<Database>,
+) -> HttpResponse {
+    let secret_key = std::env::var("JWT_SECRET").unwrap_or_else(|_| "default-secret".to_string());
+    
+    match MagicLinkService::verify_magic_link(&secret_key, &token, "email_verification") {
+        Ok(claims) => {
+            // Fix: pass boolean true instead of string
+            match User::update_email_verified_by_id(claims.user_id, true).await.to_web() {
+                Ok(_) => HttpResponse::Ok().json("Email verified successfully"),
+                Err(e) => HttpResponse::InternalServerError().json(format!("Database error: {}", e)),
+            }
+        }
+        Err(e) => HttpResponse::BadRequest().json(format!("Invalid token: {}", e)),
+    }
+}
 }

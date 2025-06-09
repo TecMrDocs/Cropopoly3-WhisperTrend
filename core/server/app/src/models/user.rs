@@ -1,10 +1,10 @@
 use crate::{database::Database, schema};
 use diesel::prelude::*;
 use validator::Validate;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de ::DeserializeOwned};
 
 #[derive(Debug, Clone, Deserialize, Serialize, Validate)]
-pub struct BusinessData {
+pub struct BusinessData {   
     #[validate(length(min = 1, max = 50))]
     pub business_name: String,
     #[validate(length(min = 1, max = 50))]
@@ -17,6 +17,8 @@ pub struct BusinessData {
     pub locations: String,
     #[validate(length(min = 1, max = 50))]
     pub num_branches: String,
+    pub email_verified: bool,           // Si el email está verificado
+    pub email_verified_at: Option<chrono::NaiveDateTime>, // Cuándo se verificó
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -76,4 +78,9 @@ pub struct User {
     pub locations: String,
     #[validate(length(min = 1, max = 20))]
     pub num_branches: String,
+
+    #[validate(length(min = 1, max = 20))]
+    pub created_at: Option<chrono::NaiveDateTime>,
+    #[validate(length(min = 1, max = 20))]
+    pub email_verified: Option<bool>,
 }

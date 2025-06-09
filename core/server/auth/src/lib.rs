@@ -1,7 +1,131 @@
 use argon2::Config;
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use rand::Rng;
-use serde::{Serialize, de::DeserializeOwned};
+use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use chrono::Utc;
+
+/// Claims específicos para magic links de verificación
+#[derive(Debug, Serialize, Deserialize)]
+pub struct MagicLinkClaims {
+    pub user_id: i32,
+    pub email: String,
+    pub purpose: String,
+    pub exp: usize,
+    pub iat: usize,
+}
+
+/// Generic token service - SOLO UNA DEFINICIÓN
+pub struct TokenService<T> {
+    _phantom: std::marker::PhantomData<T>,
+}
+
+impl<T> TokenService<T> 
+where 
+    T: Serialize + DeserializeOwned,
+{
+    pub fn create(secret_key: &str, claims: T) -> anyhow::Result<String> {
+        let header = Header::new(Algorithm::HS256);
+        let encoding_key = EncodingKey::from_secret(secret_key.as_ref());
+        
+        encode(&header, &claims, &encoding_key)
+            .map_err(|e| anyhow::anyhow!("Failed to create token: {}", e))
+    }
+    
+    pub fn decode(secret_key: &str, token: &str) -> anyhow::Result<T> {
+        let decoding_key = DecodingKey::from_secret(secret_key.as_ref());
+        let validation = Validation::new(Algorithm::HS256);
+        
+        decode::<T>(token, &decoding_key, &validation)
+            .map(|token_data| token_data.claims)
+            .map_err(|e| anyhow::anyhow!("Failed to decode token: {}", e))
+    }
+}
+
+/// Servicio especializado para magic links
+pub struct MagicLinkService;
+
+impl MagicLinkService {
+    /// Crea un token de magic link para verificación de email
+    pub fn create_email_verification_token(
+        secret_key: &str,
+        user_id: i32,
+        email: String,
+    ) -> anyhow::Result<String> {
+        let now = Utc::now().timestamp() as usize;
+        let expiration = now + (60 * 15); // 15 minutos de validez
+        
+        let claims = MagicLinkClaims {
+            user_id,
+            email,
+            purpose: "email_verification".to_string(),
+            exp: expiration,
+            iat: now,
+        }; 
+
+        TokenService::<MagicLinkClaims>::create(secret_key, claims)
+    }
+
+    /// Crea un token de magic link para reset de contraseña
+    pub fn create_password_reset_token(
+        secret_key: &str,
+        user_id: i32,
+        email: String,
+    ) -> anyhow::Result<String> {
+        let now = Utc::now().timestamp() as usize;
+        let expiration = now + (60 * 30); // 30 minutos para reset de password
+        
+        let claims = MagicLinkClaims {
+            user_id,
+            email,
+            purpose: "password_reset".to_string(),
+            exp: expiration,
+            iat: now,
+        };
+
+        TokenService::<MagicLinkClaims>::create(secret_key, claims)
+    }
+
+    /// Verifica y decodifica un magic link token
+    pub fn verify_magic_link(
+        secret_key: &str,
+        token: &str,
+        expected_purpose: &str,
+    ) -> anyhow::Result<MagicLinkClaims> {
+        let claims = TokenService::<MagicLinkClaims>::decode(secret_key, token)?;
+        
+        // Verificar que el propósito coincide
+        if claims.purpose != expected_purpose {
+            return Err(anyhow::anyhow!("Invalid token purpose"));
+        }
+        
+        // Verificar expiración (aunque JWT ya lo hace, doble verificación)
+        let now = Utc::now().timestamp() as usize;
+        if claims.exp < now {
+            return Err(anyhow::anyhow!("Token expired"));
+        }
+        
+        Ok(claims)
+    }
+}
+
+// Función pública para crear magic tokens (para resolver warning)
+pub fn create_magic_token(
+    secret_key: &str, 
+    user_id: i32, 
+    email: String, 
+    purpose: &str, 
+    ttl_secs: usize
+) -> anyhow::Result<String> {
+    match purpose {
+        "email_verification" => {
+            MagicLinkService::create_email_verification_token(secret_key, user_id, email)
+        }
+        "password_reset" => {
+            MagicLinkService::create_password_reset_token(secret_key, user_id, email)
+        }
+        _ => Err(anyhow::anyhow!("Invalid purpose: {}", purpose))
+    }
+}
 
 /// Password hashing utility struct using Argon2 algorithm
 /// Provides secure password hashing and verification functionality
