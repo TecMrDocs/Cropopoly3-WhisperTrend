@@ -2,10 +2,17 @@ use proc_macro::TokenStream;
 use quote::{format_ident, quote};
 use syn::{Attribute, DeriveInput, Meta, parse_macro_input};
 
+/// A procedural macro that automatically applies common Diesel ORM traits and attributes
+/// to structs. It can optionally specify a custom table name.
+/// 
+/// Usage: 
+/// - #[diesel_default] for default table inference
+/// - #[diesel_default(custom_table_name)] for explicit table name
 #[proc_macro_attribute]
 pub fn diesel_default(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as DeriveInput);
 
+    // Parse the optional table name from the attribute parameters
     let table_name = if attr.is_empty() {
         None
     } else {
@@ -13,6 +20,7 @@ pub fn diesel_default(attr: TokenStream, item: TokenStream) -> TokenStream {
         Some(syn::parse_str::<syn::Path>(&attr_str).unwrap())
     };
 
+    // Generate table-specific attributes based on whether a custom table name was provided
     let table_attr = if let Some(table) = table_name {
         quote! {
             #[diesel(check_for_backend(diesel::pg::Pg))]
@@ -24,6 +32,7 @@ pub fn diesel_default(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
+    // Generate the expanded code with all necessary Diesel and Serde derives
     let expanded = quote! {
         #[derive(serde::Deserialize, serde::Serialize, Debug)]
         #[derive(diesel::Queryable, diesel::Selectable, diesel::Identifiable, diesel::Insertable, diesel::AsChangeset)]
@@ -34,32 +43,46 @@ pub fn diesel_default(attr: TokenStream, item: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
+/// Represents a database update operation configuration
+/// Contains the field to filter by and the fields to update
 #[derive(Debug)]
 struct UpdateOperation {
-    filter_by: String,
-    update_fields: Vec<String>,
+    filter_by: String,        // Field used to identify records (e.g., "id", "email")
+    update_fields: Vec<String>, // Fields that will be updated
 }
 
+/// Configuration for all database operations that should be generated
+/// Each boolean/vector represents different types of CRUD operations
 #[derive(Debug)]
 struct DatabaseOperations {
-    create: bool,
-    updates: Vec<UpdateOperation>,
-    deletes: Vec<String>,
-    gets: Vec<String>,
-    get_all: bool,
+    create: bool,                      // Generate create method
+    updates: Vec<UpdateOperation>,     // Generate update methods with specific configurations
+    deletes: Vec<String>,             // Generate delete methods filtered by these fields
+    gets: Vec<String>,                // Generate get methods filtered by these fields  
+    get_all: bool,                    // Generate get_all method
 }
 
+/// A procedural macro that automatically generates CRUD methods for database entities
+/// 
+/// Usage examples:
+/// - #[database(create, get_all)] - generates create and get_all methods
+/// - #[database(get(id, email), delete(id))] - generates getters and delete by id
+/// - #[database(update(id{name,email}))] - generates update method for name and email filtered by id
 #[proc_macro_attribute]
 pub fn database(attr: TokenStream, item: TokenStream) -> TokenStream {
     let input = parse_macro_input!(item as DeriveInput);
     let struct_name = &input.ident;
 
+    // Extract the table name from Diesel attributes on the struct
     let table_name = extract_table_name(&input.attrs);
 
+    // Parse the macro attributes to determine which operations to generate
     let operations = parse_database_operations(&attr.to_string());
 
+    // Generate the implementation block with all requested methods
     let impl_block = generate_methods(&struct_name, &table_name, &operations);
 
+    // Combine original struct with generated implementation
     let expanded = quote! {
         #input
 
@@ -69,7 +92,10 @@ pub fn database(attr: TokenStream, item: TokenStream) -> TokenStream {
     TokenStream::from(expanded)
 }
 
+/// Extracts the table name from Diesel attributes on a struct
+/// Looks for #[diesel(table_name = "table_name")] patterns in the attributes
 fn extract_table_name(attrs: &[Attribute]) -> String {
+    // First pass: Look for explicit table_name in diesel attributes
     for attr in attrs {
         if !attr.path().is_ident("diesel") {
             continue;
@@ -80,6 +106,7 @@ fn extract_table_name(attrs: &[Attribute]) -> String {
                 let tokens = meta_list.tokens.clone();
                 let token_str = tokens.to_string();
 
+                // Check for table_name = "value" pattern
                 if token_str.contains("table_name") {
                     let parts: Vec<&str> = token_str.split('=').collect();
                     if parts.len() > 1 {
@@ -95,6 +122,7 @@ fn extract_table_name(attrs: &[Attribute]) -> String {
         }
     }
 
+    // Second pass: Alternative parsing method for edge cases
     for attr in attrs {
         if attr.path().is_ident("diesel") {
             match &attr.meta {
@@ -124,6 +152,8 @@ fn extract_table_name(attrs: &[Attribute]) -> String {
     panic!("Not found table name");
 }
 
+/// Parses the database macro attributes to determine which operations to generate
+/// Handles complex syntax like: create, get(id, email), update(id{name,email}), delete(id)
 fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
     let mut ops = DatabaseOperations {
         create: false,
@@ -133,18 +163,23 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
         get_all: false,
     };
 
+    // Remove spaces to simplify parsing
     let clean_attr = attr_str.replace(" ", "");
 
     let mut current_pos = 0;
     while current_pos < clean_attr.len() {
+        // Parse "create" operation
         if clean_attr[current_pos..].starts_with("create") {
             ops.create = true;
             current_pos += 6;
-        } else if clean_attr[current_pos..].starts_with("update(") {
+        } 
+        // Parse "update(...)" operations with complex syntax
+        else if clean_attr[current_pos..].starts_with("update(") {
             let start_pos = current_pos + 7;
             let mut nested = 0;
             let mut end_pos = start_pos;
 
+            // Find the matching closing parenthesis, accounting for nested structures
             for (i, c) in clean_attr[start_pos..].chars().enumerate() {
                 if c == '(' || c == '{' {
                     nested += 1;
@@ -159,6 +194,7 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
 
             let update_content = &clean_attr[start_pos..end_pos];
 
+            // Split update operations by commas (not inside braces)
             let mut update_parts = Vec::new();
             let mut part_start = 0;
             let mut brace_count = 0;
@@ -178,8 +214,10 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
                 update_parts.push(&update_content[part_start..]);
             }
 
+            // Process each update operation part
             for up in update_parts {
                 if up.contains('{') {
+                    // Handle "field{field1,field2}" syntax
                     let filter_end = up.find('{').unwrap();
                     let filter_by = up[..filter_end].to_string();
 
@@ -191,6 +229,7 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
                         update_fields,
                     });
                 } else {
+                    // Handle simple "field" syntax (updates entire struct)
                     ops.updates.push(UpdateOperation {
                         filter_by: up.to_string(),
                         update_fields: vec![],
@@ -199,7 +238,9 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
             }
 
             current_pos = end_pos + 1;
-        } else if clean_attr[current_pos..].starts_with("delete(") {
+        } 
+        // Parse "delete(...)" operations
+        else if clean_attr[current_pos..].starts_with("delete(") {
             let start_pos = current_pos + 7;
             let end_pos = clean_attr[start_pos..]
                 .find(')')
@@ -209,7 +250,9 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
             ops.deletes = delete_content.split(',').map(|s| s.to_string()).collect();
 
             current_pos = end_pos + 1;
-        } else if clean_attr[current_pos..].starts_with("get(") {
+        } 
+        // Parse "get(...)" operations
+        else if clean_attr[current_pos..].starts_with("get(") {
             let start_pos = current_pos + 4;
             let end_pos = clean_attr[start_pos..]
                 .find(')')
@@ -219,7 +262,9 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
             ops.gets = get_content.split(',').map(|s| s.to_string()).collect();
 
             current_pos = end_pos + 1;
-        } else if clean_attr[current_pos..].starts_with("get_all") {
+        } 
+        // Parse "get_all" operation
+        else if clean_attr[current_pos..].starts_with("get_all") {
             ops.get_all = true;
             current_pos += 7;
         } else {
@@ -230,6 +275,8 @@ fn parse_database_operations(attr_str: &str) -> DatabaseOperations {
     ops
 }
 
+/// Generates the implementation block with all requested CRUD methods
+/// Takes the struct name, table name, and operations configuration to generate appropriate methods
 fn generate_methods(
     struct_name: &syn::Ident,
     table_name: &str,
@@ -237,9 +284,11 @@ fn generate_methods(
 ) -> proc_macro2::TokenStream {
     let mut methods = proc_macro2::TokenStream::new();
 
+    // Parse the table name into a Rust path for use in generated code
     let table_path = syn::parse_str::<syn::Path>(table_name)
         .unwrap_or_else(|_| syn::parse_str::<syn::Path>("schema::users").unwrap());
 
+    // Generate create method if requested
     if ops.create {
         let create_method = quote! {
             pub async fn create(user: #struct_name) -> anyhow::Result<i32> {
@@ -255,6 +304,7 @@ fn generate_methods(
         methods.extend(create_method);
     }
 
+    // Generate get_all method if requested
     if ops.get_all {
         let get_all_method = quote! {
             pub async fn get_all() -> anyhow::Result<Vec<#struct_name>> {
@@ -268,10 +318,12 @@ fn generate_methods(
         methods.extend(get_all_method);
     }
 
+    // Generate get methods for each specified field
     for get_field in &ops.gets {
         let method_name = format_ident!("get_by_{}", get_field);
         let field_ident = format_ident!("{}", get_field);
 
+        // Special handling for ID field (uses find() method)
         let get_method = if get_field == "id" {
             quote! {
                 pub async fn #method_name(id: i32) -> anyhow::Result<Option<#struct_name>> {
@@ -279,6 +331,7 @@ fn generate_methods(
                 }
             }
         } else {
+            // Generic field filtering for non-ID fields
             quote! {
                 pub async fn #method_name(#field_ident: String) -> anyhow::Result<Option<#struct_name>> {
                     Database::query_wrapper(move |conn| {
@@ -295,10 +348,12 @@ fn generate_methods(
         methods.extend(get_method);
     }
 
+    // Generate update methods for each update operation
     for update_op in &ops.updates {
         let filter_field = &update_op.filter_by;
         let filter_ident = format_ident!("{}", filter_field);
 
+        // Case 1: Update entire struct (no specific fields specified)
         if update_op.update_fields.is_empty() {
             let method_name = format_ident!("update_by_{}", filter_field);
 
@@ -335,7 +390,9 @@ fn generate_methods(
             };
 
             methods.extend(update_method);
-        } else if update_op.update_fields.len() == 1 {
+        } 
+        // Case 2: Update single specific field
+        else if update_op.update_fields.len() == 1 {
             let update_field = &update_op.update_fields[0];
             let method_name = format_ident!("update_{}_by_{}", update_field, filter_field);
             let update_ident = format_ident!("{}", update_field);
@@ -369,13 +426,16 @@ fn generate_methods(
             };
 
             methods.extend(update_method);
-        } else {
+        } 
+        // Case 3: Update multiple specific fields
+        else {
             let fields_str = update_op.update_fields.join("_and_");
             let method_name = format_ident!("update_{}_by_{}", fields_str, filter_field);
 
             let mut params = proc_macro2::TokenStream::new();
             let mut set_fields = proc_macro2::TokenStream::new();
 
+            // Generate parameters for the method
             if filter_field == "id" {
                 params.extend(quote! { id: i32, });
             } else {
@@ -383,6 +443,7 @@ fn generate_methods(
                 params.extend(quote! { #filter_param: String, });
             }
 
+            // Generate parameters and set clauses for each field to update
             for (i, field) in update_op.update_fields.iter().enumerate() {
                 let field_ident = format_ident!("{}", field);
                 params.extend(quote! { #field_ident: String, });
@@ -431,9 +492,11 @@ fn generate_methods(
         }
     }
 
+    // Generate delete methods for each specified field
     for delete_field in &ops.deletes {
         let method_name = format_ident!("delete_by_{}", delete_field);
 
+        // Special handling for ID field (uses find() method)
         let delete_method = if delete_field == "id" {
             quote! {
                 pub async fn #method_name(id: i32) -> anyhow::Result<()> {
@@ -446,6 +509,7 @@ fn generate_methods(
                 }
             }
         } else {
+            // Generic field filtering for non-ID fields
             let field_ident = format_ident!("{}", delete_field);
             quote! {
                 pub async fn #method_name(#field_ident: String) -> anyhow::Result<()> {
@@ -463,6 +527,7 @@ fn generate_methods(
         methods.extend(delete_method);
     }
 
+    // Return the complete implementation block
     quote! {
         impl #struct_name {
             #methods

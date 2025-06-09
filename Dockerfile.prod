@@ -13,7 +13,13 @@ RUN nix --extra-experimental-features "nix-command flakes" \
 
 FROM debian:latest AS compiler
 
-RUN apt-get update && apt-get install -y ca-certificates
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libssl-dev \
+    pkg-config \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create source directory
 RUN mkdir /source
@@ -24,33 +30,71 @@ ENV PATH="/source/bin:${PATH}"
 
 COPY . /project
 
-# Build the application
-RUN cargo build --manifest-path /project/core/server/Cargo.toml --release
+# Configure all Nix environment variables (OpenSSL, PostgreSQL, libclang)
+RUN ls -la /nix/store/*openssl* && \
+    echo "=== Configuring OpenSSL ===" && \
+    OPENSSL_DEV_PATH=$(find /nix/store -maxdepth 1 -name "*openssl*-dev" -type d | head -1) && \
+    OPENSSL_BASE_PATH=$(find /nix/store -maxdepth 1 -name "*openssl-[0-9]*" -type d | grep -v -E "(dev|man|doc|bin)" | head -1) && \
+    OPENSSL_LIB_PATH="$OPENSSL_BASE_PATH/lib" && \
+    OPENSSL_INCLUDE_PATH="$OPENSSL_DEV_PATH/include" && \
+    echo "OPENSSL_LIB_PATH: $OPENSSL_LIB_PATH" && \
+    echo "=== Configuring PostgreSQL ===" && \
+    PQ_LIB_PATH=$(ls -d /nix/store/*-postgresql-13.*-lib/lib | head -1) && \
+    echo "PQ_LIB_PATH: $PQ_LIB_PATH" && \
+    echo "=== Configuring libclang ===" && \
+    LIBCLANG_PATH=$(ls -d /nix/store/*-clang-*-lib/lib | head -1) && \
+    CLANG_INCLUDE=$(find $LIBCLANG_PATH/clang -name include -type d | head -1) && \
+    GLIBC_INCLUDE=$(find /nix/store -name include -path "*glibc*dev*" -type d | head -1) && \
+    echo "LIBCLANG_PATH: $LIBCLANG_PATH" && \
+    echo "CLANG_INCLUDE: $CLANG_INCLUDE" && \
+    echo "GLIBC_INCLUDE: $GLIBC_INCLUDE" && \
+    echo "=== Writing environment variables ===" && \
+    echo "export OPENSSL_DIR=\"$OPENSSL_DEV_PATH\"" >> /etc/environment && \
+    echo "export OPENSSL_LIB_DIR=\"$OPENSSL_LIB_PATH\"" >> /etc/environment && \
+    echo "export OPENSSL_INCLUDE_DIR=\"$OPENSSL_INCLUDE_PATH\"" >> /etc/environment && \
+    echo "export PQ_LIB_DIR=\"$PQ_LIB_PATH\"" >> /etc/environment && \
+    echo "export LD_LIBRARY_PATH=\"$PQ_LIB_PATH:$OPENSSL_LIB_PATH:\$LD_LIBRARY_PATH\"" >> /etc/environment && \
+    echo "export LIBCLANG_PATH=\"$LIBCLANG_PATH\"" >> /etc/environment && \
+    echo "export BINDGEN_EXTRA_CLANG_ARGS=\"-I$CLANG_INCLUDE -I$LIBCLANG_PATH/include -I$GLIBC_INCLUDE\"" >> /etc/environment && \
+    echo "export PKG_CONFIG_PATH=\"$OPENSSL_DEV_PATH/lib/pkgconfig:/usr/lib/*/pkgconfig\"" >> /etc/environment && \
+    echo "export RUSTFLAGS=\"-C link-args=-Wl,-rpath,$OPENSSL_LIB_PATH -C link-args=-Wl,-rpath,$PQ_LIB_PATH\"" >> /etc/environment
+
+# Source environment and build the application
+RUN . /etc/environment && cargo build --manifest-path /project/core/zbrowser/common/Cargo.toml --release
+RUN . /etc/environment && cargo build --manifest-path /project/core/zbrowser/Cargo.toml --release
+RUN . /etc/environment && cargo build --manifest-path /project/core/server/app/Cargo.toml --release
 
 FROM debian:latest AS runner
 
-# Install dependencies
-RUN apt-get update && apt-get install -y ca-certificates patchelf certbot nginx cron curl
+# Install dependencies including PostgreSQL client libraries
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    patchelf \
+    curl \
+    libpq5 \
+    libssl3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy necessary Nix libraries
+COPY --from=compiler /nix/store/*postgresql*-lib/lib/libpq.so* /usr/lib/
+COPY --from=compiler /nix/store/*openssl*/lib/libssl.so* /usr/lib/
+COPY --from=compiler /nix/store/*openssl*/lib/libcrypto.so* /usr/lib/
 
 # Copy the compiled application
-COPY --from=compiler /project/core/server/target/release/server /usr/local/bin/app
+COPY --from=compiler /project/core/server/target/release/app /usr/local/bin/app
+COPY --from=compiler /project/core/page /usr/local/bin/web
 
-# Set the interpreter for the application
-RUN patchelf --set-interpreter /lib/ld-linux-*.so.1 /usr/local/bin/app
+RUN INTERPRETER=$(find /lib* /usr/lib* -name "ld-linux-*.so.*" -executable 2>/dev/null | head -1) && \
+    if [ -z "$INTERPRETER" ]; then \
+        echo "Not found"; exit 1; \
+    fi && \
+    echo "Using interpreter: $INTERPRETER" && \
+    patchelf --set-interpreter "$INTERPRETER" /usr/local/bin/app
 
-# Install Certbot
-RUN echo "0 0,12 * * * certbot renew --nginx --quiet" | crontab -
-
-# Create SSL directory
-RUN mkdir -p /etc/nginx/ssl
-
-# Copy the entrypoint script
-COPY entrypoint.sh /usr/src/app/entrypoint.sh
-
-# Make the entrypoint script executable
-RUN chmod +x /usr/src/app/entrypoint.sh
+# Update library cache
+RUN ldconfig
 
 # Expose the ports
-EXPOSE 80 443
+EXPOSE 80
 
-ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
+CMD ["/usr/local/bin/app"]

@@ -1,188 +1,530 @@
 terraform {
   required_providers {
-    oci = {
-      source  = "hashicorp/oci"
-      version = "= 5.40.0"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
 }
 
-provider "oci" {
-  config_file_profile = "DEFAULT"
-  user_ocid           = var.user_ocid
-  fingerprint         = var.fingerprint
-  private_key_path    = var.private_key_path
-  tenancy_ocid        = var.tenancy_ocid
-  region              = var.region
+provider "aws" {
+  region = var.region
 }
 
-resource "oci_core_vcn" "whispertrend_vcn" {
-  compartment_id = var.compartment_id
-  cidr_block     = "10.0.0.0/16"
-  display_name   = "whispertrend_vcn"
+# ========================================
+# VPC Y NETWORKING
+# ========================================
 
-  freeform_tags = {
-    "project-name" = "whispertrend"
+resource "aws_vpc" "ksp_vpc" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = {
+    Name           = "ksp_vpc"
+    "project-name" = "ksp"
   }
 }
 
-resource "oci_core_security_list" "public_sn_sl" {
-  compartment_id = var.compartment_id
-  vcn_id         = oci_core_vcn.whispertrend_vcn.id
-  display_name   = "security list for the public subnet"
+resource "aws_internet_gateway" "internet_gateway" {
+  vpc_id = aws_vpc.ksp_vpc.id
 
-  ingress_security_rules {
-    protocol    = 6
-    source_type = "CIDR_BLOCK"
-    source      = "0.0.0.0/0"
-    description = "access to container instance port 443 from anywhere"
+  tags = {
+    Name           = "internet_gateway"
+    "project-name" = "ksp"
+  }
+}
 
-    tcp_options {
-      min = 443
-      max = 443
+resource "aws_subnet" "ksp_subnet" {
+  vpc_id                  = aws_vpc.ksp_vpc.id
+  cidr_block              = "10.0.0.0/24"
+  availability_zone       = data.aws_availability_zones.available.names[0]
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name           = "ksp_subnet_public"
+    "project-name" = "ksp"
+  }
+}
+
+resource "aws_subnet" "ksp_subnet_2" {
+  vpc_id            = aws_vpc.ksp_vpc.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = data.aws_availability_zones.available.names[1]
+  # NO necesita ser pública para RDS
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name           = "ksp_subnet_2_private"
+    "project-name" = "ksp"
+  }
+}
+
+resource "aws_route_table" "igw_rt" {
+  vpc_id = aws_vpc.ksp_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.internet_gateway.id
+  }
+
+  tags = {
+    Name           = "Internet gateway route table"
+    "project-name" = "ksp"
+  }
+}
+
+resource "aws_route_table_association" "public_subnet_association" {
+  subnet_id      = aws_subnet.ksp_subnet.id
+  route_table_id = aws_route_table.igw_rt.id
+}
+
+# ========================================
+# SECURITY GROUPS
+# ========================================
+
+resource "aws_security_group" "elb_sg" {
+  name        = "ksp_elb_security_group"
+  description = "Security group for the Classic Load Balancer"
+  vpc_id      = aws_vpc.ksp_vpc.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTP access"
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTPS access"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+    description = "Allow traffic to VPC"
+  }
+
+  tags = {
+    Name           = "elb_sg"
+    "project-name" = "ksp"
+  }
+}
+
+resource "aws_security_group" "public_sg" {
+  name        = "ksp_public_security_group"
+  description = "Security group for the public subnet"
+  vpc_id      = aws_vpc.ksp_vpc.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "SSH access"
+  }
+
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.elb_sg.id]
+    description     = "HTTP access from ELB"
+  }
+
+  egress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTP access"
+  }
+
+  egress {
+    from_port   = 1
+    to_port     = 65535
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all UDP outbound (needed by Tailscale)"
+  }
+
+  egress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+    description = "PostgreSQL access"
+  }
+
+  egress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTPS access"
+  }
+
+  tags = {
+    Name           = "public_sg"
+    "project-name" = "ksp"
+  }
+}
+
+resource "aws_security_group" "rds_sg" {
+  name        = "rds_security_group"
+  description = "Security group for RDS PostgreSQL"
+  vpc_id      = aws_vpc.ksp_vpc.id
+
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+    description = "PostgreSQL access from VPC"
+  }
+
+  tags = {
+    Name           = "rds_sg"
+    "project-name" = "ksp"
+  }
+}
+
+# ========================================
+# CLASSIC LOAD BALANCER (ELB)
+# ========================================
+
+resource "aws_elb" "ksp_elb" {
+  name            = "ksp-elb"
+  subnets         = [aws_subnet.ksp_subnet.id]
+  security_groups = [aws_security_group.elb_sg.id]
+
+  listener {
+    instance_port     = 80
+    instance_protocol = "http"
+    lb_port           = 80
+    lb_protocol       = "http"
+  }
+
+  health_check {
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 5
+    interval            = 30
+    target              = "HTTP:80/"
+  }
+
+  cross_zone_load_balancing   = true
+  idle_timeout                = 400
+  connection_draining         = true
+  connection_draining_timeout = 400
+
+  tags = {
+    Name           = "ksp-elb"
+    "project-name" = "ksp"
+  }
+}
+
+# ========================================
+# AUTO SCALING GROUP
+# ========================================
+
+resource "aws_launch_template" "ksp_template" {
+  name_prefix   = "ksp-template"
+  image_id      = data.aws_ami.amazon_linux_2023.id
+  instance_type = "t3.medium"
+
+  vpc_security_group_ids = [aws_security_group.public_sg.id]
+
+  block_device_mappings {
+    device_name = "/dev/xvda"
+    ebs {
+      volume_type = "gp3"
+      volume_size = 30
+      encrypted   = false
     }
   }
 
-  ingress_security_rules {
-    protocol    = 6
-    source_type = "CIDR_BLOCK"
-    source      = "0.0.0.0/0"
-    description = "access to container instance port 80 from anywhere"
+  user_data = base64encode(<<-EOF
+    #!/bin/bash
+    
+    exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+    echo "Iniciando configuración del servidor..."
 
-    tcp_options {
-      min = 80
-      max = 80
+    sudo dnf update -y
+    sudo dnf install -y curl wget git nc
+
+    curl -fsSL https://tailscale.com/install.sh | sh
+    
+    sudo systemctl enable tailscaled
+    sudo systemctl start tailscaled
+    
+    echo "Configurando Tailscale con auth key..."
+    sudo tailscale up --authkey="${var.tailscale_auth_key}" --accept-routes --accept-dns
+
+    echo "ec2-user:${var.ssh_password}" | sudo chpasswd
+    sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+    sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+    sudo sed -i 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/g' /etc/ssh/sshd_config
+    sudo systemctl restart sshd
+
+    # Install Docker
+    sudo dnf install -y docker
+    
+    sudo systemctl enable docker
+    sudo systemctl start docker
+    sudo usermod -aG docker ec2-user
+    newgrp docker
+    
+    sleep 5
+    sudo tailscale status
+
+    docker run -d -p 80:80 \
+      -e MODE=${var.mode} \
+      -e PORT=${var.port} \
+      -e HOST=${var.host} \
+      -e RUST_LOG=${var.rust_log} \
+      -e SECRET_KEY=${var.secret_key} \
+      -e DATABASE_URL=postgres://${var.db_username}:${var.db_password}@${aws_db_instance.postgresql.address}:${aws_db_instance.postgresql.port}/${var.db_name} \
+      -e POSTGRES_USER=${var.db_username} \
+      -e POSTGRES_PASSWORD=${var.db_password} \
+      -e POSTGRES_DB=${var.db_name} \
+      -e GROQ_API_KEY=${var.groq_api_key} \
+      -e BROWSERLESS_WS=${var.browserless_ws} \
+      -e INSTAGRAM_USERNAME=${var.instagram_username} \
+      -e INSTAGRAM_PASSWORD=${var.instagram_password} \
+      --name ksp-app zamcv/ksp:v3
+    
+    EOF
+  )
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name           = "ksp-app-asg"
+      "project-name" = "ksp"
     }
   }
+}
 
-  egress_security_rules {
-    protocol         = 6
-    destination_type = "CIDR_BLOCK"
-    destination      = "0.0.0.0/0"
-    description      = "access to container registries via HTTP"
+resource "aws_autoscaling_group" "ksp_asg" {
+  name                = "ksp-autoscaling-group"
+  vpc_zone_identifier = [aws_subnet.ksp_subnet.id]
+  
+  min_size         = 1
+  max_size         = 4
+  desired_capacity = 2
 
-    tcp_options {
-      min = 80
-      max = 80
-    }
+  # Asociar con el ELB
+  load_balancers = [aws_elb.ksp_elb.name]
+
+  # Health check
+  health_check_type         = "ELB"  # Usa el health check del ELB
+  health_check_grace_period = 300    # Tiempo antes de hacer health check
+
+  launch_template {
+    id      = aws_launch_template.ksp_template.id
+    version = "$Latest"
   }
 
-  egress_security_rules {
-    protocol         = 6
-    destination_type = "CIDR_BLOCK"
-    destination      = "0.0.0.0/0"
-    description      = "access to container registries via HTTPS"
+  termination_policies = ["OldestInstance"]
 
-    tcp_options {
-      min = 443
-      max = 443
-    }
+  tag {
+    key                 = "Name"
+    value               = "ksp-app-autoscaling"
+    propagate_at_launch = true
   }
 
-  freeform_tags = {
-    "project-name" = "whispertrend"
+  tag {
+    key                 = "project-name"
+    value               = "ksp"
+    propagate_at_launch = true
   }
 }
 
-resource "oci_core_subnet" "whispertrend_subnet" {
-  compartment_id = var.compartment_id
-  vcn_id         = oci_core_vcn.whispertrend_vcn.id
-  cidr_block     = "10.0.0.0/24"
-  display_name   = "whispertrend_subnet"
-  route_table_id = oci_core_route_table.igw_rt.id
+# ========================================
+# POLÍTICAS DE AUTO SCALING
+# ========================================
 
-  security_list_ids = [
-    oci_core_security_list.public_sn_sl.id
-  ]
+resource "aws_autoscaling_policy" "scale_up" {
+  name                   = "ksp-scale-up"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown              = 300
+  autoscaling_group_name = aws_autoscaling_group.ksp_asg.name
+}
 
-  freeform_tags = {
-    "project-name" = "whispertrend"
+resource "aws_autoscaling_policy" "scale_down" {
+  name                   = "ksp-scale-down"
+  scaling_adjustment     = -1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown              = 300
+  autoscaling_group_name = aws_autoscaling_group.ksp_asg.name
+}
+
+# ========================================
+# CLOUDWATCH ALARMS
+# ========================================
+
+resource "aws_cloudwatch_metric_alarm" "high_cpu" {
+  alarm_name          = "ksp-high-cpu"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120"
+  statistic           = "Average"
+  threshold           = "70"    # Si CPU > 70%
+  alarm_description   = "This metric monitors ec2 cpu utilization"
+  alarm_actions       = [aws_autoscaling_policy.scale_up.arn]
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.ksp_asg.name
   }
 }
 
-resource "oci_core_internet_gateway" "internet_gateway" {
-  compartment_id = var.compartment_id
-  vcn_id         = oci_core_vcn.whispertrend_vcn.id
-  display_name   = "internet_gateway"
-  enabled        = true
-}
+resource "aws_cloudwatch_metric_alarm" "low_cpu" {
+  alarm_name          = "ksp-low-cpu"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120"
+  statistic           = "Average"
+  threshold           = "30"    # Si CPU < 30%
+  alarm_description   = "This metric monitors ec2 cpu utilization"
+  alarm_actions       = [aws_autoscaling_policy.scale_down.arn]
 
-resource "oci_core_route_table" "igw_rt" {
-  compartment_id = var.compartment_id
-  vcn_id         = oci_core_vcn.whispertrend_vcn.id
-  display_name   = "Internet gateway route table"
-
-  route_rules {
-    network_entity_id = oci_core_internet_gateway.internet_gateway.id
-    destination       = "0.0.0.0/0"
-  }
-
-  freeform_tags = {
-    "project-name" = "whispertrend"
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.ksp_asg.name
   }
 }
 
-data "oci_identity_availability_domains" "local_ads" {
-  compartment_id = var.compartment_id
-}
+# ========================================
+# RDS DATABASE
+# ========================================
 
-data "oci_core_images" "free_image" {
-  compartment_id           = var.compartment_id
-  operating_system         = "Oracle Linux"
-  operating_system_version = "8"
-  shape                    = "VM.Standard.A1.Flex"
-}
+resource "aws_db_subnet_group" "rds_subnet_group" {
+  name       = "rds-subnet-group"
+  subnet_ids = [aws_subnet.ksp_subnet.id, aws_subnet.ksp_subnet_2.id]
 
-resource "oci_core_instance" "app" {
-  availability_domain = data.oci_identity_availability_domains.local_ads.availability_domains[0].name
-  compartment_id      = var.compartment_id
-  display_name        = "app-vm"
-  shape               = "VM.Standard.A1.Flex"
-
-  create_vnic_details {
-    subnet_id = oci_core_subnet.whispertrend_subnet.id
-  }
-
-  shape_config {
-    ocpus         = 4
-    memory_in_gbs = 24
-  }
-
-  metadata = {
-    user_data = base64encode(<<-EOF
-      #!/bin/bash
-      yum update -y
-      yum install -y docker
-      systemctl start docker
-      docker run \
-        --name app-server \
-        -e DYNAMIC_DNS_PASSWORD=${var.dynamic_dns_password} \
-        -e DOMAIN=${var.domain} \
-        -e EMAIL=${var.email} \
-        -p 443:443 \
-        -p 80:80 \
-        -d \
-        ${var.image}
-      EOF
-    )
-  }
-
-  source_details {
-    source_type             = "image"
-    source_id               = data.oci_core_images.free_image.images[0].id
-    boot_volume_size_in_gbs = 200
+  tags = {
+    Name           = "rds-subnet-group"
+    "project-name" = "ksp"
   }
 }
 
-data "oci_core_vnic_attachments" "app_vnic_attachments" {
-  compartment_id = var.compartment_id
-  instance_id    = oci_core_instance.app.id
+resource "aws_db_instance" "postgresql" {
+  identifier             = var.db_identifier
+  engine                 = "postgres"
+  engine_version         = "17"
+  instance_class         = var.db_instance_class
+  allocated_storage      = var.db_allocated_storage
+  max_allocated_storage  = var.db_max_allocated_storage
+  storage_type           = "gp3"
+  storage_encrypted      = true
+
+  db_name  = var.db_name
+  username = var.db_username
+  password = var.db_password
+
+  vpc_security_group_ids = [aws_security_group.rds_sg.id]
+  db_subnet_group_name   = aws_db_subnet_group.rds_subnet_group.name
+
+  backup_retention_period = var.backup_retention_period
+  backup_window          = "03:00-04:00"
+  maintenance_window     = "sun:04:00-sun:05:00"
+
+  skip_final_snapshot = var.skip_final_snapshot
+  deletion_protection = var.deletion_protection
+
+  enabled_cloudwatch_logs_exports = ["postgresql"]
+
+  performance_insights_enabled = false
+  monitoring_interval         = 0
+
+  publicly_accessible = false
+
+  tags = {
+    Name           = "postgresql-rds"
+    "project-name" = "ksp"
+  }
 }
 
-data "oci_core_vnic" "app_vnic" {
-  vnic_id = data.oci_core_vnic_attachments.app_vnic_attachments.vnic_attachments[0].vnic_id
+# ========================================
+# DATA SOURCES
+# ========================================
+
+data "aws_availability_zones" "available" {
+  state = "available"
 }
 
-output "app_public_ip" {
-  value = data.oci_core_vnic.app_vnic.public_ip_address
+data "aws_ami" "amazon_linux_2023" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-x86_64"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+# ========================================
+# OUTPUTS
+# ========================================
+
+output "elb_dns_name" {
+  value       = aws_elb.ksp_elb.dns_name
+  description = "DNS name of the Classic Load Balancer"
+}
+
+output "elb_zone_id" {
+  value       = aws_elb.ksp_elb.zone_id
+  description = "Zone ID of the Classic Load Balancer"
+}
+
+output "autoscaling_group_name" {
+  value       = aws_autoscaling_group.ksp_asg.name
+  description = "Name of the Auto Scaling Group"
+}
+
+output "db_endpoint" {
+  value       = aws_db_instance.postgresql.endpoint
+  description = "RDS PostgreSQL endpoint"
+}
+
+output "db_port" {
+  value       = aws_db_instance.postgresql.port
+  description = "RDS PostgreSQL port"
+}
+
+output "db_address" {
+  value       = aws_db_instance.postgresql.address
+  description = "RDS PostgreSQL address (without port)"
+}
+
+output "vpc_id" {
+  value       = aws_vpc.ksp_vpc.id
+  description = "VPC ID"
+}
+
+output "public_subnet_id" {
+  value       = aws_subnet.ksp_subnet.id
+  description = "Public subnet ID"
 }

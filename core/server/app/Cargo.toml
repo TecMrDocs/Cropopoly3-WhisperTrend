@@ -18,6 +18,13 @@ url = "2.5.4"
 futures = "0.3.31"
 fake = "4.3.0"
 rand = "0.9.1"
+actix-files = "0.6.6"
+futures-util = "0.3"
+
+aws-config = "1.1"
+aws-sdk-dynamodb = "1.15"
+aws-sdk-sts = "1.15"
+uuid = { version = "1.0", features = ["v4"] }
 
 macros = { workspace = true }
 auth = { workspace = true }
@@ -34,7 +41,5 @@ derive_builder = { workspace = true }
 once_cell = { workspace = true }
 lazy_static = { workspace = true }
 chrono = { workspace = true }
-
-chromiumoxide = { version = "0.5", features = ["tokio-runtime"] }
-tokio = { version = "1", features = ["full"] }
-futures-util = "0.3"
+resend-rs = "0.15.0"
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

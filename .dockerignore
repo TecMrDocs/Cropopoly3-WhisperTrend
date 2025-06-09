@@ -25,5 +25,9 @@
 **/bin
 **/.env
 **/target
+**/libscraper.a
+**/libscraper.h
+**/bindings.rs
+**/common.h
 LICENSE
 README.md

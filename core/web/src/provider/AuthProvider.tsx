@@ -54,7 +54,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     navigate("/login");
   }
 
-  function signIn(email: string, password: string) {
+  async function signIn(email: string, password: string) {
     api.admin.loginAdmin(email, password)
       .then(({ token }) => {
         localStorage.setItem("token", token);

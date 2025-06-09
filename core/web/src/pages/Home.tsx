@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
+import logo from '../assets/Wtw2.png';
 
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col justify-start items-center ">
-      <img src="/src/assets/Wtw2.png" alt="WhisperTrend Logo" className="md:w-100 w-70 mb-8" />
+      <img src={logo} alt="WhisperTrend Logo" className="md:w-100 w-70 mb-8" />
 
       <Link
         to="/login"

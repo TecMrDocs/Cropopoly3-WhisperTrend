@@ -7,22 +7,28 @@ use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
+// User agent string to mimic a real browser
 static USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+// JavaScript code for hover effects on Instagram posts
 static JS_HOVER: &str = include_str!("hover.js");
+// Global storage for Instagram session cookies
 static COOKIES: OnceCell<String> = OnceCell::new();
 
+// Instagram URLs
 const INSTAGRAM_LOGIN_URL: &str = "https://www.instagram.com/accounts/login/";
 const INSTAGRAM_POST_URL: &str = "https://www.instagram.com/explore/tags";
 
+// CSS selectors for login form elements
 const USERNAME_SELECTOR: &str = "input[name='username']";
 const PASSWORD_SELECTOR: &str = "input[name='password']";
 const LOGIN_BUTTON_SELECTOR: &str = "button[type='submit']";
 
+// CSS selectors for post data extraction
 const POST_SELECTOR: &str = "main > div > div:nth-of-type(2) > div > div > div";
 const TIME_SELECTOR: &str = "a span time";
-
 const FOLLOWERS_SELECTOR: &str = "section a span span";
 
+// Primary post data structure (likes, comments, link)
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InstagramPostPrimary {
     pub likes: u32,
@@ -30,12 +36,14 @@ pub struct InstagramPostPrimary {
     pub link: String,
 }
 
+// Secondary post data structure (time and link)
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InstagramPostSecondary {
     pub time: String,
     pub link: String,
 }
 
+// Complete post data structure combining all information
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InstagramPost {
     pub likes: u32,
@@ -48,6 +56,7 @@ pub struct InstagramPost {
 pub struct InstagramScraper;
 
 impl InstagramScraper {
+    /// Performs Instagram login and returns session cookies
     pub async fn login() -> anyhow::Result<String> {
         SCRAPER
             .execute(move |context| {
@@ -62,6 +71,7 @@ impl InstagramScraper {
             .await
     }
 
+    /// Applies stored cookies or performs login if needed
     pub async fn apply_login() -> anyhow::Result<()> {
         if COOKIES.get().is_some() {
             return Ok(());
@@ -81,6 +91,7 @@ impl InstagramScraper {
         Ok(())
     }
 
+    /// Extracts timestamp and link from an Instagram post
     pub async fn get_time_and_link(link: String) -> anyhow::Result<InstagramPostSecondary> {
         InstagramScraper::apply_login().await?;
         if let Some(cookies) = COOKIES.get() {
@@ -90,6 +101,7 @@ impl InstagramScraper {
                     context.set_string_cookies(cookies.clone());
                     context.navigate(link.clone());
                     std::thread::sleep(std::time::Duration::from_secs(5));
+                    // JavaScript to extract post timestamp and link
                     context.evaluate(format!(
                     "(() => {{
                         let t = document.querySelector('{TIME_SELECTOR}');
@@ -123,6 +135,7 @@ impl InstagramScraper {
         Err(anyhow::anyhow!("No cookies found"))
     }
 
+    /// Extracts follower count from an Instagram profile
     pub async fn get_followers(link: String) -> anyhow::Result<String> {
         InstagramScraper::apply_login().await?;
         if let Some(cookies) = COOKIES.get() {
@@ -132,6 +145,7 @@ impl InstagramScraper {
                     context.set_string_cookies(cookies.clone());
                     context.navigate(link.clone());
                     std::thread::sleep(std::time::Duration::from_secs(5));
+                    // JavaScript to extract follower count
                     let result = context.evaluate(format!(
                         "(() => {{
                         let followers = document.querySelector('{FOLLOWERS_SELECTOR}').textContent;
@@ -146,15 +160,18 @@ impl InstagramScraper {
         Err(anyhow::anyhow!("No cookies found"))
     }
 
+    /// Scrapes Instagram posts for a given hashtag and returns complete post data
     pub async fn get_posts(hashtag: String) -> anyhow::Result<Vec<InstagramPost>> {
         InstagramScraper::apply_login().await?;
         if let Some(cookies) = COOKIES.get() {
+            // First phase: Get basic post data (likes, comments, links)
             let posts = SCRAPER
                 .execute(move |context| {
                     context.set_user_agent(USER_AGENT);
                     context.set_string_cookies(cookies.clone());
                     context.navigate(format!("{}/{}", INSTAGRAM_POST_URL, hashtag));
                     std::thread::sleep(std::time::Duration::from_secs(5));
+                    // Apply hover effects to reveal post metrics
                     context.evaluate(format!(
                         "(() => {{
                         {JS_HOVER};
@@ -164,6 +181,7 @@ impl InstagramScraper {
                     }})()"
                     ));
                     std::thread::sleep(std::time::Duration::from_secs(5));
+                    // Extract post data using JavaScript
                     let result = context.async_evaluate(format!(
                         "(() => {{
                         let posts = Array.from(document.querySelectorAll('{POST_SELECTOR}'));
@@ -203,6 +221,7 @@ impl InstagramScraper {
             let posts: Vec<InstagramPostPrimary> = serde_json::from_str(&posts)?;
             let mut futures = Vec::new();
 
+            // Second phase: Get timestamps and links for each post concurrently
             for post in posts.clone() {
                 futures.push(async move {
                     match InstagramScraper::get_time_and_link(post.link).await {
@@ -220,6 +239,7 @@ impl InstagramScraper {
                 results.into_iter().filter_map(|result| result).collect();
             let mut futures = Vec::new();
 
+            // Third phase: Get follower counts for each post concurrently
             for post in times_and_links.clone() {
                 futures.push(async move {
                     match InstagramScraper::get_followers(post.link).await {
@@ -231,6 +251,8 @@ impl InstagramScraper {
 
             let results = join_all(futures).await;
             let followers: Vec<String> = results.into_iter().filter_map(|result| result).collect();
+            
+            // Combine all data into final post structures
             let posts: Vec<InstagramPost> = posts
                 .into_iter()
                 .zip(followers)

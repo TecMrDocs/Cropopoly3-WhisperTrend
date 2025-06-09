@@ -2,6 +2,8 @@ use crate::config::Config;
 use tracing::Level;
 use tracing_subscriber;
 
+/// Configuration trait that defines the contract for application settings
+/// Implementations should provide concrete values for server configuration
 #[allow(dead_code)]
 pub trait ApplicationConfig {
     fn get_addrs() -> String;
@@ -19,7 +21,11 @@ pub trait ApplicationConfig {
     fn get_with_migrations() -> bool;
 }
 
+/// Main application trait that defines the lifecycle and behavior of the server
+/// Provides default implementations for common initialization tasks
 pub trait Application {
+    /// Sets up logging infrastructure with tracing subscriber
+    /// Configures log level and span events for debugging
     fn initialize_logging(&self) -> anyhow::Result<()> {
         env_logger::init();
 
@@ -32,14 +38,20 @@ pub trait Application {
         Ok(())
     }
 
+    /// Basic initialization that sets up logging
+    /// Can be overridden to add more initialization steps
     fn initialize(&self) -> anyhow::Result<()> {
         self.initialize_logging()
     }
 
+    /// Application-specific setup logic (must be implemented by concrete types)
     async fn setup(&self) -> anyhow::Result<()>;
 
+    /// Server creation logic (must be implemented by concrete types)
     async fn create_server(&self) -> anyhow::Result<()>;
 
+    /// Main entry point that orchestrates the complete application startup
+    /// Loads environment variables, initializes logging, sets up the app, and starts the server
     async fn start(&self) -> anyhow::Result<()> {
         dotenv::dotenv().ok();
         self.initialize()?;
