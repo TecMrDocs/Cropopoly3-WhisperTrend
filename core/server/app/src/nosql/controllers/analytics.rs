@@ -2,7 +2,6 @@ use actix_web::{web, HttpResponse, Responder, post, Result};
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
 
-// 🔢 TUS FÓRMULAS ORIGINALES (sin cambios)
 pub fn x_viral_rate(reposts: u32, likes: u32, comments: u32, followers: u32) -> f64 {
     if followers == 0 {
         return 0.0;
@@ -45,7 +44,6 @@ pub fn insta_viral_rate(comments: u32, shares: u32, followers: u32) -> f64 {
     ((comments + shares) as f64 / followers as f64) * 100.0
 }
 
-// 🆕 STRUCTS PARA RECIBIR DATOS DE FLOW.RS
 
 #[derive(Deserialize, Debug)]
 pub struct InstagramPost {
@@ -79,7 +77,7 @@ pub struct TwitterPost {
 #[derive(Deserialize, Debug)]
 pub struct HashtagData {
     pub keyword: String,
-    pub posts: Vec<serde_json::Value>, // Genérico para recibir cualquier estructura
+    pub posts: Vec<serde_json::Value>, 
 }
 
 #[derive(Deserialize, Debug)]
@@ -93,10 +91,9 @@ pub struct TrendsData {
 pub struct AnalyticsRequest {
     pub hashtags: Vec<String>,
     pub trends: TrendsData,
-    pub sales: Vec<serde_json::Value>, // Para futuro uso
+    pub sales: Vec<serde_json::Value>, 
 }
 
-// 🆕 STRUCTS PARA DEVOLVER RESULTADOS (NÚMEROS PUROS)
 
 #[derive(Serialize, Debug)]
 pub struct HashtagMetrics {
@@ -117,7 +114,6 @@ pub struct AnalyticsResponse {
     pub data_source: String,
 }
 
-// 🧮 FUNCIONES DE PROCESAMIENTO
 
 pub fn process_instagram_hashtag(posts: &[InstagramPost]) -> (f64, f64) {
     if posts.is_empty() {
@@ -194,7 +190,6 @@ pub fn process_twitter_hashtag(posts: &[TwitterPost]) -> (f64, f64) {
     }
 }
 
-// 🔄 CONVERTIR JSON GENÉRICO A STRUCTS ESPECÍFICOS
 
 fn parse_instagram_posts(posts: &[serde_json::Value]) -> Vec<InstagramPost> {
     posts.iter().filter_map(|post| {
@@ -214,15 +209,12 @@ fn parse_twitter_posts(posts: &[serde_json::Value]) -> Vec<TwitterPost> {
     }).collect()
 }
 
-// 🚀 FUNCIÓN PRINCIPAL DE PROCESAMIENTO
-
 pub fn process_all_hashtags(request: &AnalyticsRequest) -> Vec<HashtagMetrics> {
     let mut results = Vec::new();
 
     for hashtag_name in &request.hashtags {
         info!("🧮 Procesando hashtag: {}", hashtag_name);
 
-        // Buscar datos en cada plataforma
         let instagram_data = request.trends.instagram.iter()
             .find(|h| h.keyword == *hashtag_name)
             .map(|h| parse_instagram_posts(&h.posts))
@@ -238,12 +230,10 @@ pub fn process_all_hashtags(request: &AnalyticsRequest) -> Vec<HashtagMetrics> {
             .map(|h| parse_twitter_posts(&h.posts))
             .unwrap_or_default();
 
-        // Procesar con tus fórmulas
         let (instagram_interaction, instagram_virality) = process_instagram_hashtag(&instagram_data);
         let (reddit_interaction, reddit_virality) = process_reddit_hashtag(&reddit_data);
         let (twitter_interaction, twitter_virality) = process_twitter_hashtag(&twitter_data);
 
-        // Crear resultado limpio
         let metrics = HashtagMetrics {
             name: hashtag_name.clone(),
             instagram_interaction: (instagram_interaction * 100.0).round() / 100.0, // 2 decimales
@@ -265,7 +255,6 @@ pub fn process_all_hashtags(request: &AnalyticsRequest) -> Vec<HashtagMetrics> {
     results
 }
 
-// 🌐 ENDPOINT PARA RECIBIR DATOS DE FLOW.RS
 
 #[post("/process")]
 async fn process_analytics(req: web::Json<AnalyticsRequest>) -> Result<impl Responder> {
@@ -274,7 +263,6 @@ async fn process_analytics(req: web::Json<AnalyticsRequest>) -> Result<impl Resp
     info!("🧮 Iniciando procesamiento de analytics...");
     info!("📊 Hashtags a procesar: {:?}", req.hashtags);
 
-    // Procesar con tus fórmulas
     let hashtag_metrics = process_all_hashtags(&req);
     
     let processing_time = start_time.elapsed().as_millis();
@@ -291,7 +279,6 @@ async fn process_analytics(req: web::Json<AnalyticsRequest>) -> Result<impl Resp
     Ok(HttpResponse::Ok().json(response))
 }
 
-// 🧪 ENDPOINT DE PRUEBA (para debug)
 
 #[post("/test")]
 async fn test_analytics() -> Result<impl Responder> {
@@ -339,6 +326,6 @@ async fn test_analytics() -> Result<impl Responder> {
 
 pub fn routes() -> actix_web::Scope {
     web::scope("/analytics")
-        .service(process_analytics)  // POST /analytics/process
-        .service(test_analytics)     // POST /analytics/test
+        .service(process_analytics)  
+        .service(test_analytics)     
 }

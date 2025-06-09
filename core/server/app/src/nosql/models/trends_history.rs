@@ -3,8 +3,8 @@ use chrono::{DateTime, Utc, NaiveDate};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrendsHistory {
-    pub pk: String,           // HASHTAG#{hashtag}
-    pub sk: String,           // DATE#{yyyy-mm-dd}
+    pub pk: String,           
+    pub sk: String,           
     pub hashtag: String,
     pub date: NaiveDate,
     pub daily_metrics: serde_json::Value,

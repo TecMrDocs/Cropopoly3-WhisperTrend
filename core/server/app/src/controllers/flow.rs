@@ -15,7 +15,6 @@ use rig::{
     providers,
 };
 
-// 🆕 IMPORTACIONES PARA ANALYTICS
 use aws_sdk_dynamodb::types::AttributeValue;
 use crate::nosql::controllers::analytics::{AnalyticsRequest, TrendsData, HashtagData, process_all_hashtags};
 
@@ -24,7 +23,6 @@ pub struct FlowRequest {
     resource_id: i32,
 }
 
-// 🔧 FUNCIÓN HELPER NUEVA - VERSIÓN ARREGLADA
 async fn enhance_trends_with_fallback(mut trends: serde_json::Value, hashtags: &[String]) -> serde_json::Value {
     // Si no podemos acceder a DynamoDB, devolver trends original sin modificar
     let config = aws_config::defaults(aws_config::BehaviorVersion::latest()).load().await;
@@ -75,7 +73,6 @@ async fn enhance_trends_with_fallback(mut trends: serde_json::Value, hashtags: &
     trends
 }
 
-// 🔧 FUNCIÓN HELPER PARA BUSCAR EN DYNAMODB
 async fn get_fallback_data(
     client: &aws_sdk_dynamodb::Client, 
     table_name: &str, 
@@ -103,7 +100,7 @@ async fn get_fallback_data(
         }
     }
     
-    Ok(serde_json::Value::Array(vec![])) // Devolver array vacío si no encuentra nada
+    Ok(serde_json::Value::Array(vec![])) // Devolver array vacío si no encuentra 
 }
 
 // 🆕 FUNCIÓN PARA PROCESAR CON ANALYTICS
@@ -130,7 +127,6 @@ async fn process_trends_with_analytics(
     })
 }
 
-// 🆕 CONVERTIR DATOS DE TRENDS A FORMATO ANALYTICS
 fn convert_trends_to_analytics_request(
     trends: &serde_json::Value,
     hashtags: &[String]
@@ -192,7 +188,7 @@ fn convert_trends_to_analytics_request(
             reddit: reddit_data,
             twitter: twitter_data,
         },
-        sales: vec![], // Por ahora vacío
+        sales: vec![], 
     }
 }
 
@@ -285,7 +281,6 @@ async fn generate_prompt_from_flow(
     let hashtags = if hashtags.is_empty() || hashtags.len() < 3 {
         vec!["ElectricGuitar".to_string(), "RockMusic".to_string(), "VintageGuitars".to_string()]
     } else {
-        // Reemplazar hashtags generados con los que sí tenemos
         vec!["ElectricGuitar".to_string(), "RockMusic".to_string(), "VintageGuitars".to_string()]
     };
 
@@ -298,7 +293,7 @@ async fn generate_prompt_from_flow(
 
     let trends_payload = serde_json::json!({
         "query": sentence,
-        "hashtags": hashtags, // Incluir los hashtags aquí
+        "hashtags": hashtags, 
         "startdatetime": six_months_ago.to_string(),
         "enddatetime": today.to_string(),
         "language": "English"
@@ -321,18 +316,14 @@ async fn generate_prompt_from_flow(
         error::ErrorInternalServerError("Invalid trends response")
     })?;
 
-    // 🆕 APLICAR FALLBACK Y DESPUÉS CALCULAR
     let enhanced_trends = enhance_trends_with_fallback(trends, &hashtags).await;
-    
-    // 🆕 ENVIAR A ANALYTICS PARA CALCULAR
     let calculated_results = process_trends_with_analytics(&enhanced_trends, &hashtags).await;
 
-    // 🆕 RESPUESTA CON NÚMEROS CALCULADOS
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "sentence": sentence,
         "hashtags": hashtags,
-        "trends": enhanced_trends,        // Datos raw (para compatibilidad)
-        "calculated_results": calculated_results,  // 🆕 NÚMEROS CALCULADOS
+        "trends": enhanced_trends,        
+        "calculated_results": calculated_results,  
         "sales": sales_data,
         "processing": {
             "status": "✅ CALCULATED",
@@ -342,7 +333,7 @@ async fn generate_prompt_from_flow(
     })))
 }
 
-// 🧪 ENDPOINT DE PRUEBA SIN AUTENTICACIÓN
+//  ENDPOINT DE PRUEBA SIN AUTENTICACIÓN
 #[post("/test-generate-prompt")]
 async fn test_generate_prompt_from_flow(
     payload: web::Json<FlowRequest>,
@@ -415,16 +406,15 @@ async fn test_generate_prompt_from_flow(
         .map(|m| m.as_str().strip_prefix('#').unwrap_or(m.as_str()).to_string())
         .collect();
 
-    // 🆕 SIMULAR TRENDS VACÍOS PARA FORZAR FALLBACK
     let trends = serde_json::json!({
         "data": {
             "instagram": hashtags.iter().map(|h| serde_json::json!({
                 "keyword": h,
-                "posts": []  // 👈 VACÍO para forzar fallback
+                "posts": []  
             })).collect::<Vec<_>>(),
             "reddit": hashtags.iter().map(|h| serde_json::json!({
                 "keyword": h,
-                "posts": []  // 👈 VACÍO para forzar fallback
+                "posts": []  
             })).collect::<Vec<_>>(),
             "twitter": []
         },
@@ -432,11 +422,7 @@ async fn test_generate_prompt_from_flow(
     });
 
     warn!("🔥 Aplicando fallback con hashtags: {:?}", hashtags);
-
-    // 🆕 APLICAR FALLBACK (aquí es donde debería funcionar la magia)
     let enhanced_trends = enhance_trends_with_fallback(trends, &hashtags).await;
-    
-    // 🆕 CALCULAR CON ANALYTICS
     let calculated_results = process_trends_with_analytics(&enhanced_trends, &hashtags).await;
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
@@ -444,22 +430,22 @@ async fn test_generate_prompt_from_flow(
         "message": "Endpoint de prueba - datos simulados",
         "sentence": sentence,
         "hashtags": hashtags,
-        "trends": enhanced_trends,  // 👈 CON FALLBACK APLICADO
-        "calculated_results": calculated_results,  // 🆕 NÚMEROS CALCULADOS
+        "trends": enhanced_trends,  
+        "calculated_result": calculated_results,  
         "sales": sales_data,
         "debug": {
             "user_id": user_id,
             "resource_id": payload.resource_id,
             "simulated": true,
             "fallback_applied": true,
-            "backend_calculations": true  // 🆕
+            "backend_calculations": true  
         }
     })))
 }
 
 pub fn routes() -> actix_web::Scope {
     web::scope("/flow")
-        .service(test_generate_prompt_from_flow)  // 🆕 SIN AUTH
+        .service(test_generate_prompt_from_flow)  
         .service(
             web::scope("/secure")
                 .wrap(from_fn(middlewares::auth))

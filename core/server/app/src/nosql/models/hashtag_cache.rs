@@ -4,8 +4,8 @@ use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HashtagCache {
-    pub pk: String,           // USER#{user_id}
-    pub sk: String,           // HASHTAG#{hashtag}#{timestamp}
+    pub pk: String,           
+    pub sk: String,           
     pub hashtag: String,
     pub user_id: i32,
     pub resource_id: i32,
@@ -14,13 +14,13 @@ pub struct HashtagCache {
     pub twitter_data: Option<serde_json::Value>,
     pub calculated_metrics: Option<serde_json::Value>,
     pub created_at: DateTime<Utc>,
-    pub ttl: i64,             // TTL para auto-delete
+    pub ttl: i64,             
 }
 
 impl HashtagCache {
     pub fn new(user_id: i32, resource_id: i32, hashtag: String) -> Self {
         let now = Utc::now();
-        let ttl = now.timestamp() + (24 * 60 * 60); // 24 horas
+        let ttl = now.timestamp() + (24 * 60 * 60); 
 
         Self {
             pk: format!("USER#{}", user_id),
