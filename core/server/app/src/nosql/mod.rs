@@ -1,4 +1,4 @@
-// src/nosql/mod.rs - VERSIÓN LIMPIA DESDE CERO
+// src/nosql/mod.rs - VERSIÓN CON GUARDADO DE WEB SCRAPING
 use actix_web::{web, HttpResponse, Responder, get, post, Result};
 use serde_json::json;
 use aws_sdk_dynamodb::{Client, types::AttributeValue};
@@ -6,8 +6,32 @@ use aws_config::BehaviorVersion;
 use std::collections::HashMap;
 use std::env;
 use tracing::{info, error, warn};
+use serde::{Deserialize, Serialize};
 pub mod controllers;
 
+// 🆕 TIPOS PARA DATOS SCRAPED
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScrapedPost {
+    pub comments: i32,
+    pub followers: Option<i32>,
+    pub likes: i32,
+    pub link: String,
+    pub time: String,
+    // Reddit específico
+    pub members: Option<i32>,
+    pub subreddit: Option<String>,
+    pub title: Option<String>,
+    pub vote: Option<i32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScrapedHashtagData {
+    pub hashtag: String,
+    pub platform: String, // "instagram", "reddit", "twitter"
+    pub posts: Vec<ScrapedPost>,
+    pub scraped_at: String, // timestamp
+    pub total_posts: usize,
+}
 
 async fn get_dynamo_client() -> Client {
     let config = aws_config::defaults(BehaviorVersion::latest())
@@ -21,6 +45,160 @@ async fn get_dynamo_client() -> Client {
 fn get_table_name() -> String {
     let prefix = env::var("DYNAMODB_TABLE_PREFIX").unwrap_or_else(|_| "trendhash_".to_string());
     format!("{}hashtag_cache", prefix)
+}
+
+// 🆕 FUNCIÓN PRINCIPAL: GUARDAR DATOS SCRAPED EN DYNAMODB
+pub async fn save_scraped_data_to_dynamo(
+    hashtag: String, 
+    platform: String,
+    posts: Vec<ScrapedPost>
+) -> Result<bool, Box<dyn std::error::Error>> {
+    if posts.is_empty() {
+        warn!("⚠️ No se guardan datos vacíos para hashtag: {}", hashtag);
+        return Ok(false);
+    }
+
+    info!("💾 Guardando {} posts scraped para hashtag: {} en {}", posts.len(), hashtag, platform);
+    
+    let client = get_dynamo_client().await;
+    let table_name = get_table_name();
+    
+    // Asegurar que la tabla existe
+    if let Err(e) = ensure_table_exists(&client, &table_name).await {
+        error!("❌ Error creando/verificando tabla: {:?}", e);
+        return Err(e);
+    }
+
+    let timestamp = chrono::Utc::now().timestamp();
+    let pk = format!("HASHTAG#{}", hashtag);
+    let sk = format!("SCRAPED#{}#{}", platform, timestamp);
+    
+    // Crear el objeto de datos scraped
+    let scraped_data = ScrapedHashtagData {
+        hashtag: hashtag.clone(),
+        platform: platform.clone(),
+        posts: posts.clone(),
+        scraped_at: chrono::Utc::now().to_rfc3339(),
+        total_posts: posts.len(),
+    };
+
+    let mut item = HashMap::new();
+    item.insert("pk".to_string(), AttributeValue::S(pk.clone()));
+    item.insert("sk".to_string(), AttributeValue::S(sk.clone()));
+    item.insert("hashtag".to_string(), AttributeValue::S(hashtag.clone()));
+    item.insert("platform".to_string(), AttributeValue::S(platform.clone()));
+    item.insert("data_type".to_string(), AttributeValue::S("scraped".to_string()));
+    item.insert("scraped_posts".to_string(), AttributeValue::S(serde_json::to_string(&scraped_data)?));
+    item.insert("total_posts".to_string(), AttributeValue::N(posts.len().to_string()));
+    item.insert("created_at".to_string(), AttributeValue::S(chrono::Utc::now().to_rfc3339()));
+    item.insert("quality_score".to_string(), AttributeValue::N("95".to_string())); // Scraped = mejor calidad
+    
+    // 🆕 TTL - Los datos scraped expiran en 7 días
+    let ttl = timestamp + (7 * 24 * 60 * 60); // 7 días
+    item.insert("ttl".to_string(), AttributeValue::N(ttl.to_string()));
+
+    match client.put_item()
+        .table_name(&table_name)
+        .set_item(Some(item))
+        .send()
+        .await 
+    {
+        Ok(_) => {
+            info!("✅ Datos scraped guardados: {} posts para {} en {}", posts.len(), hashtag, platform);
+            Ok(true)
+        },
+        Err(e) => {
+            error!("❌ Error guardando datos scraped: {:?}", e);
+            Err(Box::new(e))
+        }
+    }
+}
+
+// 🆕 FUNCIÓN: BUSCAR DATOS SCRAPED RECIENTES
+pub async fn get_recent_scraped_data(
+    hashtag: String, 
+    platform: String,
+    max_age_hours: i64
+) -> Result<Option<ScrapedHashtagData>, Box<dyn std::error::Error>> {
+    info!("🔍 Buscando datos scraped recientes para: {} en {}", hashtag, platform);
+    
+    let client = get_dynamo_client().await;
+    let table_name = get_table_name();
+    let pk = format!("HASHTAG#{}", hashtag);
+    
+    // Buscar datos scraped para este hashtag
+    let result = client.query()
+        .table_name(&table_name)
+        .key_condition_expression("pk = :pk AND begins_with(sk, :sk_prefix)")
+        .expression_attribute_values(":pk", AttributeValue::S(pk))
+        .expression_attribute_values(":sk_prefix", AttributeValue::S(format!("SCRAPED#{}", platform)))
+        .scan_index_forward(false) // Más recientes primero
+        .limit(5) // Solo los 5 más recientes
+        .send()
+        .await?;
+
+    if let Some(items) = result.items {
+        for item in items {
+            // Verificar que no esté expirado
+            if let Some(AttributeValue::S(created_at)) = item.get("created_at") {
+                if let Ok(created_time) = chrono::DateTime::parse_from_rfc3339(created_at) {
+                    let hours_ago = chrono::Utc::now().signed_duration_since(created_time.with_timezone(&chrono::Utc)).num_hours();
+                    
+                    if hours_ago <= max_age_hours {
+                        // Datos recientes encontrados
+                        if let Some(AttributeValue::S(scraped_posts_json)) = item.get("scraped_posts") {
+                            if let Ok(scraped_data) = serde_json::from_str::<ScrapedHashtagData>(scraped_posts_json) {
+                                info!("✅ Datos scraped recientes encontrados: {} posts ({} horas)", scraped_data.total_posts, hours_ago);
+                                return Ok(Some(scraped_data));
+                            }
+                        }
+                    } else {
+                        info!("⚠️ Datos scraped encontrados pero expirados ({} horas)", hours_ago);
+                    }
+                }
+            }
+        }
+    }
+
+    info!("❌ No se encontraron datos scraped recientes para {} en {}", hashtag, platform);
+    Ok(None)
+}
+
+// 🆕 FUNCIÓN: OBTENER ESTADÍSTICAS DE DATOS SCRAPED
+pub async fn get_scraping_stats() -> Result<serde_json::Value, Box<dyn std::error::Error>> {
+    let client = get_dynamo_client().await;
+    let table_name = get_table_name();
+    
+    let result = client.scan()
+        .table_name(&table_name)
+        .filter_expression("data_type = :dt")
+        .expression_attribute_values(":dt", AttributeValue::S("scraped".to_string()))
+        .send()
+        .await?;
+
+    let items = result.items.unwrap_or_default();
+    let total_scraped = items.len();
+    
+    let mut by_platform = HashMap::new();
+    let mut total_posts = 0;
+    
+    for item in &items {
+        if let Some(AttributeValue::S(platform)) = item.get("platform") {
+            *by_platform.entry(platform.clone()).or_insert(0) += 1;
+        }
+        if let Some(AttributeValue::N(posts_count)) = item.get("total_posts") {
+            if let Ok(count) = posts_count.parse::<i32>() {
+                total_posts += count;
+            }
+        }
+    }
+
+    Ok(json!({
+        "total_scraped_hashtags": total_scraped,
+        "total_scraped_posts": total_posts,
+        "by_platform": by_platform,
+        "average_posts_per_hashtag": if total_scraped > 0 { total_posts / total_scraped as i32 } else { 0 }
+    }))
 }
 
 #[get("/test")]
@@ -220,6 +398,83 @@ async fn save_hashtag_cache(body: web::Json<serde_json::Value>) -> Result<impl R
     }
 }
 
+// 🆕 ENDPOINT PARA PROBAR GUARDADO DE DATOS SCRAPED
+#[post("/test/save-scraped")]
+async fn test_save_scraped(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
+    let data = body.into_inner();
+    let hashtag = data.get("hashtag").and_then(|v| v.as_str()).unwrap_or("TestHashtag");
+    let platform = data.get("platform").and_then(|v| v.as_str()).unwrap_or("instagram");
+    
+    // Crear posts de prueba
+    let test_posts = vec![
+        ScrapedPost {
+            comments: 50,
+            followers: Some(10000),
+            likes: 500,
+            link: "https://test.com/post1".to_string(),
+            time: chrono::Utc::now().to_rfc3339(),
+            members: None,
+            subreddit: None,
+            title: None,
+            vote: None,
+        },
+        ScrapedPost {
+            comments: 30,
+            followers: Some(10000),
+            likes: 300,
+            link: "https://test.com/post2".to_string(),
+            time: chrono::Utc::now().to_rfc3339(),
+            members: None,
+            subreddit: None,
+            title: None,
+            vote: None,
+        }
+    ];
+    
+    match save_scraped_data_to_dynamo(hashtag.to_string(), platform.to_string(), test_posts).await {
+        Ok(success) => {
+            Ok(HttpResponse::Ok().json(json!({
+                "status": "✅ SUCCESS",
+                "message": "Datos scraped de prueba guardados exitosamente",
+                "data": {
+                    "hashtag": hashtag,
+                    "platform": platform,
+                    "saved": success,
+                    "posts_count": 2
+                }
+            })))
+        },
+        Err(e) => {
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "status": "❌ ERROR",
+                "message": "Error guardando datos scraped de prueba",
+                "error": format!("{:?}", e)
+            })))
+        }
+    }
+}
+
+// 🆕 ENDPOINT PARA VER ESTADÍSTICAS DE SCRAPING
+#[get("/stats/scraping")]
+async fn get_scraping_statistics() -> Result<impl Responder> {
+    match get_scraping_stats().await {
+        Ok(stats) => {
+            Ok(HttpResponse::Ok().json(json!({
+                "status": "✅ SUCCESS",
+                "message": "Estadísticas de scraping obtenidas",
+                "stats": stats,
+                "timestamp": chrono::Utc::now().to_rfc3339()
+            })))
+        },
+        Err(e) => {
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "status": "❌ ERROR",
+                "message": "Error obteniendo estadísticas",
+                "error": format!("{:?}", e)
+            })))
+        }
+    }
+}
 
 #[get("/cache/dashboard/{user_id}/{resource_id}")]
 async fn get_dashboard_cache(path: web::Path<(i32, i32)>) -> Result<impl Responder> {
@@ -369,7 +624,6 @@ async fn list_all_hashtags() -> Result<impl Responder> {
     }
 }
 
-
 #[post("/analytics/start")]
 async fn start_analysis(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
     let analysis_id = format!("analysis_{}", chrono::Utc::now().timestamp());
@@ -388,7 +642,6 @@ async fn start_analysis(body: web::Json<serde_json::Value>) -> Result<impl Respo
         "timestamp": chrono::Utc::now().to_rfc3339()
     })))
 }
-
 
 #[get("/analytics/status/{analysis_id}")]
 async fn get_analysis_status(path: web::Path<String>) -> Result<impl Responder> {
@@ -497,72 +750,16 @@ async fn populate_hashtags() -> Result<impl Responder> {
                 {"date": "01/02/25 - 28/02/25", "likes": 367, "retweets": 71, "comments": 36, "views": 7100, "followers": 19400},
                 {"date": "01/03/25 - 31/03/25", "likes": 389, "retweets": 75, "comments": 38, "views": 7500, "followers": 19900}
             ]))
-        ]),
-        
-        // MOTOCICLETAS 🏍️
-        ("MotorcycleLife", "motorcycles", vec![
-            ("instagram", json!([
-                {"date": "01/01/25 - 31/01/25", "likes": 1890, "comments": 134, "views": 24500, "followers": 67800, "shares": 98},
-                {"date": "01/02/25 - 28/02/25", "likes": 1976, "comments": 142, "views": 25600, "followers": 69200, "shares": 104},
-                {"date": "01/03/25 - 31/03/25", "likes": 2098, "comments": 151, "views": 27100, "followers": 70800, "shares": 112}
-            ])),
-            ("reddit", json!([
-                {"date": "01/01/25 - 31/01/25", "upvotes": 1234, "comments": 198, "subscribers": 189000, "hours": 168},
-                {"date": "01/02/25 - 28/02/25", "upvotes": 1289, "comments": 207, "subscribers": 191500, "hours": 168},
-                {"date": "01/03/25 - 31/03/25", "upvotes": 1356, "comments": 218, "subscribers": 194200, "hours": 168}
-            ])),
-            ("twitter", json!([
-                {"date": "01/01/25 - 31/01/25", "likes": 756, "retweets": 123, "comments": 67, "views": 12800, "followers": 34500},
-                {"date": "01/02/25 - 28/02/25", "likes": 789, "retweets": 129, "comments": 71, "views": 13400, "followers": 35600},
-                {"date": "01/03/25 - 31/03/25", "likes": 834, "retweets": 136, "comments": 76, "views": 14100, "followers": 36900}
-            ]))
-        ]),
-        
-        ("BikeEnthusiast", "motorcycles", vec![
-            ("instagram", json!([
-                {"date": "01/01/25 - 31/01/25", "likes": 1567, "comments": 89, "views": 19800, "followers": 54300, "shares": 78},
-                {"date": "01/02/25 - 28/02/25", "likes": 1634, "comments": 94, "views": 20600, "followers": 55800, "shares": 83},
-                {"date": "01/03/25 - 31/03/25", "likes": 1712, "comments": 99, "views": 21500, "followers": 57400, "shares": 89}
-            ])),
-            ("reddit", json!([
-                {"date": "01/01/25 - 31/01/25", "upvotes": 978, "comments": 156, "subscribers": 143000, "hours": 168},
-                {"date": "01/02/25 - 28/02/25", "upvotes": 1023, "comments": 163, "subscribers": 145200, "hours": 168},
-                {"date": "01/03/25 - 31/03/25", "upvotes": 1089, "comments": 171, "subscribers": 147800, "hours": 168}
-            ])),
-            ("twitter", json!([
-                {"date": "01/01/25 - 31/01/25", "likes": 534, "retweets": 89, "comments": 45, "views": 9800, "followers": 26700},
-                {"date": "01/02/25 - 28/02/25", "likes": 567, "retweets": 94, "comments": 48, "views": 10200, "followers": 27400},
-                {"date": "01/03/25 - 31/03/25", "likes": 598, "retweets": 99, "comments": 51, "views": 10800, "followers": 28200}
-            ]))
-        ]),
-        
-        ("RideFree", "motorcycles", vec![
-            ("instagram", json!([
-                {"date": "01/01/25 - 31/01/25", "likes": 2234, "comments": 167, "views": 31200, "followers": 82400, "shares": 134},
-                {"date": "01/02/25 - 28/02/25", "likes": 2345, "comments": 178, "views": 32800, "followers": 84700, "shares": 142},
-                {"date": "01/03/25 - 31/03/25", "likes": 2478, "comments": 189, "views": 34600, "followers": 87200, "shares": 151}
-            ])),
-            ("reddit", json!([
-                {"date": "01/01/25 - 31/01/25", "upvotes": 1567, "comments": 234, "subscribers": 201000, "hours": 168},
-                {"date": "01/02/25 - 28/02/25", "upvotes": 1634, "comments": 245, "subscribers": 203800, "hours": 168},
-                {"date": "01/03/25 - 31/03/25", "upvotes": 1723, "comments": 257, "subscribers": 206900, "hours": 168}
-            ])),
-            ("twitter", json!([
-                {"date": "01/01/25 - 31/01/25", "likes": 967, "retweets": 167, "comments": 89, "views": 17800, "followers": 45600},
-                {"date": "01/02/25 - 28/02/25", "likes": 1023, "retweets": 176, "comments": 94, "views": 18600, "followers": 47200},
-                {"date": "01/03/25 - 31/03/25", "likes": 1089, "retweets": 186, "comments": 99, "views": 19500, "followers": 48900}
-            ]))
         ])
     ];
     
     let mut success_count = 0;
     let mut errors = vec![];
     
-
     for (hashtag, category, platforms) in hashtag_categories {
         for (platform, data) in platforms {
             let pk = format!("HASHTAG#{}", hashtag);
-            let sk = format!("DATA#{}", platform);
+            let sk = format!("HARDCODED#{}", platform);
             
             let mut item = HashMap::new();
             item.insert("pk".to_string(), AttributeValue::S(pk));
@@ -599,8 +796,8 @@ async fn populate_hashtags() -> Result<impl Responder> {
         "message": format!("¡{} hashtags hardcodeados guardados exitosamente!", success_count),
         "data": {
             "total_saved": success_count,
-            "categories": ["guitars", "motorcycles"],
-            "hashtags": ["ElectricGuitar", "RockMusic", "VintageGuitars", "MotorcycleLife", "BikeEnthusiast", "RideFree"],
+            "categories": ["guitars", "music"],
+            "hashtags": ["ElectricGuitar", "RockMusic", "VintageGuitars"],
             "platforms": ["instagram", "reddit", "twitter"],
             "table": table_name,
             "data_type": "hardcoded",
@@ -610,7 +807,6 @@ async fn populate_hashtags() -> Result<impl Responder> {
         "timestamp": chrono::Utc::now().to_rfc3339()
     })))
 }
-
 
 #[get("/hashtags/category/{category}")]
 async fn get_hashtags_by_category(path: web::Path<String>) -> Result<impl Responder> {
@@ -680,7 +876,8 @@ pub fn routes() -> actix_web::Scope {
         .service(start_analysis)
         .service(get_analysis_status)
         .service(populate_hashtags)  
-        .service(get_hashtags_by_category)  
+        .service(get_hashtags_by_category)
+        .service(test_save_scraped)        // 🆕 Endpoint de prueba
+        .service(get_scraping_statistics)  // 🆕 Estadísticas
         .service(controllers::analytics::routes())
-        //.service(controllers::cache::routes())
 }

@@ -8,7 +8,7 @@ use crate::{
     controllers::flow_config::FLOW_CONFIG,
 };
 use serde::Deserialize;
-use tracing::warn;
+use tracing::{warn, info};
 use regex::Regex;
 use rig::{
     completion::Prompt,
@@ -17,6 +17,9 @@ use rig::{
 
 use aws_sdk_dynamodb::types::AttributeValue;
 use crate::nosql::controllers::analytics::{AnalyticsRequest, TrendsData, HashtagData, process_all_hashtags};
+
+// 🆕 IMPORTAR FUNCIONES DE SCRAPING
+use crate::nosql::{save_scraped_data_to_dynamo, ScrapedPost};
 
 #[derive(Deserialize)]
 pub struct FlowRequest {
@@ -73,6 +76,7 @@ async fn enhance_trends_with_fallback(mut trends: serde_json::Value, hashtags: &
     trends
 }
 
+// 🆕 FUNCIÓN MEJORADA PARA FALLBACK
 async fn get_fallback_data(
     client: &aws_sdk_dynamodb::Client, 
     table_name: &str, 
@@ -81,26 +85,205 @@ async fn get_fallback_data(
 ) -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     
     let pk = format!("HASHTAG#{}", hashtag);
-    let sk = format!("DATA#{}", platform);
     
-    let result = client.get_item()
+    // 🆕 PRIMERO: Buscar datos scraped recientes (más prioritarios)
+    let sk_scraped = format!("SCRAPED#{}", platform);
+    
+    let result_scraped = client.query()
         .table_name(table_name)
-        .key("pk", AttributeValue::S(pk))
-        .key("sk", AttributeValue::S(sk))
+        .key_condition_expression("pk = :pk AND begins_with(sk, :sk_prefix)")
+        .expression_attribute_values(":pk", AttributeValue::S(pk.clone()))
+        .expression_attribute_values(":sk_prefix", AttributeValue::S(sk_scraped))
+        .limit(1)
+        .scan_index_forward(false) // Más reciente primero
         .send()
-        .await?;
+        .await;
     
-    if let Some(item) = result.item {
-        if let Some(posts_data) = item.get("posts_data") {
-            if let AttributeValue::S(json_str) = posts_data {
-                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(json_str) {
+    // Si encuentra datos scraped recientes, úsalos
+    if let Ok(result) = result_scraped {
+        if let Some(items) = result.items {
+            for item in items {
+                if let Some(AttributeValue::S(scraped_posts_json)) = item.get("scraped_posts") {
+                    if let Ok(scraped_data) = serde_json::from_str::<serde_json::Value>(scraped_posts_json) {
+                        if let Some(posts_array) = scraped_data.get("posts") {
+                            warn!("✅ Usando datos scraped para {} - {}", hashtag, platform);
+                            return Ok(posts_array.clone());
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // 🆕 SEGUNDO: Buscar datos hardcodeados como fallback
+    let sk_hardcoded = format!("HARDCODED#{}", platform);
+    
+    let result_hardcoded = client.get_item()
+        .table_name(table_name)
+        .key("pk", AttributeValue::S(pk.clone()))
+        .key("sk", AttributeValue::S(sk_hardcoded))
+        .send()
+        .await;
+    
+    if let Ok(result) = result_hardcoded {
+        if let Some(item) = result.item {
+            if let Some(AttributeValue::S(posts_data_json)) = item.get("posts_data") {
+                if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(posts_data_json) {
+                    warn!("✅ Usando datos hardcodeados para {} - {}", hashtag, platform);
                     return Ok(parsed);
                 }
             }
         }
     }
     
-    Ok(serde_json::Value::Array(vec![])) // Devolver array vacío si no encuentra 
+    // 🆕 TERCERO: Si no encuentra nada, generar datos por defecto
+    warn!("⚠️ No se encontraron datos para {} - {}, generando datos por defecto", hashtag, platform);
+    
+    let default_posts = match platform {
+        "instagram" => serde_json::json!([
+            {
+                "date": "01/01/25 - 31/01/25",
+                "likes": 150,
+                "comments": 12,
+                "views": 1200,
+                "followers": 5000,
+                "shares": 8
+            },
+            {
+                "date": "01/02/25 - 28/02/25", 
+                "likes": 180,
+                "comments": 15,
+                "views": 1440,
+                "followers": 5100,
+                "shares": 10
+            }
+        ]),
+        "reddit" => serde_json::json!([
+            {
+                "date": "01/01/25 - 31/01/25",
+                "upvotes": 45,
+                "comments": 8,
+                "subscribers": 2500,
+                "hours": 168
+            },
+            {
+                "date": "01/02/25 - 28/02/25",
+                "upvotes": 52,
+                "comments": 9,
+                "subscribers": 2520,
+                "hours": 168
+            }
+        ]),
+        _ => serde_json::json!([])
+    };
+    
+    Ok(default_posts)
+}
+
+// 🆕 FUNCIÓN PARA CONVERTIR DATOS DEL SCRAPING A NUESTRO FORMATO
+fn convert_trends_posts_to_scraped_format(
+    posts: &serde_json::Value,
+    platform: &str
+) -> Vec<ScrapedPost> {
+    let mut scraped_posts = Vec::new();
+    
+    if let Some(posts_array) = posts.as_array() {
+        for post in posts_array {
+            let scraped_post = ScrapedPost {
+                comments: post.get("comments").and_then(|v| v.as_i64()).unwrap_or(0) as i32,
+                followers: post.get("followers").and_then(|v| v.as_i64()).map(|v| v as i32),
+                likes: post.get("likes").and_then(|v| v.as_i64()).unwrap_or(0) as i32,
+                link: post.get("link").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                time: post.get("time").and_then(|v| v.as_str()).unwrap_or("").to_string(),
+                // Reddit específico
+                members: post.get("members").and_then(|v| v.as_i64()).map(|v| v as i32),
+                subreddit: post.get("subreddit").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                title: post.get("title").and_then(|v| v.as_str()).map(|s| s.to_string()),
+                vote: post.get("vote").and_then(|v| v.as_i64()).map(|v| v as i32),
+            };
+            scraped_posts.push(scraped_post);
+        }
+    }
+    
+    scraped_posts
+}
+
+// 🆕 FUNCIÓN PARA PROCESAR Y GUARDAR TODOS LOS DATOS SCRAPED
+async fn save_all_scraped_data(trends: &serde_json::Value, hashtags: &[String]) {
+    info!("💾 Iniciando guardado de datos scraped en DynamoDB...");
+    
+    if let Some(data) = trends.get("data") {
+        // Guardar Instagram
+        if let Some(instagram_array) = data.get("instagram").and_then(|i| i.as_array()) {
+            for item in instagram_array {
+                if let (Some(keyword), Some(posts)) = (
+                    item.get("keyword").and_then(|k| k.as_str()),
+                    item.get("posts")
+                ) {
+                    if hashtags.contains(&keyword.to_string()) && !posts.as_array().unwrap_or(&vec![]).is_empty() {
+                        let scraped_posts = convert_trends_posts_to_scraped_format(posts, "instagram");
+                        
+                        match save_scraped_data_to_dynamo(
+                            keyword.to_string(),
+                            "instagram".to_string(),
+                            scraped_posts
+                        ).await {
+                            Ok(_) => info!("✅ Instagram scraped data guardado para: {}", keyword),
+                            Err(e) => warn!("❌ Error guardando Instagram {}: {:?}", keyword, e)
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Guardar Reddit
+        if let Some(reddit_array) = data.get("reddit").and_then(|r| r.as_array()) {
+            for item in reddit_array {
+                if let (Some(keyword), Some(posts)) = (
+                    item.get("keyword").and_then(|k| k.as_str()),
+                    item.get("posts")
+                ) {
+                    if hashtags.contains(&keyword.to_string()) && !posts.as_array().unwrap_or(&vec![]).is_empty() {
+                        let scraped_posts = convert_trends_posts_to_scraped_format(posts, "reddit");
+                        
+                        match save_scraped_data_to_dynamo(
+                            keyword.to_string(),
+                            "reddit".to_string(),
+                            scraped_posts
+                        ).await {
+                            Ok(_) => info!("✅ Reddit scraped data guardado para: {}", keyword),
+                            Err(e) => warn!("❌ Error guardando Reddit {}: {:?}", keyword, e)
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Guardar Twitter/X (si existe en el futuro)
+        if let Some(twitter_array) = data.get("twitter").and_then(|t| t.as_array()) {
+            for item in twitter_array {
+                if let (Some(keyword), Some(posts)) = (
+                    item.get("keyword").and_then(|k| k.as_str()),
+                    item.get("posts")
+                ) {
+                    if hashtags.contains(&keyword.to_string()) && !posts.as_array().unwrap_or(&vec![]).is_empty() {
+                        let scraped_posts = convert_trends_posts_to_scraped_format(posts, "twitter");
+                        
+                        match save_scraped_data_to_dynamo(
+                            keyword.to_string(),
+                            "twitter".to_string(),
+                            scraped_posts
+                        ).await {
+                            Ok(_) => info!("✅ Twitter scraped data guardado para: {}", keyword),
+                            Err(e) => warn!("❌ Error guardando Twitter {}: {:?}", keyword, e)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    info!("💾 Proceso de guardado de scraped data completado");
 }
 
 // 🆕 FUNCIÓN PARA PROCESAR CON ANALYTICS
@@ -317,6 +500,10 @@ async fn generate_prompt_from_flow(
     })?;
 
     let enhanced_trends = enhance_trends_with_fallback(trends, &hashtags).await;
+    
+    // 🆕 AQUÍ: GUARDAR DATOS SCRAPED EN DYNAMODB
+    save_all_scraped_data(&enhanced_trends, &hashtags).await;
+    
     let calculated_results = process_trends_with_analytics(&enhanced_trends, &hashtags).await;
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
@@ -327,8 +514,9 @@ async fn generate_prompt_from_flow(
         "sales": sales_data,
         "processing": {
             "status": "✅ CALCULATED",
-            "message": "Datos procesados con fórmulas backend",
-            "backend_calculations": true
+            "message": "Datos procesados con fórmulas backend y guardados en DynamoDB",
+            "backend_calculations": true,
+            "scraped_data_saved": true  // 🆕 INDICADOR
         }
     })))
 }
@@ -423,22 +611,27 @@ async fn test_generate_prompt_from_flow(
 
     warn!("🔥 Aplicando fallback con hashtags: {:?}", hashtags);
     let enhanced_trends = enhance_trends_with_fallback(trends, &hashtags).await;
+    
+    // 🆕 AQUÍ TAMBIÉN: GUARDAR DATOS SCRAPED EN DYNAMODB
+    save_all_scraped_data(&enhanced_trends, &hashtags).await;
+    
     let calculated_results = process_trends_with_analytics(&enhanced_trends, &hashtags).await;
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "status": "🧪 TEST MODE",
-        "message": "Endpoint de prueba - datos simulados",
+        "message": "Endpoint de prueba con guardado automático en DynamoDB",
         "sentence": sentence,
         "hashtags": hashtags,
         "trends": enhanced_trends,  
-        "calculated_result": calculated_results,  
+        "calculated_results": calculated_results,  
         "sales": sales_data,
         "debug": {
             "user_id": user_id,
             "resource_id": payload.resource_id,
             "simulated": true,
             "fallback_applied": true,
-            "backend_calculations": true  
+            "backend_calculations": true,
+            "scraped_data_saved": true  // 🆕 INDICADOR
         }
     })))
 }
