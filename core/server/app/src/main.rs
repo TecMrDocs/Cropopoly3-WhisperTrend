@@ -56,6 +56,7 @@ impl Application for AppServer {
                         .service(controllers::sale::routes())      // Sales-related routes
                         .service(controllers::admin::routes())     // Admin panel routes
                         .service(controllers::flow::routes())      // Flow management routes
+                        .service(controllers::analysis::routes())  // Analysis routes
                         .service(nosql::routes())
                         .service(controllers::email::routes())    // Email handling routes
                 )
