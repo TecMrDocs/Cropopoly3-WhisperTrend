@@ -106,7 +106,7 @@ pub struct Config {
     pub token_expiration: usize,
     #[builder(default = "None")]
     pub browserless_ws: Option<String>,
-    #[builder(default = "5")]
+    #[builder(default = "10")]
     pub workers_scraper: i64,
     #[builder(default = "String::from(\"\")")]
     pub instagram_username: String,

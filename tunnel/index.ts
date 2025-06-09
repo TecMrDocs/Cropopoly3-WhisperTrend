@@ -1,4 +1,84 @@
 import { serve } from "bun";
+import { spawn } from "bun";
+
+let chromeProcess: any = null;
+
+// Función para lanzar Chrome con DevTools
+async function launchChrome() {
+  console.log("🚀 Launching Chrome with DevTools...");
+  
+  const chromeArgs = [
+    "--remote-debugging-address=0.0.0.0",
+    "--remote-debugging-port=9222",
+    "--user-data-dir=/tmp/remote-profile"
+  ];
+
+  try {
+    chromeProcess = spawn({
+      cmd: ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", ...chromeArgs],
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+
+    console.log("✅ Chrome launched with PID:", chromeProcess.pid);
+    
+    // Esperar un momento para que Chrome se inicie
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Verificar que DevTools esté disponible
+    try {
+      const res = await fetch("http://127.0.0.1:9222/json/version");
+      if (res.ok) {
+        console.log("✅ Chrome DevTools is ready");
+        return true;
+      }
+    } catch (e) {
+      console.log("⏳ Waiting for Chrome DevTools...");
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("❌ Failed to launch Chrome:", error);
+    return false;
+  }
+}
+
+// Función para cerrar Chrome
+function killChrome() {
+  if (chromeProcess) {
+    console.log("🔴 Terminating Chrome process...");
+    try {
+      chromeProcess.kill();
+      console.log("✅ Chrome process terminated");
+    } catch (error) {
+      console.error("❌ Error terminating Chrome:", error);
+    }
+  }
+}
+
+// Manejar señales de terminación
+function setupSignalHandlers() {
+  const signals = ['SIGINT', 'SIGTERM', 'SIGUSR1', 'SIGUSR2'];
+  
+  signals.forEach(signal => {
+    process.on(signal, () => {
+      console.log(`\n📢 Received ${signal}, shutting down...`);
+      killChrome();
+      process.exit(0);
+    });
+  });
+}
+
+// Configurar manejadores de señales
+setupSignalHandlers();
+
+// Lanzar Chrome antes de iniciar el proxy
+const chromeStarted = await launchChrome();
+if (!chromeStarted) {
+  console.error("❌ Could not start Chrome. Exiting...");
+  process.exit(1);
+}
 
 serve({
   port: 9223,
@@ -54,8 +134,8 @@ serve({
     open: async (client) => {
       console.log("[WS OPEN] Client connected, getting dynamic URL...");
       
-              try {
-          const res = await fetch("http://127.0.0.1:9222/json/version");
+      try {
+        const res = await fetch("http://127.0.0.1:9222/json/version");
         if (!res.ok) {
           throw new Error(`DevTools responded with ${res.status}`);
         }
@@ -153,3 +233,4 @@ console.log("🚀 Proxy server running on port 9223");
 console.log("📋 Chrome DevTools URLs will be automatically rewritten");
 console.log("🔗 Access DevTools at: http://localhost:9223");
 console.log("⚡ WebSocket connections will use dynamic Chrome DevTools URLs");
+console.log("💡 Press Ctrl+C to stop both proxy and Chrome");

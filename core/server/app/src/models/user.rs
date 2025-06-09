@@ -17,8 +17,6 @@ pub struct BusinessData {
     pub locations: String,
     #[validate(length(min = 1, max = 50))]
     pub num_branches: String,
-    pub email_verified: bool,
-    pub email_verified_at: Option<chrono::NaiveDateTime>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
