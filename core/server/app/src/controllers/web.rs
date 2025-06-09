@@ -24,6 +24,14 @@ pub async fn get_login_twitter() -> impl Responder {
     HttpResponse::Ok().finish()
 }
 
+#[get("/twitter/hashtag/{tag}")]
+pub async fn get_twitter_posts_from_hashtag(path: web::Path<String>) -> impl Responder {
+    match TwitterScraper::get_posts(path.into_inner()).await {
+        Ok(posts) => HttpResponse::Ok().json(posts),
+        Err(_) => HttpResponse::InternalServerError().finish()
+    }
+}
+
 #[get("/reddit/get-simple-posts/{keyword}")]
 pub async fn get_simple_posts_reddit(path: web::Path<String>) -> impl Responder {
     let posts = RedditScraper::get_simple_posts_by_keyword(path.into_inner()).await;
@@ -147,4 +155,5 @@ pub fn routes() -> actix_web::Scope {
         .service(get_trends)
         .service(get_instagram_posts_from_hashtag)
         .service(get_login_twitter)
+        .service(get_twitter_posts_from_hashtag)
 }

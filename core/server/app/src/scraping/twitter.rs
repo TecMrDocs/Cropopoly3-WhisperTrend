@@ -12,10 +12,9 @@ static JS_HOVER: &str = include_str!("hover.js");
 static COOKIES: OnceCell<String> = OnceCell::new();
 
 const TWITTER_LOGIN_URL: &str = "https://x.com/";
-const TWITTER_POST_URL: &str = "";
+const TWITTER_POST_URL: &str = "https://x.com/search?q=%23";
 
 const INIT_LOGIN_BUTTON_SELECTOR: &str = "[data-testid='loginButton']";
-const NEXT_LOGIN_BUTTON_SELECTOR: &str = "type='button'";
 const USERNAME_SELECTOR: &str = "input[name='text']";
 const PASSWORD_SELECTOR: &str = "input[name='password']";
 const LOGIN_BUTTON_SELECTOR: &str = "button[data-testid='LoginForm_Login_Button']";
@@ -25,7 +24,7 @@ const TIME_SELECTOR: &str = "a span time";
 
 const FOLLOWERS_SELECTOR: &str = "section a span span";
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct TwitterPostPrimary {
     pub likes: u32,
     pub comments: u32,
@@ -45,6 +44,18 @@ pub struct TwitterPost {
     pub link: String,
     pub time: String,
     pub followers: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TweetData {
+    pub username: String,
+    pub handle: String,
+    pub text: String,
+    pub link: String,
+    pub time: String,
+    pub likes: u32,
+    pub retweets: u32,
+    pub replies: u32,
 }
 
 pub struct TwitterScraper;
@@ -92,6 +103,84 @@ impl TwitterScraper {
 
         Ok(())
     }
+
+    pub async fn get_posts(hashtag: String) -> anyhow::Result<Vec<TweetData>> {
+        TwitterScraper::apply_login().await?;
+    
+        if let Some(cookies) = COOKIES.get() {
+            let url = format!("https://x.com/search?q=%23{}", hashtag);
+    
+            let json = SCRAPER
+                .execute(move |context| {
+                    context.set_user_agent(USER_AGENT);
+                    context.set_string_cookies(cookies.clone());
+                    context.navigate(url.clone());
+                    std::thread::sleep(std::time::Duration::from_secs(5));
+                    for _ in 0..30 {
+                        context.evaluate(
+                            r#"
+                            (() => {
+                                window.scrollBy(0, window.innerHeight);
+                            })()
+                            "#
+                        );
+                        std::thread::sleep(std::time::Duration::from_secs(1)); // Espera a que cargue más tweets
+                    }
+                    context.evaluate(
+                        "(() => {
+                            const articles = Array.from(document.querySelectorAll('article[data-testid=\\\"tweet\\\"]'));
+                            const tweets = [];
+                    
+                            for (const article of articles) {
+                                try {
+                                    const username = article.querySelector('[data-testid=\\\"User-Name\\\"] span')?.innerText || '';
+                                    const handle = Array.from(article.querySelectorAll('a span'))
+                                        .map(span => span.innerText)
+                                        .find(text => text.startsWith('@')) || '';
+                                    const text = article.querySelector('[data-testid=\\\"tweetText\\\"]')?.innerText || '';
+                                    const time = article.querySelector('time')?.getAttribute('datetime') || '';
+                                    const linkPath = article.querySelector('a[href*=\\\"/status/\\\"]')?.getAttribute('href') || '';
+                                    const link = linkPath ? `https://x.com${linkPath}` : '';
+                    
+                                    const replies = parseInt(
+                                        article.querySelector('button[data-testid=\\\"reply\\\"] span')?.textContent?.replace(/[^0-9]/g, '') || '0'
+                                    );
+                                    const retweets = parseInt(
+                                        article.querySelector('button[data-testid=\\\"retweet\\\"] span')?.textContent?.replace(/[^0-9]/g, '') || '0'
+                                    );
+                                    const likes = parseInt(
+                                        article.querySelector('button[data-testid=\\\"like\\\"] span')?.textContent?.replace(/[^0-9]/g, '') || '0'
+                                    );
+                    
+                                    tweets.push({
+                                        username,
+                                        handle,
+                                        text,
+                                        time,
+                                        link,
+                                        likes,
+                                        retweets,
+                                        replies
+                                    });
+                                } catch (e) {
+                                    continue;
+                                }
+                            }
+                    
+                            return JSON.stringify(tweets);
+                        })()"
+                    )
+                    
+                })
+                .await?;
+    
+            let tweets: Vec<TweetData> = serde_json::from_str(&json)?;
+            Ok(tweets)
+        } else {
+            Err(anyhow::anyhow!("No cookies found"))
+        }
+    }
+    
 
     pub async fn get_time_and_link(link: String) -> anyhow::Result<TwitterPostSecondary> {
         TwitterScraper::apply_login().await?;
@@ -153,110 +242,6 @@ impl TwitterScraper {
                     result
                 })
                 .await;
-        }
-
-        Err(anyhow::anyhow!("No cookies found"))
-    }
-
-    pub async fn get_posts(hashtag: String) -> anyhow::Result<Vec<TwitterPost>> {
-        TwitterScraper::apply_login().await?;
-        if let Some(cookies) = COOKIES.get() {
-            let posts = SCRAPER
-                .execute(move |context| {
-                    context.set_user_agent(USER_AGENT);
-                    context.set_string_cookies(cookies.clone());
-                    context.navigate(format!("{}/{}", TWITTER_POST_URL, hashtag));
-                    std::thread::sleep(std::time::Duration::from_secs(5));
-                    context.evaluate(format!(
-                        "(() => {{
-                        {JS_HOVER};
-                        let posts = Array.from(document.querySelectorAll('{POST_SELECTOR}'));
-                        posts.forEach((p) => forceHoverPermanent(p));
-                        return '';
-                    }})()"
-                    ));
-                    std::thread::sleep(std::time::Duration::from_secs(5));
-                    let result = context.async_evaluate(format!(
-                        "(() => {{
-                        let posts = Array.from(document.querySelectorAll('{POST_SELECTOR}'));
-                        let results = [];
-
-                        for (let i = 0; i < posts.length; i++) {{
-                            try {{
-                                let p = posts[i];
-                                let metrics = p.querySelectorAll('span > span');
-                                let a = p.querySelector('a');
-
-                                let likes = (metrics[0] || {{ textContent: '' }}).textContent;
-                                let comments = (metrics[1] || {{ textContent: '' }}).textContent;
-                                let link = (a || {{ href: '' }}).href;
-
-                                if (!a || !link) {{
-                                    continue;
-                                }}
-
-                                results.push({{
-                                    likes: likes === '' ? 0 : parseInt(likes.trim()),
-                                    comments: comments === '' ? 0 : parseInt(comments.trim()),
-                                    link
-                                }});
-                            }} catch (error) {{
-                            }}
-                        }}
-
-                        return JSON.stringify(results);
-                    }})()"
-                    ));
-                    std::thread::sleep(std::time::Duration::from_secs(5));
-                    result
-                })
-                .await?;
-
-            let posts: Vec<TwitterPostPrimary> = serde_json::from_str(&posts)?;
-            let mut futures = Vec::new();
-
-            for post in posts.clone() {
-                futures.push(async move {
-                    match TwitterScraper::get_time_and_link(post.link).await {
-                        Ok(result) => Some(result),
-                        Err(_) => Some(TwitterPostSecondary {
-                            time: String::new(),
-                            link: String::new(),
-                        }),
-                    }
-                });
-            }
-
-            let results = join_all(futures).await;
-            let times_and_links: Vec<TwitterPostSecondary> =
-                results.into_iter().filter_map(|result| result).collect();
-            let mut futures = Vec::new();
-
-            for post in times_and_links.clone() {
-                futures.push(async move {
-                    match TwitterScraper::get_followers(post.link).await {
-                        Ok(result) => Some(result),
-                        Err(_) => Some(String::new()),
-                    }
-                });
-            }
-
-            let results = join_all(futures).await;
-            let followers: Vec<String> = results.into_iter().filter_map(|result| result).collect();
-            let posts: Vec<TwitterPost> = posts
-                .into_iter()
-                .zip(followers)
-                .zip(times_and_links)
-                .map(|((post, follower), time_and_link)| TwitterPost {
-                    likes: post.likes,
-                    comments: post.comments,
-                    link: post.link,
-                    time: time_and_link.time,
-                    followers: Utils::parse_human_number(&follower),
-                })
-                .collect();
-
-            return Ok(posts);
         }
 
         Err(anyhow::anyhow!("No cookies found"))
