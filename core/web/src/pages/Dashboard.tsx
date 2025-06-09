@@ -8,8 +8,9 @@ import UniformTrendPlot from '@/components/UniformTrendPlot';
 import MensajeInicial from '@/components/dashboard/mensajeInicial';
 import TasasGraficaDinamica from '@/components/dashboard/TasaGraficaDinamica';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
-import { crearConDatosPrueba } from '../calculus/DescargaDatos';
+import { crearConDatosPrueba, crearConDatosContext } from '../calculus/DescargaDatos';
 import { procesarParaDashboard } from '../calculus/ConsolidacionDatos';
+import { usePrompt } from "../contexts/PromptContext";
 
 // Objeto de mapeo que convierte nombres legibles de contenido a identificadores únicos del sistema
 const mapeoTipos = {
@@ -25,14 +26,13 @@ const mapeoTipos = {
   'Noticia3': 'noticia3'
 };
 
-// ✅ Función para generar datos de tasas dinámicamente usando datos del sistema
+
 const generarDatosTasasDinamico = (datosDelSistema: any) => {
   if (!datosDelSistema) {
     console.log('⚠️ No hay datos del sistema, retornando datos vacíos');
     return {};
   }
 
-  // Definición de las calculadoras usando datos del sistema
   const calculadoras = [
     { id: 'insta', resultado: datosDelSistema.resultadoInstaCalc, colorInteraccion: '#e91e63', colorViralidad: '#f06292' },
     { id: 'x', resultado: datosDelSistema.resultadoXCalc, colorInteraccion: '#dc2626', colorViralidad: '#f97316' },
@@ -58,50 +58,26 @@ const generarDatosTasasDinamico = (datosDelSistema: any) => {
           color: calc.colorViralidad
         };
       });
+    } else {
+      // Datos por defecto para compatibilidad (si es necesario)
+      datosTasas[`int_${calc.id}`] = { 
+        nombre: `Tasa de interacción ${calc.resultado.emoji || ''}`, 
+        datos: calc.resultado.datosInteraccion || [], 
+        color: calc.colorInteraccion 
+      };
+
+      datosTasas[`vir_${calc.id}`] = { 
+        nombre: `Tasa de viralidad ${calc.resultado.emoji || ''}`, 
+        datos: calc.resultado.datosViralidad || [], 
+        color: calc.colorViralidad 
+      };
     }
   });
-
-  // Datos por defecto para compatibilidad (si es necesario)
-  datosTasas['int_insta'] = datosTasas[`int_insta_${datosDelSistema.resultadoInstaCalc?.hashtags?.[0]?.id}`] || { 
-    nombre: 'Tasa de interacción Instagram', 
-    datos: [], 
-    color: '#e91e63' 
-  };
-
-  datosTasas['vir_insta'] = datosTasas[`vir_insta_${datosDelSistema.resultadoInstaCalc?.hashtags?.[0]?.id}`] || { 
-    nombre: 'Tasa de viralidad Instagram', 
-    datos: [], 
-    color: '#f06292' 
-  };
-
-  datosTasas['int_x'] = datosTasas[`int_x_${datosDelSistema.resultadoXCalc?.hashtags?.[0]?.id}`] || { 
-    nombre: 'Tasa de interacción X', 
-    datos: [], 
-    color: '#dc2626' 
-  };
-
-  datosTasas['vir_x'] = datosTasas[`vir_x_${datosDelSistema.resultadoXCalc?.hashtags?.[0]?.id}`] || { 
-    nombre: 'Tasa de viralidad X', 
-    datos: [], 
-    color: '#f97316' 
-  };
-
-  datosTasas['int_reddit'] = datosTasas[`int_reddit_${datosDelSistema.resultadoRedditCalc?.hashtags?.[0]?.id}`] || { 
-    nombre: 'Tasa de interacción Reddit', 
-    datos: [], 
-    color: '#2563eb' 
-  };
-
-  datosTasas['vir_reddit'] = datosTasas[`vir_reddit_${datosDelSistema.resultadoRedditCalc?.hashtags?.[0]?.id}`] || { 
-    nombre: 'Tasa de viralidad Reddit', 
-    datos: [], 
-    color: '#06b6d4' 
-  };
 
   return datosTasas;
 };
 
-// 🆕 NUEVO COMPONENTE: Visualización de Noticias
+// 🆕 COMPONENTE: Visualización de Noticias
 const VisualizacionNoticia = ({ noticiaId, datosDelSistema }: { noticiaId: string, datosDelSistema: any }) => {
   // Extraer el índice de la noticia del ID
   const indiceNoticia = parseInt(noticiaId.replace('noticia_', ''));
@@ -266,25 +242,50 @@ export default function Dashboard() {
 
   const [datosDelSistema, setDatosDelSistema] = useState<any>(null);
   const [cargandoDatos, setCargandoDatos] = useState(true);
+  
+  // 🚀 OBTENER DATOS DEL TU PROMPTCONTEXT
+  const { analysisData } = usePrompt();
 
-  // ✅ Cargar datos del sistema integrado
+  // ✅ CARGAR DATOS SIGUIENDO TU FLUJO EXACTO
   useEffect(() => {
     const cargarDatos = async () => {
       try {
+        console.log('🔍 [Dashboard] Iniciando carga de datos...');
+        
+        // 🎯 PASO 5: DescargaDatos detecta automáticamente la fuente
+        let descargaDatos;
+        if (analysisData) {
+          console.log('✅ [Dashboard] Usando datos del PromptContext');
+          descargaDatos = crearConDatosContext(analysisData); // 🆕 Nueva función
+        } else {
+          console.log('⚠️ [Dashboard] No hay datos del context, usando datos de prueba');
+          descargaDatos = crearConDatosPrueba();
+        }
+        
+        // 🎯 PASO 6: DescargaDatos hace su trabajo
+        const resultado = await descargaDatos.obtenerResultadosCalculados();
+        
+        // 🎯 PASO 7: ConsolidacionDatos detecta calculated_results automáticamente
+        const consolidado = procesarParaDashboard(resultado);
+        
+        setDatosDelSistema(consolidado);
+        console.log('✅ [Dashboard] Flujo completo ejecutado');
+        
+      } catch (error) {
+        console.error('❌ [Dashboard] Error en el flujo:', error);
+        
+        // Fallback de emergencia
         const descargaDatos = crearConDatosPrueba();
         const resultado = await descargaDatos.obtenerResultadosCalculados();
         const consolidado = procesarParaDashboard(resultado);
         setDatosDelSistema(consolidado);
-        console.log('✅ Datos del sistema cargados:', consolidado);
-      } catch (error) {
-        console.error('❌ Error cargando datos:', error);
       } finally {
         setCargandoDatos(false);
       }
     };
     
     cargarDatos();
-  }, []);
+  }, [analysisData]); // 🎯 DEPENDENCIA: analysisData
 
   // ✅ Generar datosTasas dinámicamente cuando tengamos datos del sistema
   const datosTasas = useMemo(() => {
@@ -304,24 +305,27 @@ export default function Dashboard() {
   console.log('🔍 DEBUG: Todos los IDs de tasas disponibles:', Object.keys(datosTasas));
   console.log('🔍 DEBUG: Hashtags dinámicos disponibles:', hashtagsDinamicos);
 
+  // 🆕 MOSTRAR ESTADO DE CARGA DE DATOS
+  if (cargandoDatos) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⏳</div>
+          <h2 className="text-2xl font-bold text-blue-900 mb-2">Cargando análisis...</h2>
+          <p className="text-gray-600">Procesando datos de la API</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 🆕 MOSTRAR FUENTE DE DATOS
+  const fuenteDatos = datosDelSistema?.metadatos?.fuente || 'desconocida';
+  const tieneCalculosBackend = !!(datosDelSistema?.calculated_results?.hashtags?.length);
+
   const handleEcoFriendlyClick = () => {
     setMostrarTendenciaUniforme(true);
     setHashtagSeleccionado('#EcoFriendly');
     setMostrandoDesgloseTasas(true); 
-  };
-
-  const probarSistemaCompleto = async () => {
-    try {
-      console.log('🧪 PROBANDO SISTEMA INTEGRADO...');
-      const descargaDatos = crearConDatosPrueba();
-      const resultado = await descargaDatos.obtenerResultadosCalculados();
-      const consolidado = procesarParaDashboard(resultado);
-      console.log('✅ ¡SISTEMA FUNCIONANDO!', consolidado);
-      alert('¡Éxito! Revisa la consola del navegador');
-    } catch (error) {
-      console.error('❌ Error:', error);
-      alert('Error - revisa la consola');
-    }
   };
 
   const handleSeleccionItem = (itemId: string) => {
@@ -334,7 +338,7 @@ export default function Dashboard() {
     } else {
       setHashtagSeleccionado(itemId);
       
-      // 🆕 Verificar si es una noticia
+      // 🆕 NUEVO: Verificar si es una noticia
       if (itemId.startsWith('noticia_')) {
         console.log('📰 Es una noticia, no mostrar tendencias');
         setMostrarTendenciaUniforme(false);
@@ -417,7 +421,33 @@ export default function Dashboard() {
 
   return (
     <div className="p-6">
-     <DashboardHeader nombreProducto={nombreProducto} />
+      <DashboardHeader nombreProducto={nombreProducto} />
+      
+      {/* 🆕 INDICADOR DE FUENTE DE DATOS */}
+      <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="text-2xl mr-3">
+              {tieneCalculosBackend ? '🚀' : '🧪'}
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-blue-800">
+                {tieneCalculosBackend ? '¡Números calculados en el backend!' : 'Usando datos de prueba'}
+              </h3>
+              <p className="text-xs text-blue-600">
+                Fuente: {fuenteDatos} | 
+                Hashtags: {hashtagsDinamicos.length} | 
+                {tieneCalculosBackend ? 'Con fórmulas Rust' : 'Datos hardcodeados'}
+              </p>
+            </div>
+          </div>
+          {tieneCalculosBackend && (
+            <div className="text-green-600 font-bold text-sm">
+              ✅ CALCULADO
+            </div>
+          )}
+        </div>
+      </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="flex flex-col gap-6">
@@ -455,7 +485,9 @@ export default function Dashboard() {
                     </h3>
                     <div className="flex items-center mt-1">
                       <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
-                      <p className="text-gray-600 text-sm font-medium">Datos en tiempo real</p>
+                      <p className="text-gray-600 text-sm font-medium">
+                        {tieneCalculosBackend ? 'Datos calculados en tiempo real' : 'Datos de demostración'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -559,7 +591,9 @@ export default function Dashboard() {
                   </h3>
                   <div className="flex items-center mt-1">
                     <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                    <p className="text-gray-600 text-sm font-medium">Insights generados por IA</p>
+                    <p className="text-gray-600 text-sm font-medium">
+                      {tieneCalculosBackend ? 'Insights con datos reales' : 'Insights de demostración'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -568,7 +602,9 @@ export default function Dashboard() {
                 <div className="flex items-center">
                   <span className="text-green-600 mr-2">💡</span>
                   <p className="text-gray-700 text-sm font-medium">
-                    Análisis automático basado en <span className="text-green-600 font-semibold">patrones de datos</span> y tendencias de mercado
+                    Análisis automático basado en <span className="text-green-600 font-semibold">
+                      {tieneCalculosBackend ? 'fórmulas backend' : 'patrones de datos'}
+                    </span> y tendencias de mercado
                   </p>
                 </div>
               </div>
