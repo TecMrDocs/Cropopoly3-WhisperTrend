@@ -1,21 +1,30 @@
 // src/controllers/auth.rs
 
+use resend_rs::Resend;
+use resend_rs::types::CreateEmailBaseOptions;
+
 use crate::cache::OtpCache;
 use crate::config::Config;
 use crate::controllers::auth_mfa::MfaClaims;
-use crate::database::DbResponder;       // <-- Añádelo
+use crate::database::DbResponder; // <-- Añádelo
 use crate::models::{Credentials, User};
 
 use actix_web::{
-    error, get, middleware::from_fn, post, web,
-    HttpMessage, HttpRequest, HttpResponse, Responder,   // <-- HttpMessage aquí
+    HttpMessage,
+    HttpRequest,
+    HttpResponse,
+    Responder, // <-- HttpMessage aquí
+    error,
+    get,
+    middleware::from_fn,
+    post,
+    web,
 };
 use auth::{PasswordHasher, TokenService};
 use chrono::{Duration, Utc};
 use rand::rng;
 use serde_json::json;
 use validator::Validate;
-
 
 #[post("/register")]
 pub async fn register(mut user: web::Json<User>) -> Result<impl Responder, actix_web::Error> {
@@ -48,7 +57,27 @@ pub async fn signin(
                 let otp: u32 = rand::Rng::random_range(&mut rng, 0..1_000_000);
                 let otp_str = format!("{:06}", otp);
                 let expires_at = Utc::now() + Duration::minutes(5);
-                println!("OTP generado para el usuario {id}: {otp_str} (expira {expires_at})");
+
+                // Enviar OTP por correo
+                let resend = Resend::default();
+                let from = "Acme <onboarding@resend.dev>";
+                // let to = user.email.clone();
+                let to = user.email.clone();
+                let email_opts = CreateEmailBaseOptions::new(
+                    from,
+                    vec![to.as_str()],
+                    "Tu código de verificación",
+                )
+                .with_text(&format!(
+                    "Hola {},\n\n Tu código de verificación es: {}\n Expira en 5 minutos.",
+                    user.name, otp_str
+                ));
+                actix_web::rt::spawn(async move {
+                    if let Err(e) = resend.emails.send(email_opts).await {
+                        eprintln!("Error enviando OTP por correo a {}: {:?}", to, e);
+                    }
+                });
+
                 otp_cache.insert(id, (otp_str, expires_at));
                 // token intermedio
                 let exp = (Utc::now() + Duration::minutes(5)).timestamp() as usize;

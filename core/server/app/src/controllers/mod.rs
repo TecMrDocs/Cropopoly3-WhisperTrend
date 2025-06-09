@@ -1,4 +1,3 @@
-// core/server/app/src/controllers/mod.rs
 pub mod auth;
 pub mod web;
 pub mod chat;
@@ -8,4 +7,5 @@ pub mod sale;
 pub mod admin;
 pub mod flow;
 pub mod flow_config;
+pub mod email;
 pub mod auth_mfa;
