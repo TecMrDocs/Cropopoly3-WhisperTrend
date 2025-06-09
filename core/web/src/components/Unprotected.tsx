@@ -9,7 +9,7 @@ export default function Unprotected({ children }: { children: React.ReactNode })
   useEffect(() => {
     // Si está autenticado, redirige a dashboard
     if(isAuthenticated) {
-      navigate("/prductos");
+      navigate("/productos")
     }
     // Sino, permite el acceso a rutas públicas, aun si necesita verificación
   }, [isAuthenticated,navigate]);
