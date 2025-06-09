@@ -18,7 +18,7 @@ mod models;
 mod schema;
 mod middlewares;
 mod scraping;
-//mod nosql;
+mod nosql;
 
 // Main application server structure
 struct AppServer;
@@ -56,8 +56,8 @@ impl Application for AppServer {
                         .service(controllers::sale::routes())      // Sales-related routes
                         .service(controllers::admin::routes())     // Admin panel routes
                         .service(controllers::flow::routes())      // Flow management routes
-                        .service(controllers::email::routes())     // Email sending routes
-                        //.service(nosql::routes())
+                        .service(nosql::routes())
+                        .service(controllers::email::routes())    // Email handling routes
                 )
                 // Configure static file serving
                 .service(

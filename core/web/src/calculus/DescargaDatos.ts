@@ -1,16 +1,16 @@
 // DescargaDatos.ts
 // Coordinador principal: API → Transformación → Calculadoras → Resultados
-// VERSIÓN CORREGIDA - Reemplaza tu archivo existente
+// VERSIÓN SIMPLE - Solo detecta datos del PromptContext y los pasa
 
 // Importar las calculadoras modulares
 import CalculosInstagram, { type InstagramDataInput, type ResultadoInstagramCalculado } from './CalculosInstagram.ts';
 import CalculosReddit, { type RedditDataInput, type ResultadoRedditCalculado } from './CalculosReddit';
 import CalculosX, { type XDataInput, type ResultadoXCalculado } from './CalculosX';
 
-// 🎲 Importar datos de prueba
+
 import { obtenerDatosPrueba } from './DatosPrueba';
 
-// 📊 Tipos para la API (datos raw que llegan)
+
 interface APIPost {
   comments: number;
   followers?: number;
@@ -71,37 +71,59 @@ interface ResultadoFinal {
       reddit: number;
       twitter: number;
     };
-    fuente: 'api' | 'prueba' | 'fallback'; // 🆕 NUEVA LÍNEA
+    fuente: 'api' | 'prueba' | 'fallback';
   };
+  calculated_results?: any;
+}
+
+interface AnalysisData {
+  sentence: string;
+  hashtags: string[];
+  trends: any;
+  calculated_results?: any;
+  sales: any;
 }
 
 class DescargaDatos {
   private apiUrl: string;
-  private usarDatosPrueba: boolean; // 🆕 NUEVA LÍNEA
+  private usarDatosPrueba: boolean;
+  private analysisData: AnalysisData | null; 
 
-  constructor(apiUrl: string, usarDatosPrueba: boolean = false) { // 🆕 MODIFICADO
+  constructor(apiUrl: string, usarDatosPrueba: boolean = false, analysisData: AnalysisData | null = null) {
     this.apiUrl = apiUrl;
-    this.usarDatosPrueba = usarDatosPrueba; // 🆕 NUEVA LÍNEA
+    this.usarDatosPrueba = usarDatosPrueba;
+    this.analysisData = analysisData;
   }
 
   /**
    * 🎯 FUNCIÓN PRINCIPAL - Coordina todo el flujo
+   * 🆕 DETECTA AUTOMÁTICAMENTE SI HAY DATOS DEL PROMPTCONTEXT
    */
   async obtenerResultadosCalculados(): Promise<ResultadoFinal> {
     try {
       console.log('🚀 [DescargaDatos] Iniciando proceso completo...');
       
       let datosAPI: APIData;
-      let fuente: 'api' | 'prueba' | 'fallback'; // 🆕 NUEVA LÍNEA
+      let fuente: 'api' | 'prueba' | 'fallback';
+      let calculated_results: any = null;
+      if (this.analysisData && this.analysisData.calculated_results?.hashtags?.length > 0) {
+        console.log('🚀 [DescargaDatos] ¡Detectados datos con calculated_results del backend!');
+        console.log('🧮 [DescargaDatos] Hashtags calculados:', this.analysisData.calculated_results.hashtags.length);
 
-      // 🎲 Decidir fuente de datos
-      if (this.usarDatosPrueba) {
+        datosAPI = {
+          hashtags: this.analysisData.hashtags,
+          sentence: this.analysisData.sentence,
+          trends: this.analysisData.trends || { data: { instagram: [], reddit: [], twitter: [] }, metadata: [] }
+        };
+        calculated_results = this.analysisData.calculated_results; // 🎯 PASAR TAL COMO VIENEN
+        fuente = 'api';
+        
+      } else if (this.usarDatosPrueba) {
         console.log('🎲 [DescargaDatos] Modo de prueba activado');
         datosAPI = obtenerDatosPrueba();
         fuente = 'prueba';
       } else {
         try {
-          // 1. Intentar descargar datos de la API
           datosAPI = await this.descargarDatosAPI();
           fuente = 'api';
         } catch (error) {
@@ -120,6 +142,12 @@ class DescargaDatos {
       // 4. Preparar resultado final con metadatos
       const resultadoFinal = this.prepararResultadoFinal(datosAPI, resultados, fuente);
       
+      // 🎯 CLAVE: AGREGAR CALCULATED_RESULTS AL RESULTADO
+      if (calculated_results) {
+        resultadoFinal.calculated_results = calculated_results;
+        console.log('✅ [DescargaDatos] Calculated_results agregados al resultado');
+      }
+      
       console.log(`✅ [DescargaDatos] Proceso completado exitosamente (fuente: ${fuente})`);
       return resultadoFinal;
       
@@ -132,9 +160,7 @@ class DescargaDatos {
     }
   }
 
-  /**
-   * 📡 Paso 1: Descargar datos de la API
-   */
+
   private async descargarDatosAPI(): Promise<APIData> {
     console.log('📡 Descargando datos de la API...');
     
@@ -143,7 +169,6 @@ class DescargaDatos {
       headers: {
         'Content-Type': 'application/json',
       },
-      // Timeout de 15 segundos
     });
 
     if (!response.ok) {
@@ -152,7 +177,6 @@ class DescargaDatos {
 
     const data: APIData = await response.json();
     
-    // Validación básica
     if (!data.hashtags || !data.trends) {
       throw new Error('Estructura de datos API inválida');
     }
@@ -161,9 +185,6 @@ class DescargaDatos {
     return data;
   }
 
-  /**
-   * 🔄 Paso 2: Transformar datos para cada calculadora
-   */
   private transformarDatos(datosAPI: APIData) {
     console.log('🔄 Transformando datos para calculadoras...');
     
@@ -175,12 +196,8 @@ class DescargaDatos {
     };
   }
 
-  /**
-   * 📸 Transformar datos específicos para Instagram
-   */
   private transformarParaInstagram(datosAPI: APIData): InstagramDataInput {
     const hashtags = datosAPI.hashtags.map((hashtag, index) => {
-      // Buscar posts de Instagram para este hashtag específico
       const grupoInstagram = datosAPI.trends.data.instagram?.find(
         grupo => grupo.keyword === hashtag
       );
@@ -191,7 +208,6 @@ class DescargaDatos {
         return this.crearHashtagVacioInstagram(hashtag, index);
       }
 
-      // Agrupar posts por mes
       const datosAgrupados = this.agruparPostsPorMes(posts, 'instagram');
       
       return {
@@ -209,12 +225,9 @@ class DescargaDatos {
     return { hashtags };
   }
 
-  /**
-   * 🔴 Transformar datos específicos para Reddit
-   */
+
   private transformarParaReddit(datosAPI: APIData): RedditDataInput {
     const hashtags = datosAPI.hashtags.map((hashtag, index) => {
-      // Buscar posts de Reddit para este hashtag específico
       const grupoReddit = datosAPI.trends.data.reddit?.find(
         grupo => grupo.keyword === hashtag
       );
@@ -241,11 +254,7 @@ class DescargaDatos {
     return { hashtags };
   }
 
-  /**
-   * 🐦 Transformar datos específicos para X (Twitter)
-   */
   private transformarParaX(datosAPI: APIData): XDataInput {
-    // Por ahora Twitter viene vacío, pero mantenemos estructura
     const hashtags = datosAPI.hashtags.map((hashtag, index) => {
       return this.crearHashtagVacioX(hashtag, index);
     });
@@ -253,21 +262,17 @@ class DescargaDatos {
     return { hashtags };
   }
 
-  /**
-   * 📰 Extraer noticias del metadata
-   */
+
   private extraerNoticias(datosAPI: APIData): Noticia[] {
-    return datosAPI.trends.metadata.map(item => ({
+    return datosAPI.trends.metadata?.map(item => ({
       title: item.title,
       description: item.description,
       url: item.url,
       keywords: item.keywords
-    }));
+    })) || [];
   }
 
-  /**
-   * 🧮 Paso 3: Ejecutar todas las calculadoras
-   */
+
   private ejecutarCalculadoras(datosTransformados: any) {
     console.log('🧮 Ejecutando calculadoras modulares...');
     
@@ -284,10 +289,8 @@ class DescargaDatos {
     };
   }
 
-  /**
-   * 📦 Paso 4: Preparar resultado final con metadatos
-   */
-  private prepararResultadoFinal(datosAPI: APIData, resultados: any, fuente: 'api' | 'prueba' | 'fallback'): ResultadoFinal { // 🆕 MODIFICADO
+
+  private prepararResultadoFinal(datosAPI: APIData, resultados: any, fuente: 'api' | 'prueba' | 'fallback'): ResultadoFinal {
     const totalPosts = {
       instagram: datosAPI.trends.data.instagram?.reduce((total, grupo) => total + (grupo.posts?.length || 0), 0) || 0,
       reddit: datosAPI.trends.data.reddit?.reduce((total, grupo) => total + (grupo.posts?.length || 0), 0) || 0,
@@ -304,16 +307,12 @@ class DescargaDatos {
         hashtagsOriginales: datosAPI.hashtags,
         sentence: datosAPI.sentence,
         totalPosts,
-        fuente // 🆕 NUEVA LÍNEA
+        fuente
       }
     };
   }
 
-  /**
-   * 📅 Helper: Agrupar posts por mes
-   */
   private agruparPostsPorMes(posts: APIPost[], plataforma: 'instagram' | 'reddit' | 'x') {
-    // Mapa para agrupar por mes
     const datosPorMes = new Map<string, any>();
 
     posts.forEach(post => {
@@ -332,17 +331,16 @@ class DescargaDatos {
         datos.likes.push(post.likes || 0);
         datos.comentarios.push(post.comments || 0);
         datos.seguidores.push(post.followers || 0);
-        datos.vistas.push((post.likes || 0) * 8); // Estimación: 8 vistas por like
-        datos.compartidos.push(Math.floor((post.likes || 0) * 0.05)); // 5% de likes
+        datos.vistas.push((post.likes || 0) * 8);
+        datos.compartidos.push(Math.floor((post.likes || 0) * 0.05));
       } else if (plataforma === 'reddit') {
         datos.upVotes.push(post.vote || 0);
         datos.comentarios.push(post.comments || 0);
         datos.suscriptores.push(post.members || 0);
-        datos.horas.push(24); // Estimación: 24 horas por post
+        datos.horas.push(24);
       }
     });
 
-    // Convertir a arrays ordenados
     const mesesOrdenados = Array.from(datosPorMes.keys()).sort();
     
     return {
@@ -358,9 +356,6 @@ class DescargaDatos {
     };
   }
 
-  /**
-   * 🔧 Helpers para generar datos vacíos
-   */
   private crearHashtagVacioInstagram(hashtag: string, index: number) {
     const fechasDefecto = ["01/01/25 - 31/01/25", "1/02/25 - 28/02/25"];
     return {
@@ -402,9 +397,7 @@ class DescargaDatos {
     };
   }
 
-  /**
-   * 🔧 Helpers generales
-   */
+
   private generarIdAutomatico(hashtag: string, index: number): string {
     const hashtagLimpio = hashtag
       .replace(/[^a-zA-Z0-9]/g, '')
@@ -442,13 +435,9 @@ class DescargaDatos {
     });
   }
 
-  /**
-   * 🔄 Fallback a datos hardcodeados
-   */
   private async usarDatosHardcodeados(): Promise<ResultadoFinal> {
     console.log('🆘 Usando datos de emergencia básicos');
     
-    // Usar datos de prueba como emergencia
     const datosEmergencia = obtenerDatosPrueba();
     const datosTransformados = this.transformarDatos(datosEmergencia);
     const resultados = this.ejecutarCalculadoras(datosTransformados);
@@ -456,16 +445,17 @@ class DescargaDatos {
   }
 }
 
-// 🚀 Funciones para usar en otros archivos
 export const crearDescargaDatos = (apiUrl: string, usarDatosPrueba: boolean = false) => {
   return new DescargaDatos(apiUrl, usarDatosPrueba);
 };
 
-// 🎲 Función para desarrollo con datos de prueba
 export const crearConDatosPrueba = () => {
   return new DescargaDatos('', true);
 };
 
+export const crearConDatosContext = (analysisData: any) => {
+  return new DescargaDatos('', false, analysisData);
+};
+
 export default DescargaDatos;
 export type { ResultadoFinal, Noticia, APIData };
-

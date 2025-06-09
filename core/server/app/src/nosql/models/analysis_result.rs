@@ -3,8 +3,8 @@ use chrono::{DateTime, Utc};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisResult {
-    pub pk: String,           // ANALYSIS#{analysis_id}
-    pub sk: String,           // RESULT#{timestamp}
+    pub pk: String,           
+    pub sk: String,           
     pub analysis_id: String,
     pub user_id: i32,
     pub resource_id: i32,
@@ -12,7 +12,7 @@ pub struct AnalysisResult {
     pub trends_data: serde_json::Value,
     pub correlation_data: serde_json::Value,
     pub ai_insights: Option<String>,
-    pub status: String,       // "processing", "completed", "failed"
+    pub status: String,       
     pub created_at: DateTime<Utc>,
     pub completed_at: Option<DateTime<Utc>>,
 }
