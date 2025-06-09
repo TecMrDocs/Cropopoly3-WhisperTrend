@@ -1,28 +1,20 @@
 // src/controllers/auth.rs
 
-use resend_rs::Resend;
-use resend_rs::types::CreateEmailBaseOptions;
-
 use crate::cache::OtpCache;
 use crate::config::Config;
-use crate::controllers::auth_mfa::MfaClaims;
-use crate::database::DbResponder; // <-- Añádelo
+use crate::controllers::auth_mfa::{verify_mfa, MfaClaims};
+use crate::database::DbResponder;
 use crate::models::{Credentials, User};
 
 use actix_web::{
-    HttpMessage,
-    HttpRequest,
-    HttpResponse,
-    Responder, // <-- HttpMessage aquí
-    error,
-    get,
-    middleware::from_fn,
-    post,
-    web,
+    error, get, middleware::from_fn, post, web, HttpMessage, HttpRequest, HttpResponse, Responder,
+    Result,
 };
 use auth::{PasswordHasher, TokenService};
 use chrono::{Duration, Utc};
 use rand::rng;
+use resend_rs::Resend;
+use resend_rs::types::CreateEmailBaseOptions;
 use serde_json::json;
 use validator::Validate;
 
@@ -52,34 +44,35 @@ pub async fn signin(
     if let Ok(Some(user)) = User::get_by_email(credentials.email.clone()).await {
         if PasswordHasher::verify(&credentials.password, &user.password).unwrap_or(false) {
             if let Some(id) = user.id {
-                // OTP
+                // 1. Generate OTP
                 let mut rng = rng();
                 let otp: u32 = rand::Rng::random_range(&mut rng, 0..1_000_000);
                 let otp_str = format!("{:06}", otp);
                 let expires_at = Utc::now() + Duration::minutes(5);
 
-                // Enviar OTP por correo
+                // 2. Send via Resend
                 let resend = Resend::default();
                 let from = "Acme <onboarding@resend.dev>";
-                // let to = user.email.clone();
                 let to = user.email.clone();
                 let email_opts = CreateEmailBaseOptions::new(
                     from,
-                    vec![to.as_str()],
-                    "Tu código de verificación",
+                    vec![&to],
+                    "Your verification code",
                 )
                 .with_text(&format!(
-                    "Hola {},\n\n Tu código de verificación es: {}\n Expira en 5 minutos.",
+                    "Hello {},\n\nYour verification code is: {}\nIt expires in 5 minutes.",
                     user.name, otp_str
                 ));
                 actix_web::rt::spawn(async move {
                     if let Err(e) = resend.emails.send(email_opts).await {
-                        eprintln!("Error enviando OTP por correo a {}: {:?}", to, e);
+                        eprintln!("Failed to send OTP to {}: {:?}", to, e);
                     }
                 });
 
+                // 3. Store in cache
                 otp_cache.insert(id, (otp_str, expires_at));
-                // token intermedio
+
+                // 4. Return short-lived MFA token
                 let exp = (Utc::now() + Duration::minutes(5)).timestamp() as usize;
                 let mfa_claims = MfaClaims { id, exp };
                 if let Ok(mfa_token) =
@@ -107,10 +100,11 @@ pub async fn check(req: HttpRequest) -> Result<impl Responder, actix_web::Error>
 
 pub fn routes() -> actix_web::Scope {
     web::scope("/auth")
-        .service(register)
-        .service(signin)
+        .service(register)      // POST /api/v1/auth/register
+        .service(signin)       // POST /api/v1/auth/signin
+        .service(verify_mfa)   // POST /api/v1/auth/mfa
         .service(
-            web::scope("/check")
+            web::scope("/check")  // GET /api/v1/auth/check
                 .wrap(from_fn(crate::middlewares::auth))
                 .service(check),
         )
