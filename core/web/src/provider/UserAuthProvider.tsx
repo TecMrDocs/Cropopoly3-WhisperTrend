@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AuthContext } from '@/contexts/AuthContext';
 import user from '@/utils/api/user';
-import { useNavigate } from 'react-router-dom';
-
-
+import { useNavigate, useLocation } from 'react-router-dom';  // ← add useLocation
 
 export default function UserAuthProvider({ children }: { children: React.ReactNode }) {
-  const [isLoading, setIsLoading]         = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading]               = useState(true);
+  const [isAuthenticated, setIsAuthenticated]   = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();  // ← get current path
+
+  // define your public routes here (same as in Protected)
+  const publicRoutes = ['/', '/login'];
 
   useEffect(() => {
     const fullToken = localStorage.getItem("token");
@@ -18,10 +20,8 @@ export default function UserAuthProvider({ children }: { children: React.ReactNo
     if (fullToken) {
       // validar JWT definitivo
       user.user.check()
-        .then(() => {
-          setIsAuthenticated(true);
-        })
-        .catch((err: any) => {
+        .then(() => setIsAuthenticated(true))
+        .catch(err => {
           if (err?.response?.status === 404) {
             console.warn("check endpoint no existe, asumiendo token válido");
             setIsAuthenticated(true);
@@ -33,17 +33,22 @@ export default function UserAuthProvider({ children }: { children: React.ReactNo
           setNeedsVerification(false);
           setIsLoading(false);
         });
-    } else if (tempToken) {
+    }
+    else if (tempToken) {
       setIsAuthenticated(false);
       setNeedsVerification(true);
       setIsLoading(false);
-      navigate("/holaDeNuevo", { replace: true });
-    } else {
+      // only redirect if we’re _not_ already on a public route
+      if (!publicRoutes.includes(location.pathname)) {
+        navigate("/holaDeNuevo", { replace: true });
+      }
+    }
+    else {
       setIsAuthenticated(false);
       setNeedsVerification(false);
       setIsLoading(false);
     }
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   function signOut() {
     localStorage.removeItem("token");

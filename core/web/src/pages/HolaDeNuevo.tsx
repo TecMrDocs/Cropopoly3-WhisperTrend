@@ -57,6 +57,11 @@ export default function HolaDeNuevo() {
     }
   };
 
+  const handleCancel = () => {
+    localStorage.removeItem('mfa_token');
+    navigate('/', { replace: true });
+  };
+
   return (
     <div className='flex flex-col items-center justify-center w-full px-4'>
       <div className="w-full max-w-md">
@@ -88,19 +93,30 @@ export default function HolaDeNuevo() {
         </div>
 
         <div className="mt-6 w-full flex flex-col items-center">
-          <BlueButton
-            text={isSubmitting ? 'Verificando…' : 'Continuar'}
-            width="300px"
-            onClick={handleContinue}
-            disabled={isSubmitting}
-          />
           <p className="mt-4 md:text-lg text-md md:p-2 p-4">¿No te llegó el código?</p>
-          <WhiteButton
-            text="Enviar un código nuevo"
-            width="300px"
-            onClick={handleResend}
-            disabled={isSubmitting}
-          />
+          <div className="mt-6 w-full flex flex-col items-center gap-4">
+            <BlueButton
+              text={isSubmitting ? 'Verificando…' : 'Continuar'}
+              width="300px"
+              onClick={handleContinue}
+              disabled={isSubmitting}
+            />
+            <p className="mt-4 md:text-lg text-md md:p-2 p-4">¿No te llegó el código?</p>
+
+            <WhiteButton
+              text="Enviar un código nuevo"
+              width="300px"
+              onClick={handleResend}
+              disabled={isSubmitting}
+            />
+
+            <WhiteButton
+              text="Cancelar"
+              width="300px"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+            />
+          </div>
         </div>
       </div>
     </div>

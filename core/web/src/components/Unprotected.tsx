@@ -1,21 +1,18 @@
-//core/web/src/components/Unprotected.tsx
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
-
-export default function Unprotected({ children }: { children: React.ReactNode}){
+export default function Unprotected({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const { isAuthenticated, needsVerification } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if(isAuthenticated) navigate("/dashboard");
-
-    // Si no está autenticado y necesita verificación, redirigimos a la pantalla de 2FA
-    if(!isAuthenticated && needsVerification){ 
-      navigate("/holaDeNuevo");
+    // Si está autenticado, redirige a dashboard
+    if(isAuthenticated) {
+      navigate("/prductos");
     }
-  }, [isAuthenticated, needsVerification,navigate]);
+    // Sino, permite el acceso a rutas públicas, aun si necesita verificación
+  }, [isAuthenticated,navigate]);
 
-  return <>{children}</>
+  return <>{children}</>;
 }
