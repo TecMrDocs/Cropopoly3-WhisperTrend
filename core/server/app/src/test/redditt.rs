@@ -1,3 +1,10 @@
+// Copyright 2025 WhisperTrend
+// Este archivo pertenece al proyecto WhisperTrend
+// Tester: Santiago Villazón Ponce de León
+// Fecha: 05-06-2025
+
+// Este módulo contiene pruebas unitarias para el funcionamiento de las rutas en reddit.rs
+
 use crate::scraping::reddit::{RedditScraper, SimplePost, SimplePostWithMembers};
 
 #[tokio::test]

@@ -1,3 +1,10 @@
+// Copyright 2025 WhisperTrend
+// Este archivo pertenece al proyecto WhisperTrend
+// Tester: Santiago Villazón Ponce de León
+// Fecha: 05-06-2025
+
+// Este módulo contiene pruebas unitarias para el funcionamiento de las rutas en trendsrs
+
 use crate::scraping::notices::Details;
 use crate::scraping::trends::TrendsScraper;
 use crate::scraping::notices::Info;
