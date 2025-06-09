@@ -7,15 +7,11 @@ export default function Protected({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { isAuthenticated, isLoading, needsVerification } = useAuth();
 
-  // Lista de rutas públicas (sin protección)
   const publicRoutes = ["/", "/login"];
 
   useEffect(() => {
     if (isLoading) return;
-
-    // Si la ruta actual es pública, no forzar redirección
     if (publicRoutes.includes(location.pathname)) return;
-
     if (needsVerification) {
       navigate("/holaDeNuevo", { replace: true });
     } else if (!isAuthenticated) {
@@ -23,7 +19,7 @@ export default function Protected({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, needsVerification, isLoading, navigate, location.pathname]);
 
-  // Mientras se carga o el usuario no cumple los requisitos, no se muestra el contenido
+  // No mostramos nada mientras carga, necesita verificación o no está autenticado
   if (isLoading || needsVerification || !isAuthenticated) return null;
 
   return <>{children}</>;

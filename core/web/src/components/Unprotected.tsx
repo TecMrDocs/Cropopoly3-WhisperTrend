@@ -4,15 +4,19 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function Unprotected({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading, needsVerification } = useAuth();
 
   useEffect(() => {
-    // Si está autenticado, redirige a dashboard
-    if(isAuthenticated) {
-      navigate("/productos")
+    if (isLoading) return;
+    if (needsVerification) {
+      navigate("/holaDeNuevo", { replace: true });
+    } else if (isAuthenticated) {
+      navigate("/productos", { replace: true });
     }
-    // Sino, permite el acceso a rutas públicas, aun si necesita verificación
-  }, [isAuthenticated,navigate]);
+  }, [isAuthenticated, needsVerification, isLoading, navigate]);
+
+  // Mientras carga o hay 2FA pendiente, no mostrar la página pública
+  if (isLoading || needsVerification) return null;
 
   return <>{children}</>;
 }
