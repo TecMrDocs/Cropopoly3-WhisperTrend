@@ -106,6 +106,17 @@ export default function Productos() {
     }
   };
 
+  const handleNewProductClick = () => {
+    setProducto({
+      r_type: "Producto",
+      name: "",
+      description: "",
+      related_words: "",
+    });
+    setProductId(null);
+    navigate("/newResource");
+  }
+
   const handleViewClick = async (resourceId: number) => {
     try {
       const res = await fetch(`${API_URL}resource/${resourceId}`, getConfig());
@@ -177,7 +188,7 @@ export default function Productos() {
         {/* Tarjeta para agregar nuevo */}
         <div 
           className="w-60 border-2 border-teal-400 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-5 hover:shadow-md transition cursor-pointer"
-          onClick={() => navigate('/NewResource')}
+          onClick={() => handleNewProductClick()}
         >
           <p className="text-black font-medium text-lg">Agregar nuevo</p>
           <div className="border-2 border-teal-400 p-2 rounded-full">

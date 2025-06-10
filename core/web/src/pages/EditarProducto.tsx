@@ -224,7 +224,7 @@ export default function EditarProducto() {
       </div>
 
       <div className="flex flex-row justify-center gap-10 mt-10">
-        <WhiteButton text="Cancelar" width="300px" onClick={() => navigate(-1)} />
+        <WhiteButton text="Cancelar" width="300px" onClick={() => navigate("/productos")} />
         <BlueButton text="Guardar" width="300px" onClick={handleSubmit} />
       </div>
       

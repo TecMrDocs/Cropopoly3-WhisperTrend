@@ -59,10 +59,10 @@ export default function WebRouter(){
       <Route path="/changePassword" element={loadLayout(AuthLayout, ChangePassword)} />
       <Route path="/actualizarPlan" element={loadLayout(MainLayout, ActualizarPlan)} />
       <Route path="/resumen" element={loadLayout(MainLayout, Resumen)} />
-      <Route path="/newResource" element={loadLayout(LaunchLayout, NewResource)}  />
-      <Route path="/previoRegistroVentas" element={loadLayout(LaunchLayout, PrevioRegistroVentas)} />
-      <Route path="/registroVentas" element={loadLayout(LaunchLayout, RegistroVentas)} />
-      <Route path="/confirmaProducto" element={loadLayout(LaunchLayout, ConfirmaProducto)} />
+      <Route path="/newResource" element={loadLayout(ProfileLayout, NewResource)}  />
+      <Route path="/previoRegistroVentas" element={loadLayout(ProfileLayout, PrevioRegistroVentas)} />
+      <Route path="/registroVentas" element={loadLayout(ProfileLayout, RegistroVentas)} />
+      <Route path="/confirmaProducto" element={loadLayout(ProfileLayout, ConfirmaProducto)} />
       
       {/* Rutas de autenticación */}
       

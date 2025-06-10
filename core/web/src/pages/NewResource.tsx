@@ -8,8 +8,7 @@ import TextFieldWHolder from "../components/TextFieldWHolder";
 import TextAreaField from "../components/TextAreaField";
 import WhiteButton from "../components/WhiteButton";
 import BlueButton from "../components/BlueButton";
-import WordAdder from "../components/WordAdder";
-import EnclosedWord from "../components/EnclosedWord";
+import { Plus, Trash2 } from "lucide-react";
 
 export default function NewResource() {
   const { producto, setProducto, setProductId } = usePrompt();
@@ -19,9 +18,8 @@ export default function NewResource() {
   const [pors, setPors] = useState(producto?.r_type || "");
   const [nombreProducto, setNombreProducto] = useState(producto?.name || "");
   const [descripcion, setDescripcion] = useState(producto?.description || "");
-  const [palabrasAsociadas, setPalabrasAsociadas] = useState<string[]>(
-    producto?.related_words?.split(", ").filter(Boolean) || []
-  );
+  const [palabra, setPalabra] = useState("");
+  const [palabras, setPalabras] = useState<string[]>([]);
   const navigate = useNavigate();
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -32,7 +30,7 @@ export default function NewResource() {
     if (!pors.trim()) nuevosErrores.pors = "Este campo es obligatorio";
     if (!nombreProducto.trim()) nuevosErrores.nombreProducto = "Este campo es obligatorio";
     if (!descripcion.trim()) nuevosErrores.descripcion = "Este campo es obligatorio";
-    if (palabrasAsociadas.length === 0) nuevosErrores.palabrasAsociadas = "Añadir al menos una palabra asociada";
+    if (palabras.length === 0) nuevosErrores.palabras = "Añadir al menos una palabra asociada";
   
     setErrors(nuevosErrores);
   
@@ -43,10 +41,16 @@ export default function NewResource() {
     navigate("/productos");
   };
   
-  const handleAddPalabra = (nuevaPalabra: string) => {
-    if (nuevaPalabra.trim() !== "" && palabrasAsociadas.length < 10) {
-      setPalabrasAsociadas((prev: string[]) => [...prev, nuevaPalabra]);
+  const handleAgregar = () => {
+    const nueva = palabra.trim();
+    if (nueva && !palabras.includes(nueva) && palabras.length < 10) {
+      setPalabras([...palabras, nueva]);
+      setPalabra("");
     }
+  };
+
+  const eliminarPalabra = (palabraAEliminar: string) => {
+    setPalabras(palabras.filter((p) => p !== palabraAEliminar));
   };
 
   const getUserId = async (): Promise<number | null> => {
@@ -72,7 +76,7 @@ export default function NewResource() {
       return;
     }
   
-    const palabrasJoin = palabrasAsociadas.join(", ");
+    const palabrasJoin = palabras.join(", ");
   
     const payload = {
       user_id: userId,
@@ -159,22 +163,50 @@ export default function NewResource() {
           <p className="text-red-500 text-sm mt-1">{errors.descripcion}</p>
         )}
       </div>
-      
-      <p className="text-xl mt-3 text-center">Indica palabras asociadas con tu producto o servicio (máximo 10)</p>
-      <div className="mt-3">
-        <WordAdder onAdd={handleAddPalabra} />
-        {errors.palabrasAsociadas && (
-          <p className="text-red-500 text-sm mt-1">{errors.palabrasAsociadas}</p>
-        )}
-      </div>
 
-      {palabrasAsociadas.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-3 w-xl">
-          {palabrasAsociadas.map((palabra, index) => (
-            <EnclosedWord key={index} word={palabra} />
-          ))}
+      <div className="flex flex-col gap-2 mt-10" style={{ width: "700px" }}>
+          <label className="text-base font-medium" htmlFor="Palabras asociadas">
+            Palabras asociadas
+          </label>
+          <div className="flex gap-2">
+            <input
+              id="Palabras asociadas"
+              type="text"
+              placeholder="Ej. Elegancia"
+              value={palabra}
+              onChange={(e) => setPalabra(e.target.value)}
+              className="w-full border-none outline-none p-2 px-4 rounded-[6px] bg-white text-base text-black shadow-md"
+            />
+            <button
+              aria-label="Agregar palabra"
+              onClick={handleAgregar}
+              className="bg-gradient-to-r from-[#00BFB3] to-[#0091D5] p-2 px-4 rounded-[6px] text-white hover:scale-[1.05] transition"
+            >
+              <Plus size={20} />
+            </button>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-2">
+            {palabras.map((p: string, idx: number) => (
+              <span
+                key={idx}
+                className="flex items-center gap-2 border border-blue-500 text-blue-600 px-3 py-1 rounded-full bg-blue-50"
+              >
+                {p}
+                <button
+                  aria-label="Eliminar palabra"
+                  onClick={() => eliminarPalabra(p)}
+                  className="hover:text-red-600"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </span>
+            ))}
+            {errors.palabras && (
+              <p className="text-red-500 text-sm mt-1">{errors.palabras}</p>
+            )}
+          </div>
         </div>
-      )}
 
       <div className="flex justify-between items-center w-[80%] mt-10 pb-10">
         <WhiteButton text="Regresar" width="200px" onClick={handleReturn} />
