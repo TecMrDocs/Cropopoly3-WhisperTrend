@@ -20,15 +20,15 @@ pub struct InstagramMetrics {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Data {
-    reddit: Vec<RedditMetrics>,
-    instagram: Vec<InstagramMetrics>,
-    twitter: Vec<()>,
+    pub reddit: Vec<RedditMetrics>,
+    pub instagram: Vec<InstagramMetrics>,
+    pub twitter: Vec<()>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Trends {
-    metadata: Details,
-    data: Data,
+    pub metadata: Details,
+    pub data: Data,
 }
 
 pub struct TrendsScraper;
