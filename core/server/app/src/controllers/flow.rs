@@ -1,10 +1,11 @@
 use crate::{
-    controllers::flow_config::FLOW_CONFIG,
     database::{Database, DbResponder},
     middlewares,
-    models::{Resource, Sale, User},
+    models::{Resource, User},
     scraping::{
-        instagram::InstagramPost, notices::{NoticesScraper, Params}, trends::{Data, Trends, TrendsScraper}
+        instagram::InstagramPost,
+        notices::Params,
+        trends::{Data, Trends, TrendsScraper},
     },
 };
 use actix_web::{
@@ -384,7 +385,9 @@ async fn get_fallback_data(
         // Buscar en el campo "scraped_posts" que contiene los datos como JSON
         if let Some(AttributeValue::S(scraped_posts_json)) = item.get("scraped_posts") {
             // Deserializar el JSON a ScrapedHashtagData
-            if let Ok(scraped_data) = serde_json::from_str::<crate::nosql::ScrapedHashtagData>(scraped_posts_json) {
+            if let Ok(scraped_data) =
+                serde_json::from_str::<crate::nosql::ScrapedHashtagData>(scraped_posts_json)
+            {
                 // Convertir ScrapedPost a InstagramPost
                 let instagram_posts: Vec<InstagramPost> = scraped_data
                     .posts
@@ -398,17 +401,24 @@ async fn get_fallback_data(
                     })
                     .collect();
 
-                info!("✅ Datos fallback encontrados: {} posts para {} en {}", 
-                      instagram_posts.len(), hashtag, platform);
+                info!(
+                    "✅ Datos fallback encontrados: {} posts para {} en {}",
+                    instagram_posts.len(),
+                    hashtag,
+                    platform
+                );
                 return Ok(instagram_posts);
             } else {
-                warn!("⚠️ Error deserializando datos fallback para {} en {}", hashtag, platform);
+                warn!(
+                    "⚠️ Error deserializando datos fallback para {} en {}",
+                    hashtag, platform
+                );
             }
         }
-        
+
         // Si no encontró en "scraped_posts", intentar buscar por el patrón SCRAPED#
         warn!("⚠️ No se encontró campo 'scraped_posts', intentando búsqueda alternativa...");
-        
+
         // Buscar datos con el patrón SCRAPED#platform#timestamp
         let sk_prefix = format!("SCRAPED#{}", platform);
         let query_result = client
@@ -424,8 +434,12 @@ async fn get_fallback_data(
 
         if let Some(items) = query_result.items {
             if let Some(latest_item) = items.first() {
-                if let Some(AttributeValue::S(scraped_posts_json)) = latest_item.get("scraped_posts") {
-                    if let Ok(scraped_data) = serde_json::from_str::<crate::nosql::ScrapedHashtagData>(scraped_posts_json) {
+                if let Some(AttributeValue::S(scraped_posts_json)) =
+                    latest_item.get("scraped_posts")
+                {
+                    if let Ok(scraped_data) =
+                        serde_json::from_str::<crate::nosql::ScrapedHashtagData>(scraped_posts_json)
+                    {
                         let instagram_posts: Vec<InstagramPost> = scraped_data
                             .posts
                             .into_iter()
@@ -438,8 +452,12 @@ async fn get_fallback_data(
                             })
                             .collect();
 
-                        info!("✅ Datos fallback alternativos encontrados: {} posts para {} en {}", 
-                              instagram_posts.len(), hashtag, platform);
+                        info!(
+                            "✅ Datos fallback alternativos encontrados: {} posts para {} en {}",
+                            instagram_posts.len(),
+                            hashtag,
+                            platform
+                        );
                         return Ok(instagram_posts);
                     }
                 }
@@ -447,7 +465,10 @@ async fn get_fallback_data(
         }
     }
 
-    info!("❌ No se encontraron datos fallback para {} en {}", hashtag, platform);
+    info!(
+        "❌ No se encontraron datos fallback para {} en {}",
+        hashtag, platform
+    );
     Ok(vec![]) // Devolver array vacío si no encuentra 
 }
 
@@ -674,7 +695,12 @@ async fn generate_prompt_from_flow(
     //     error::ErrorInternalServerError("Invalid trends response")
     // })?;
 
-    let params = Params::new(sentence.clone(), six_months_ago, today, String::from("English"));
+    let params = Params::new(
+        sentence.clone(),
+        six_months_ago,
+        today,
+        String::from("English"),
+    );
     let trends = TrendsScraper::get_trends_with_hashtags(params, Some(hashtags))
         .await
         .to_web()?;
@@ -1030,7 +1056,7 @@ async fn debug_force_save_empty_hashtags(
 
     let mut force_saved = Vec::new();
 
-    // Obtener todos los hashtags únicos  
+    // Obtener todos los hashtags únicos
     let trends_from_json: Trends = serde_json::from_value(scraped_data.clone()).unwrap();
     let all_hashtags = extract_all_hashtags_from_scraped_data(&trends_from_json);
 
