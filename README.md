@@ -41,7 +41,7 @@ code keysPROtting
 **4. Open the project in a container**
 
 - Press `F1` and select `Dev Containers: Reopen in Container`
-![Reopen Container](Reopen.png)
+![Reopen Container](readmeimg/Reopen.png)
 
 
 **5. Install the project dependencies**
@@ -52,7 +52,7 @@ code keysPROtting
 cd core/web
 bun install
 ```
-![Bun Install](Buninstall.png)
+![Bun Install](readmeimg/Buninstall.png)
 
 **6. Start the project**
 
@@ -60,19 +60,19 @@ bun install
 cd core/server/app
 cargo run
 ```
-![Cargo run](Cargorun.png)
+![Cargo run](readmeimg/Cargorun.png)
 
 ```bash
 cd core/web
 npm run dev
 ```
-![Run dev](Rundev.png)
+![Run dev](readmeimg/Rundev.png)
 
 # Backend
 
 - Create a `.env` file inside the app folder and add the following environment variables:
 
-![Run dev](Backenv.png)
+![Run dev](readmeimg/Backenv.png)
 ```bash
 # core/server/app/.env
 MODE=dev
@@ -108,7 +108,7 @@ EMAIL_FROM="WhisperTrend <noreply@whispertrend.lat>"
 
 # Frontend
 - Create a `.env` file inside the web folder and add the following environment variables:
-![env front](Frontenv.png)
+![env front](readmeimg/Frontenv.png)
 
 ```bash
 #core/web/.env
