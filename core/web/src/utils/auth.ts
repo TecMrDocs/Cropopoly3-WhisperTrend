@@ -1,3 +1,4 @@
+//core/web/src/utils/auth.ts
 interface Config {
   withCredentials: boolean;
   headers: {

@@ -81,6 +81,10 @@ lazy_static! {
             config.twitter_password
         });
 
+        config.email_from = env::var("EMAIL_FROM").unwrap_or_else(|_| {
+            warn!("EMAIL_FROM is not set, using default value: {}", config.email_from);
+            config.email_from
+        });
         config
     };
 }
@@ -116,6 +120,8 @@ pub struct Config {
     pub twitter_username: String,
     #[builder(default = "String::from(\"\")")]
     pub twitter_password: String,
+    #[builder(default = "String::from(\"\")")] // Default email address
+    pub email_from: String,
 }
 
 /// Implementation of common application configuration interface
@@ -189,5 +195,9 @@ impl Config {
     /// Returns Twitter password for scraping operations
     pub fn get_twitter_password() -> &'static str {
         &CONFIG.twitter_password
+    }
+
+    pub fn get_email_from() -> &'static str {
+        &CONFIG.email_from
     }
 }

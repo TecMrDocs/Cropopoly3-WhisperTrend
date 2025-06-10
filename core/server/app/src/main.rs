@@ -1,3 +1,8 @@
+// src/main.rs
+
+mod cache;
+use crate::cache::OtpCache;
+
 use actix_cors::Cors;
 use actix_files as fs;
 use actix_web::{App, HttpServer, middleware::Logger, web};
@@ -9,7 +14,7 @@ use tracing::info;
 // Test module
 pub mod test;
 
-// Internal modules for application functionality
+// Internal modules
 mod common;
 mod config;
 mod controllers;
@@ -20,74 +25,72 @@ mod middlewares;
 mod scraping;
 mod nosql;
 
-// Main application server structure
 struct AppServer;
 
-// Implementation of the Application trait for AppServer
 impl Application for AppServer {
-    // Setup method to initialize the application
     async fn setup(&self) -> anyhow::Result<()> {
         info!("Initializing the database...");
-        // Initialize database with connection pool and run migrations
         Database::init(Config::get_max_pool_size(), Config::get_with_migrations())?;
         info!("Migrations applied successfully");
-
         Ok(())
     }
 
-    // Create and configure the HTTP server
     async fn create_server(&self) -> anyhow::Result<()> {
         info!("Starting the server...");
-        // Create HTTP server with middleware and route configuration
+
+        // Initialize the in-memory OTP cache for 2FA
+        let otp_cache = OtpCache::new();
+        let otp_cache_data = web::Data::new(otp_cache);
+
         let server = HttpServer::new(move || {
             App::new()
-                // Enable CORS with permissive settings and credentials support
+                // Make the OTP cache available to your auth handlers
+                .app_data(otp_cache_data.clone())
+
+                // CORS + logging
                 .wrap(Cors::permissive().supports_credentials())
-                // Add request logging middleware
                 .wrap(Logger::default())
-                // Configure API routes under /api/v1 scope
+
+                // All your API v1 endpoints
                 .service(
                     web::scope("/api/v1")
-                        .service(controllers::auth::routes())      // Authentication routes
-                        .service(controllers::web::routes())       // Web-specific routes
-                        .service(controllers::chat::routes())      // Chat functionality routes
-                        .service(controllers::recurso::routes())   // Resource management routes
-                        .service(controllers::user::routes())      // User management routes
-                        .service(controllers::sale::routes())      // Sales-related routes
-                        .service(controllers::admin::routes())     // Admin panel routes
-                        .service(controllers::flow::routes())      // Flow management routes
-                        .service(controllers::analysis::routes())  // Analysis routes
+                        .service(controllers::auth::routes())
+                        .service(controllers::web::routes())
+                        .service(controllers::chat::routes())
+                        .service(controllers::recurso::routes())
+                        .service(controllers::user::routes())
+                        .service(controllers::sale::routes())
+                        .service(controllers::admin::routes())
+                        .service(controllers::flow::routes())
                         .service(nosql::routes())
-                        .service(controllers::email::routes())    // Email handling routes
+                        .service(controllers::email::routes())
                 )
-                // Configure static file serving
+
+                // Static file serving
                 .service(
                     web::scope("")
                         .service(
-                            fs::Files::new("/", {
-                                // Serve static files from different paths based on environment
+                            fs::Files::new(
+                                "/",
                                 if Config::get_mode() == "prod" {
-                                    "/usr/local/bin/web"  // Production path
+                                    "/usr/local/bin/web"
                                 } else {
-                                    "../../page/"         // Development path
-                                }
-                            })
-                                .show_files_listing()      // Enable directory listing
-                                .index_file("index.html"), // Set default index file
+                                    "../../page/"
+                                },
+                            )
+                            .show_files_listing()
+                            .index_file("index.html"),
                         ),
                 )
         });
 
         info!("Listening on http://{}", Config::get_addrs());
-        // Bind server to configured address and start listening
         server.bind(Config::get_addrs())?.run().await?;
-
         Ok(())
     }
 }
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
-    // Start the application server
     AppServer.start().await
 }

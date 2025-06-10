@@ -9,6 +9,7 @@ actix-web = "4.10.2"
 actix-rt = "2.8"
 diesel = { version = "2.2.1", features = ["postgres", "r2d2", "chrono", "uuid", "numeric"] }
 diesel_migrations = "2.2.0"
+dashmap = "6.1.0"
 validator = { version = "0.20.0", features = ["derive"] }
 scraper = "0.23.1"
 regex = "1.11.1"

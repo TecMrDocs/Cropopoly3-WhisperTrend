@@ -1,6 +1,7 @@
+// core/web/src/utils/api/user.ts
 import { get, post } from "../methods";
-
-
+import axios from "axios";
+import { API_URL} from "../constants";
 
 export interface User {
   name: string;
@@ -35,9 +36,22 @@ export default {
       return post("auth/register", user, false)
     }, 
 
+    verifyMfa: (payload: { code: string }): Promise<{ token: string }> => {
+      const tempToken = localStorage.getItem("mfa_token") || "";
+      return axios
+        .post(
+          `${API_URL}auth/mfa`,
+          payload,
+          {
+            headers: { "mfa-token": tempToken }
+          }
+        )
+        .then(({ data }) => data);
+    },
+
     signIn: (
       user_credentials: UserCredentials
-    ): Promise<{token: string}> => {
+    ): Promise<{mfa_token: string}> => {
       return post("auth/signin", user_credentials, false)
     }
   }
