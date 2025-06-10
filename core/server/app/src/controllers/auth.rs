@@ -104,7 +104,7 @@ pub fn routes() -> actix_web::Scope {
         .service(signin)       // POST /api/v1/auth/signin
         .service(verify_mfa)   // POST /api/v1/auth/mfa
         .service(
-            web::scope("/check")  // GET /api/v1/auth/check
+            web::scope("")  // GET /api/v1/auth/check
                 .wrap(from_fn(crate::middlewares::auth))
                 .service(check),
         )
