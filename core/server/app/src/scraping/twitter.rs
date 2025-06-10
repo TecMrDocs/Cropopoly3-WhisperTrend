@@ -56,6 +56,7 @@ pub struct TweetData {
     pub likes: u32,
     pub retweets: u32,
     pub replies: u32,
+    pub followers: u32,
 }
 
 pub struct TwitterScraper;
@@ -116,6 +117,7 @@ impl TwitterScraper {
                     context.set_string_cookies(cookies.clone());
                     context.navigate(url.clone());
                     std::thread::sleep(std::time::Duration::from_secs(5));
+    
                     for _ in 0..30 {
                         context.evaluate(
                             r#"
@@ -124,13 +126,14 @@ impl TwitterScraper {
                             })()
                             "#
                         );
-                        std::thread::sleep(std::time::Duration::from_secs(1)); // Espera a que cargue más tweets
+                        std::thread::sleep(std::time::Duration::from_secs(1));
                     }
+    
                     context.evaluate(
                         "(() => {
                             const articles = Array.from(document.querySelectorAll('article[data-testid=\\\"tweet\\\"]'));
                             const tweets = [];
-                    
+    
                             for (const article of articles) {
                                 try {
                                     const username = article.querySelector('[data-testid=\\\"User-Name\\\"] span')?.innerText || '';
@@ -141,7 +144,7 @@ impl TwitterScraper {
                                     const time = article.querySelector('time')?.getAttribute('datetime') || '';
                                     const linkPath = article.querySelector('a[href*=\\\"/status/\\\"]')?.getAttribute('href') || '';
                                     const link = linkPath ? `https://x.com${linkPath}` : '';
-                    
+    
                                     const replies = parseInt(
                                         article.querySelector('button[data-testid=\\\"reply\\\"] span')?.textContent?.replace(/[^0-9]/g, '') || '0'
                                     );
@@ -151,7 +154,7 @@ impl TwitterScraper {
                                     const likes = parseInt(
                                         article.querySelector('button[data-testid=\\\"like\\\"] span')?.textContent?.replace(/[^0-9]/g, '') || '0'
                                     );
-                    
+    
                                     tweets.push({
                                         username,
                                         handle,
@@ -166,84 +169,89 @@ impl TwitterScraper {
                                     continue;
                                 }
                             }
-                    
+    
                             return JSON.stringify(tweets);
                         })()"
                     )
-                    
                 })
                 .await?;
     
-            let tweets: Vec<TweetData> = serde_json::from_str(&json)?;
-            Ok(tweets)
+            #[derive(Deserialize)]
+            struct PartialTweetData {
+                username: String,
+                handle: String,
+                text: String,
+                link: String,
+                time: String,
+                likes: u32,
+                retweets: u32,
+                replies: u32,
+            }
+    
+            let mut partial_tweets: Vec<PartialTweetData> = serde_json::from_str(&json)?;
+            let mut full_tweets = Vec::new();
+    
+            for tweet in partial_tweets.drain(..) {
+                let handle = tweet.handle.clone();
+                let handle_trimmed = handle.trim_start_matches('@').to_string();
+                let profile_url = format!("https://x.com/{}", handle_trimmed);
+            
+                let followers_count_str = SCRAPER
+                    .execute({
+                        let cookies = cookies.clone();
+                        let handle_trimmed = handle_trimmed.clone();
+                        move |context| {
+                            context.set_user_agent(USER_AGENT);
+                            context.set_string_cookies(cookies.clone());
+                            context.navigate(profile_url.clone());
+                            std::thread::sleep(std::time::Duration::from_secs(4));
+            
+                            context.evaluate(&format!(
+                                r#"
+                                (() => {{
+                                    const followersElement = document.querySelector('a[href="/{}/verified_followers"] span span');
+                                    return followersElement?.textContent || '0';
+                                }})()
+                                "#,
+                                handle_trimmed
+                            ))
+                        }
+                    })
+                    .await?;
+            
+                let followers = Self::parse_followers_count(&followers_count_str);
+            
+                full_tweets.push(TweetData {
+                    username: tweet.username,
+                    handle: tweet.handle,
+                    text: tweet.text,
+                    link: tweet.link,
+                    time: tweet.time,
+                    likes: tweet.likes,
+                    retweets: tweet.retweets,
+                    replies: tweet.replies,
+                    followers,
+                });
+            }
+            
+    
+            Ok(full_tweets)
         } else {
             Err(anyhow::anyhow!("No cookies found"))
         }
     }
     
-
-    pub async fn get_time_and_link(link: String) -> anyhow::Result<TwitterPostSecondary> {
-        TwitterScraper::apply_login().await?;
-        if let Some(cookies) = COOKIES.get() {
-            let result = SCRAPER
-                .execute(move |context| {
-                    context.set_user_agent(USER_AGENT);
-                    context.set_string_cookies(cookies.clone());
-                    context.navigate(link.clone());
-                    std::thread::sleep(std::time::Duration::from_secs(5));
-                    context.evaluate(format!(
-                    "(() => {{
-                        let t = document.querySelector('{TIME_SELECTOR}');
-                        let time = '';
-
-                        if (t) {{
-                            time = (t || {{ attributes: {{ datetime: {{ value: '' }} }}}}).attributes.datetime.value;
-                        }}
-
-                        if (time === '') {{
-                            time = new Date().toISOString();
-                        }}
-
-                        let a = document.querySelector('a');
-                        let link = '';
-
-                        if (a) {{
-                            link = (a || {{ href: '' }}).href;
-                        }}
-
-                        return JSON.stringify({{ time, link }});
-                    }})()"
-                    ))
-                })
-                .await?;
-
-            let result: TwitterPostSecondary = serde_json::from_str(&result)?;
-            return Ok(result);
+    fn parse_followers_count(s: &str) -> u32 {
+        let s = s.trim().to_uppercase();
+        if s.ends_with('K') {
+            s.trim_end_matches('K').parse::<f32>().map(|n| (n * 1_000.0) as u32).unwrap_or(0)
+        } else if s.ends_with('M') {
+            s.trim_end_matches('M').parse::<f32>().map(|n| (n * 1_000_000.0) as u32).unwrap_or(0)
+        } else if s.ends_with('B') {
+            s.trim_end_matches('B').parse::<f32>().map(|n| (n * 1_000_000_000.0) as u32).unwrap_or(0)
+        } else {
+            s.replace(",", "").parse::<u32>().unwrap_or(0)
         }
-
-        Err(anyhow::anyhow!("No cookies found"))
     }
 
-    pub async fn get_followers(link: String) -> anyhow::Result<String> {
-        TwitterScraper::apply_login().await?;
-        if let Some(cookies) = COOKIES.get() {
-            return SCRAPER
-                .execute(move |context| {
-                    context.set_user_agent(USER_AGENT);
-                    context.set_string_cookies(cookies.clone());
-                    context.navigate(link.clone());
-                    std::thread::sleep(std::time::Duration::from_secs(5));
-                    let result = context.evaluate(format!(
-                        "(() => {{
-                        let followers = document.querySelector('{FOLLOWERS_SELECTOR}').textContent;
-                        return followers;
-                    }})()"
-                    ));
-                    result
-                })
-                .await;
-        }
-
-        Err(anyhow::anyhow!("No cookies found"))
-    }
 }
