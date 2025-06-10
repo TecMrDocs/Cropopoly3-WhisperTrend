@@ -299,6 +299,13 @@ resource "aws_launch_template" "ksp_template" {
       -e BROWSERLESS_WS=${var.browserless_ws} \
       -e INSTAGRAM_USERNAME=${var.instagram_username} \
       -e INSTAGRAM_PASSWORD=${var.instagram_password} \
+      -e TWITTER_USERNAME=${var.twitter_username} \
+      -e TWITTER_PASSWORD=${var.twitter_password} \
+      -e AWS_ACCESS_KEY_ID=${var.aws_access_key_id} \
+      -e AWS_SECRET_ACCESS_KEY=${var.aws_secret_access_key} \
+      -e AWS_REGION=${var.aws_region} \
+      -e DYNAMODB_TABLE_PREFIX=${var.dynamodb_table_prefix} \
+      -e JWT_SECRET=${var.jwt_secret} \
       --name ksp-app zamcv/ksp:v3
     
     EOF

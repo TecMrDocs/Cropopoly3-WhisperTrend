@@ -130,3 +130,39 @@ variable "instagram_password" {
   type        = string
   sensitive   = true
 }
+
+variable "twitter_username" {
+  description = "Twitter username"
+  type        = string
+}
+
+variable "twitter_password" {
+  description = "Twitter password"
+  type        = string
+}
+
+variable "aws_access_key_id" {
+  description = "AWS access key ID"
+  type        = string
+}
+
+variable "aws_secret_access_key" {
+  description = "AWS secret access key"
+  type        = string
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+}
+
+variable "dynamodb_table_prefix" {
+  description = "DynamoDB table prefix"
+  type        = string
+}
+
+variable "jwt_secret" {
+  description = "JWT secret"
+  type        = string
+  sensitive   = true
+}
