@@ -203,28 +203,28 @@ impl TrendsScraper {
         // Obtener métricas de las palabras clave de las noticias
         let reddit_keywords_future = Self::get_reddit_metrics(&details);
         let instagram_keywords_future = Self::get_instagram_metrics(&details);
-        let twitter_keywords_future = Self::get_twitter_metrics(&details);
+        // let twitter_keywords_future = Self::get_twitter_metrics(&details);
         
         // Si hay hashtags, también obtener métricas de los hashtags
         let (mut reddit_results, mut instagram_results, mut twitter_results) = if let Some(ref hashtags) = hashtags {
             let reddit_hashtags_future = Self::get_reddit_metrics_from_hashtags(hashtags);
             let instagram_hashtags_future = Self::get_instagram_metrics_from_hashtags(hashtags);
-            let twitter_hashtags_future = Self::get_twitter_metrics_from_hashtags(hashtags);
+            // let twitter_hashtags_future = Self::get_twitter_metrics_from_hashtags(hashtags);
             
             let (
                 reddit_keywords, 
                 instagram_keywords, 
-                twitter_keywords,
+                // twitter_keywords,
                 reddit_hashtags, 
                 instagram_hashtags, 
-                twitter_hashtags
+                // twitter_hashtags
             ) = futures::join!(
                 reddit_keywords_future, 
                 instagram_keywords_future,
-                twitter_keywords_future, 
+                // twitter_keywords_future, 
                 reddit_hashtags_future,
                 instagram_hashtags_future,
-                twitter_hashtags_future
+                // twitter_hashtags_future
             );
             
             // Combinar resultados de keywords y hashtags
@@ -235,13 +235,13 @@ impl TrendsScraper {
             combined_instagram.extend(instagram_hashtags);
             
 
-            let mut combined_twitter = twitter_keywords;
-            combined_twitter.extend(twitter_hashtags);
+            // let mut combined_twitter = twitter_keywords;
+            // combined_twitter.extend(twitter_hashtags);
             
-            (combined_reddit, combined_instagram, combined_twitter)
+            (combined_reddit, combined_instagram, Vec::new())
         } else {
             // Solo usar las keywords de las noticias
-            futures::future::join3(reddit_keywords_future, instagram_keywords_future, twitter_keywords_future).await
+            futures::future::join3(reddit_keywords_future, instagram_keywords_future, async { Vec::new() }).await
         };
 
         Ok(Trends {
