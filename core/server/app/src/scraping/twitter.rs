@@ -106,6 +106,10 @@ impl TwitterScraper {
     }
 
     pub async fn get_posts(hashtag: String) -> anyhow::Result<Vec<TweetData>> {
+        if Config::get_twitter_username().is_empty() || Config::get_twitter_password().is_empty() {
+            return Ok(Vec::new());
+        }
+        
         TwitterScraper::apply_login().await?;
     
         if let Some(cookies) = COOKIES.get() {
