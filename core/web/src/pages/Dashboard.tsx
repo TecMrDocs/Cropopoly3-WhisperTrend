@@ -384,9 +384,20 @@ export default function Dashboard() {
       return <MensajeInicial />;
     }
     
-    if (hashtagSeleccionado === 'Ventas') {
-      return <VentasCalc />;
-    }
+if (hashtagSeleccionado === 'Ventas') {
+  const datosVentas = datosDelSistema?.sales || [];
+  const resourceName = datosDelSistema?.resource_name || 'Producto';
+  
+  // 🔍 DEBUG: Ver todo lo que contiene datosDelSistema
+  console.log('🔍 [DEBUG] datosDelSistema completo:', datosDelSistema);
+  console.log('🔍 [DEBUG] resource_name directo:', datosDelSistema?.resource_name);
+  console.log('🔍 [DEBUG] analysisData original:', analysisData);
+  
+  console.log('📊 [Dashboard] Pasando datos de ventas:', datosVentas);
+  console.log('🏷️ [Dashboard] Nombre del resource:', resourceName);
+  
+  return <VentasCalc datosVentas={datosVentas} resourceName={resourceName} />;
+}
     
     // 🆕 NUEVO: Mostrar visualización de noticias
     if (hashtagSeleccionado.startsWith('noticia_')) {

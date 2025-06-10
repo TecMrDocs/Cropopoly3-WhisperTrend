@@ -544,16 +544,10 @@ async fn generate_prompt_from_flow(
         error::ErrorInternalServerError("Invalid trends response")
     })?;
 
-    // 🚀 EXTRAER TODOS LOS HASHTAGS DE LOS DATOS SCRAPED
     let all_hashtags = extract_all_hashtags_from_scraped_data(&trends);
-    
-    // 🚀 GUARDAR TODOS LOS DATOS SCRAPED EN DYNAMODB
     let saved_hashtags = save_all_scraped_data(&trends).await;
-    
-    // 🚀 USAR TODOS LOS HASHTAGS ENCONTRADOS PARA LOS CÁLCULOS
     let hashtags_for_calculations = if all_hashtags.is_empty() {
-        // Fallback si no se encontraron hashtags
-        vec![] //lo pongo vacío par asaber que ondita 
+        vec![] 
     } else {
         all_hashtags.clone()
     };
@@ -563,7 +557,8 @@ async fn generate_prompt_from_flow(
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "sentence": sentence,
-        "hashtags": hashtags_for_calculations, // 🆕 USAR TODOS LOS HASHTAGS
+        "resource_name": resource.name,
+        "hashtags": hashtags_for_calculations, 
         "trends": enhanced_trends,        
         "calculated_results": calculated_results,  
         "sales": sales_data,
@@ -651,7 +646,6 @@ async fn test_generate_prompt_from_flow(
         .map(|m| m.as_str().strip_prefix('#').unwrap_or(m.as_str()).to_string())
         .collect();
 
-    // 🚀 CREAR DATOS DE PRUEBA QUE SIMULEN EL SCRAPING REAL
     let trends = serde_json::json!({
         "data": {
             "instagram": [
@@ -668,7 +662,7 @@ async fn test_generate_prompt_from_flow(
                     "posts": []
                 },
                 {
-                    "keyword": "Reply", // 🚀 INCLUIR DATOS QUE NORMALMENTE NO SE GUARDAN
+                    "keyword": "Reply", 
                     "posts": []
                 },
                 {
@@ -713,15 +707,9 @@ async fn test_generate_prompt_from_flow(
 
     warn!("🔥 Usando datos de prueba con todos los hashtags incluidos");
     
-    // 🚀 EXTRAER TODOS LOS HASHTAGS DE LOS DATOS SCRAPED
     let all_hashtags = extract_all_hashtags_from_scraped_data(&trends);
-    
-    // 🚀 GUARDAR TODOS LOS DATOS SCRAPED EN DYNAMODB
     let saved_hashtags = save_all_scraped_data(&trends).await;
-    
-    // 🚀 USAR TODOS LOS HASHTAGS ENCONTRADOS PARA LOS CÁLCULOS
     let hashtags_for_calculations = all_hashtags.clone();
-
     let enhanced_trends = enhance_trends_with_fallback(trends, &hashtags_for_calculations).await;
     let calculated_results = process_trends_with_analytics(&enhanced_trends, &hashtags_for_calculations).await;
 
@@ -746,7 +734,6 @@ async fn test_generate_prompt_from_flow(
     })))
 }
 
-// 🆕 ENDPOINT DE DEBUG PARA VERIFICAR QUÉ HASHTAGS ESTÁN EN DYNAMODB
 #[post("/debug/check-scraped-data")]
 async fn debug_check_scraped_data(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
     let scraped_data = body.into_inner();
@@ -764,7 +751,6 @@ async fn debug_check_scraped_data(body: web::Json<serde_json::Value>) -> Result<
     
     let mut all_found_hashtags = Vec::new();
     
-    // 📸 ANALIZAR INSTAGRAM
     if let Some(instagram_array) = scraped_data.get("data")
         .and_then(|d| d.get("instagram"))
         .and_then(|i| i.as_array()) {
@@ -860,7 +846,6 @@ async fn debug_check_scraped_data(body: web::Json<serde_json::Value>) -> Result<
         });
     }
     
-    // 📊 RESUMEN GENERAL
     debug_info["found_hashtags"] = serde_json::json!(all_found_hashtags);
     debug_info["summary"] = serde_json::json!({
         "total_unique_hashtags": all_found_hashtags.len(),
@@ -874,7 +859,7 @@ async fn debug_check_scraped_data(body: web::Json<serde_json::Value>) -> Result<
     Ok(HttpResponse::Ok().json(debug_info))
 }
 
-// 🆕 ENDPOINT PARA FORZAR GUARDADO DE HASHTAGS VACÍOS (PARA TESTING)
+
 #[post("/debug/force-save-empty-hashtags")]
 async fn debug_force_save_empty_hashtags(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
     let scraped_data = body.into_inner();
@@ -932,8 +917,7 @@ async fn debug_force_save_empty_hashtags(body: web::Json<serde_json::Value>) -> 
 pub fn routes() -> actix_web::Scope {
     web::scope("/flow")
         .service(test_generate_prompt_from_flow)  
-        .service(debug_check_scraped_data)        // 🆕 ENDPOINT DE DEBUG
-        .service(debug_force_save_empty_hashtags) // 🆕 ENDPOINT PARA FORZAR GUARDADO
+        .service(debug_force_save_empty_hashtags) 
         .service(
             web::scope("/secure")
                 .wrap(from_fn(middlewares::auth))
