@@ -154,91 +154,65 @@ async fn save_all_scraped_data(scraped_data: &Trends) -> Vec<String> {
         }
     }
 
-    // 🐦 PROCESAR TWITTER (si existe)
-    // if let Some(twitter_array) = scraped_data
-    //     .get("data")
-    //     .and_then(|d| d.get("twitter"))
-    //     .and_then(|t| t.as_array())
-    // {
-    //     info!("🐦 Procesando {} items de Twitter", twitter_array.len());
+    // 🐦 PROCESAR TWITTER
+    info!(
+        "🐦 Procesando {} items de Twitter",
+        scraped_data.data.twitter.len()
+    );
 
-    //     for (index, item) in twitter_array.iter().enumerate() {
-    //         if let Some(keyword) = item.get("keyword").and_then(|k| k.as_str()) {
-    //             // 🔧 FIX: Manejar el Option correctamente para evitar lifetime issues
-    //             let scraped_posts: Vec<ScrapedPost> = match item
-    //                 .get("posts")
-    //                 .and_then(|p| p.as_array())
-    //             {
-    //                 Some(posts_array) => {
-    //                     info!(
-    //                         "🐦 Twitter[{}]: {} con {} posts",
-    //                         index,
-    //                         keyword,
-    //                         posts_array.len()
-    //                     );
+    for (index, item) in scraped_data.data.twitter.iter().enumerate() {
+        // 🔧 FIX: Manejar el Option correctamente para evitar lifetime issues
+        let scraped_posts: Vec<ScrapedPost> = {
+            info!(
+                "🐦 Twitter[{}]: {} con {} posts",
+                index,
+                item.keyword,
+                item.posts.len()
+            );
 
-    //                     posts_array
-    //                         .iter()
-    //                         .filter_map(|post| {
-    //                             Some(ScrapedPost {
-    //                                 comments: post
-    //                                     .get("comments")
-    //                                     .and_then(|c| c.as_i64())
-    //                                     .unwrap_or(0)
-    //                                     as i32,
-    //                                 followers: post
-    //                                     .get("followers")
-    //                                     .and_then(|f| f.as_i64())
-    //                                     .map(|f| f as i32),
-    //                                 likes: post.get("likes").and_then(|l| l.as_i64()).unwrap_or(0)
-    //                                     as i32,
-    //                                 link: post
-    //                                     .get("link")
-    //                                     .and_then(|l| l.as_str())
-    //                                     .unwrap_or("")
-    //                                     .to_string(),
-    //                                 time: post.get("time")?.as_str()?.to_string(),
-    //                                 members: None,
-    //                                 subreddit: None,
-    //                                 title: None,
-    //                                 vote: None,
-    //                             })
-    //                         })
-    //                         .collect()
-    //                 }
-    //                 None => {
-    //                     info!("🐦 Twitter[{}]: {} SIN posts (array vacío)", index, keyword);
-    //                     vec![] // Vector vacío si no hay posts
-    //                 }
-    //             };
+            item.posts
+                .iter()
+                .filter_map(|post| {
+                    Some(ScrapedPost {
+                        comments: post.replies as i32,
+                        followers: Some(post.followers as i32),
+                        likes: post.likes as i32,
+                        link: post.link.clone(),
+                        time: post.time.clone(),
+                        members: None, // Twitter no tiene members
+                        subreddit: None, // Twitter no tiene subreddit
+                        title: Some(post.text.clone()), // El texto del tweet como título
+                        vote: Some(post.retweets as i32), // Los retweets como votos
+                    })
+                })
+                .collect()
+        };
 
-    //             // 🚀 INTENTAR GUARDAR
-    //             match save_scraped_data_to_dynamo(
-    //                 keyword.to_string(),
-    //                 "twitter".to_string(),
-    //                 scraped_posts.clone(),
-    //             )
-    //             .await
-    //             {
-    //                 Ok(saved) => {
-    //                     if saved {
-    //                         saved_hashtags.push(format!("{}:twitter", keyword));
-    //                         info!(
-    //                             "✅ Twitter: {} guardado ({} posts)",
-    //                             keyword,
-    //                             scraped_posts.len()
-    //                         );
-    //                     } else {
-    //                         warn!("⚠️ Twitter: {} NO guardado (posts vacíos)", keyword);
-    //                     }
-    //                 }
-    //                 Err(e) => {
-    //                     error!("❌ Twitter: Error guardando {}: {:?}", keyword, e);
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+        // 🚀 INTENTAR GUARDAR (incluso si está vacío)
+        match save_scraped_data_to_dynamo(
+            item.keyword.clone(),
+            "twitter".to_string(),
+            scraped_posts.clone(),
+        )
+        .await
+        {
+            Ok(saved) => {
+                if saved {
+                    saved_hashtags.push(format!("{}:twitter", item.keyword));
+                    info!(
+                        "✅ Twitter: {} guardado ({} posts)",
+                        item.keyword,
+                        scraped_posts.len()
+                    );
+                } else {
+                    warn!("⚠️ Twitter: {} NO guardado (posts vacíos)", item.keyword);
+                }
+            }
+            Err(e) => {
+                error!("❌ Twitter: Error guardando {}: {:?}", item.keyword, e);
+            }
+        }
+    }
 
     info!(
         "🎯 Guardado completado. Total guardados: {}",
@@ -287,24 +261,11 @@ fn extract_all_hashtags_from_scraped_data(scraped_data: &Trends) -> Vec<String> 
     // }
 
     // Extraer de Twitter
-    // if let Some(twitter_array) = scraped_data.get("data")
-    //     .and_then(|d| d.get("twitter"))
-    //     .and_then(|t| t.as_array()) {
-
-    //     for item in twitter_array {
-    //         if let Some(keyword) = item.get("keyword").and_then(|k| k.as_str()) {
-    //             if !all_hashtags.contains(&keyword.to_string()) {
-    //                 all_hashtags.push(keyword.to_string());
-    //             }
-    //         }
-    //     }
-    // }
-
-    // for item in scraped_data.data.twitter {
-    //     if !all_hashtags.contains(&item.keyword) {
-    //         all_hashtags.push(item.keyword);
-    //     }
-    // }
+    for item in &scraped_data.data.twitter {
+        if !all_hashtags.contains(&item.keyword) {
+            all_hashtags.push(item.keyword.clone());
+        }
+    }
 
     info!("🔍 Hashtags extraídos de datos scraped: {:?}", all_hashtags);
     all_hashtags
@@ -334,32 +295,36 @@ async fn enhance_trends_with_fallback(mut trends: Trends, hashtags: &[String]) -
         }
     }
 
-    // Mejorar Reddit (mismo patrón)
-    // if let Some(reddit) = data.get_mut("reddit").and_then(|v| v.as_array_mut()) {
-    //     for item in reddit.iter_mut() {
-    //         // ✅ PATRÓN CORRECTO: Primero keyword, después posts
-    //         let keyword_opt = item
-    //             .get("keyword")
-    //             .and_then(|k| k.as_str())
-    //             .map(|s| s.to_string());
+    // Mejorar Twitter
+    for item in trends.data.twitter.iter_mut() {
+        let keyword_opt = item.keyword.clone();
 
-    //         if let (Some(keyword), Some(posts)) = (
-    //             keyword_opt,
-    //             item.get_mut("posts").and_then(|p| p.as_array_mut()),
-    //         ) {
-    //             if posts.is_empty() && hashtags.contains(&keyword) {
-    //                 if let Ok(fallback_data) =
-    //                     get_fallback_data(&client, table_name, &keyword, "reddit").await
-    //                 {
-    //                     if let serde_json::Value::Array(posts_array) = fallback_data {
-    //                         *posts = posts_array;
-    //                         warn!("✅ Fallback aplicado para Reddit: {}", keyword);
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
+        if item.posts.is_empty() && hashtags.contains(&keyword_opt) {
+            if let Ok(fallback_data) =
+                get_fallback_data(&client, table_name, &keyword_opt, "twitter").await
+            {
+                // Convertir InstagramPost a TweetData para Twitter fallback
+                // Nota: Esta es una conversión aproximada ya que los datos son diferentes
+                let twitter_posts: Vec<crate::scraping::twitter::TweetData> = fallback_data
+                    .into_iter()
+                    .map(|ig_post| crate::scraping::twitter::TweetData {
+                        username: "fallback_user".to_string(),
+                        handle: "@fallback".to_string(),
+                        text: ig_post.link.clone(), // Usar el link como texto temporal
+                        link: ig_post.link,
+                        time: ig_post.time,
+                        likes: ig_post.likes,
+                        retweets: 0, // No disponible en Instagram fallback
+                        replies: ig_post.comments,
+                        followers: ig_post.followers,
+                    })
+                    .collect();
+                
+                item.posts = twitter_posts;
+                warn!("✅ Fallback aplicado para Twitter: {}", keyword_opt);
+            }
+        }
+    }
 
     trends
 }
