@@ -62,6 +62,7 @@ interface ResultadoFinal {
   resultadoRedditCalc: ResultadoRedditCalculado;
   resultadoXCalc: ResultadoXCalculado;
   noticias: Noticia[];
+  resource_name?: string;
   metadatos: {
     timestamp: string;
     hashtagsOriginales: string[];
@@ -140,7 +141,7 @@ class DescargaDatos {
       const resultados = this.ejecutarCalculadoras(datosTransformados);
       
       // 4. Preparar resultado final con metadatos
-      const resultadoFinal = this.prepararResultadoFinal(datosAPI, resultados, fuente);
+      const resultadoFinal = this.prepararResultadoFinal(datosAPI, resultados, fuente, this.analysisData);
       
       // 🎯 CLAVE: AGREGAR CALCULATED_RESULTS AL RESULTADO
       if (calculated_results) {
@@ -290,7 +291,7 @@ class DescargaDatos {
   }
 
 
-  private prepararResultadoFinal(datosAPI: APIData, resultados: any, fuente: 'api' | 'prueba' | 'fallback'): ResultadoFinal {
+  private prepararResultadoFinal(datosAPI: APIData, resultados: any, fuente: 'api' | 'prueba' | 'fallback', analysisData?: any): ResultadoFinal {
     const totalPosts = {
       instagram: datosAPI.trends.data.instagram?.reduce((total, grupo) => total + (grupo.posts?.length || 0), 0) || 0,
       reddit: datosAPI.trends.data.reddit?.reduce((total, grupo) => total + (grupo.posts?.length || 0), 0) || 0,
@@ -302,6 +303,7 @@ class DescargaDatos {
       resultadoRedditCalc: resultados.reddit,
       resultadoXCalc: resultados.x,
       noticias: this.extraerNoticias(datosAPI),
+      resource_name: analysisData?.resource_name || 'Producto',
       metadatos: {
         timestamp: new Date().toISOString(),
         hashtagsOriginales: datosAPI.hashtags,
