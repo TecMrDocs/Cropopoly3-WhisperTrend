@@ -52,7 +52,7 @@ pub async fn signin(
 
                 // 2. Send via Resend
                 let resend = Resend::default();
-                let from = "Acme <onboarding@resend.dev>";
+                let from = Config::get("EMAIL_FROM").unwrap_or_else(|| "Default <default@example.com>".to_string());
                 let to = user.email.clone();
                 let email_opts = CreateEmailBaseOptions::new(
                     from,
