@@ -1,27 +1,26 @@
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
-
-export default function Protected({ children }: { children: React.ReactNode}){
+export default function Protected({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+  const { isAuthenticated, isLoading, needsVerification } = useAuth();
+
+  const publicRoutes = ["/", "/login"];
 
   useEffect(() => {
-    if(!isLoading && !isAuthenticated) {
-      navigate("/");
+    if (isLoading) return;
+    if (publicRoutes.includes(location.pathname)) return;
+    if (needsVerification) {
+      navigate("/holaDeNuevo", { replace: true });
+    } else if (!isAuthenticated) {
+      navigate("/", { replace: true });
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [isAuthenticated, needsVerification, isLoading, navigate, location.pathname]);
 
-  // Mostrar loading mientras se verifica la autenticación
-  if(isLoading) {
-    return <div>Cargando...</div>;
-  }
+  // No mostramos nada mientras carga, necesita verificación o no está autenticado
+  if (isLoading || needsVerification || !isAuthenticated) return null;
 
-  // Solo renderizar children si está autenticado
-  if(!isAuthenticated) {
-    return null;
-  }
-
-  return <>{children}</>
+  return <>{children}</>;
 }

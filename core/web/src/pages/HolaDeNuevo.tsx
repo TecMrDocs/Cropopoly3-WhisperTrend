@@ -1,37 +1,65 @@
-// HolaDeNuevo.tsx
-import WhiteButton from "../components/WhiteButton";
-import BlueButton from "../components/BlueButton";
-import TextFieldWHolder from "../components/TextFieldWHolder";
-import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import WhiteButton from '@/components/WhiteButton';
+import BlueButton from '@/components/BlueButton';
+import TextFieldWHolder from '@/components/TextFieldWHolder';
+import { API_URL } from '@/utils/constants';
 
 export default function HolaDeNuevo() {
-  const [verify, setVerify] = useState("");
-  const [error, setError] = useState("");
-  const [apiError, setApiError] = useState("");
-  const { verifyCode } = useAuth();
+  const [verify, setVerify] = useState('');
+  const [error, setError] = useState('');
+  const [apiError, setApiError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { verifyCode, isAuthenticated, needsVerification } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirige si ya no hace falta verificar
+  useEffect(() => {
+    if (!needsVerification) {
+      if (isAuthenticated) {
+        navigate('/productos', { replace: true });
+      } else {
+        navigate('/login', { replace: true });
+      }
+    }
+  }, [needsVerification, isAuthenticated, navigate]);
 
   const handleContinue = async () => {
     if (!verify.trim()) {
-      setError("El código de verificación es requerido");
+      setError('El código de verificación es requerido');
       return;
     }
-    setError("");
-    setApiError("");
+    setError('');
+    setApiError('');
+    setIsSubmitting(true);
 
     try {
-      // Llamamos al context.verifyCode; si sale bien, el provider hará isAuthenticated=true
       await verifyCode(verify.trim());
-      // Nota: el propio verifyCode, al terminar, redirige a /productos
-    } catch (err: any) {
-      // Si la verificación falla, mostramos un mensaje
-      setApiError("Código inválido. Inténtalo de nuevo.");
+      navigate('/productos', { replace: true });
+    } catch {
+      setApiError('Código inválido. Inténtalo de nuevo.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleReturn = () => {
-    // Aquí podrías llamar a un endpoint que reenvíe un nuevo código por email
-    alert("Se ha enviado un nuevo código a tu correo.");
+  const handleResend = async () => {
+    try {
+      const tempToken = localStorage.getItem('mfa_token') || '';
+      await fetch(`${API_URL}auth/mfa/resend`, {
+        method: 'POST',
+        headers: { 'mfa-token': tempToken }
+      });
+      alert('Se ha enviado un nuevo código a tu correo.');
+    } catch {
+      alert('Error al reenviar el código. Intenta más tarde.');
+    }
+  };
+
+  const handleCancel = () => {
+    localStorage.removeItem('mfa_token');
+    navigate('/', { replace: true });
   };
 
   return (
@@ -65,13 +93,30 @@ export default function HolaDeNuevo() {
         </div>
 
         <div className="mt-6 w-full flex flex-col items-center">
-          <BlueButton text="Continuar" width="300px" onClick={handleContinue} />
           <p className="mt-4 md:text-lg text-md md:p-2 p-4">¿No te llegó el código?</p>
-          <WhiteButton
-            text="Enviar un código nuevo"
-            width="300px"
-            onClick={handleReturn}
-          />
+          <div className="mt-6 w-full flex flex-col items-center gap-4">
+            <BlueButton
+              text={isSubmitting ? 'Verificando…' : 'Continuar'}
+              width="300px"
+              onClick={handleContinue}
+              disabled={isSubmitting}
+            />
+            <p className="mt-4 md:text-lg text-md md:p-2 p-4">¿No te llegó el código?</p>
+
+            <WhiteButton
+              text="Enviar un código nuevo"
+              width="300px"
+              onClick={handleResend}
+              disabled={isSubmitting}
+            />
+
+            <WhiteButton
+              text="Cancelar"
+              width="300px"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -60,16 +60,16 @@ const generarDatosTasasDinamico = (datosDelSistema: any) => {
       });
     } else {
       // Datos por defecto para compatibilidad (si es necesario)
-      datosTasas[`int_${calc.id}`] = { 
-        nombre: `Tasa de interacción ${calc.resultado.emoji || ''}`, 
-        datos: calc.resultado.datosInteraccion || [], 
-        color: calc.colorInteraccion 
+      datosTasas[`int_${calc.id}`] = {
+        nombre: `Tasa de interacción ${calc.resultado.emoji || ''}`,
+        datos: calc.resultado.datosInteraccion || [],
+        color: calc.colorInteraccion
       };
 
-      datosTasas[`vir_${calc.id}`] = { 
-        nombre: `Tasa de viralidad ${calc.resultado.emoji || ''}`, 
-        datos: calc.resultado.datosViralidad || [], 
-        color: calc.colorViralidad 
+      datosTasas[`vir_${calc.id}`] = {
+        nombre: `Tasa de viralidad ${calc.resultado.emoji || ''}`,
+        datos: calc.resultado.datosViralidad || [],
+        color: calc.colorViralidad
       };
     }
   });
@@ -134,7 +134,7 @@ const VisualizacionNoticia = ({ noticiaId, datosDelSistema }: { noticiaId: strin
           </h4>
           <div className="flex flex-wrap gap-2">
             {noticia.keywords.map((keyword: string, index: number) => (
-              <span 
+              <span
                 key={index}
                 className="px-3 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 rounded-full text-sm font-medium border border-purple-200"
               >
@@ -153,13 +153,13 @@ const VisualizacionNoticia = ({ noticiaId, datosDelSistema }: { noticiaId: strin
             </div>
             <div className="text-sm text-gray-600">Correlación</div>
           </div>
-          
+
           <div className="bg-white rounded-xl p-4 shadow-lg border border-purple-100 text-center">
             <div className="text-2xl mb-2">🔗</div>
             <div className="text-sm text-purple-600 font-medium">
-              <a 
-                href={noticia.url} 
-                target="_blank" 
+              <a
+                href={noticia.url}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline"
               >
@@ -186,7 +186,7 @@ const VisualizacionNoticia = ({ noticiaId, datosDelSistema }: { noticiaId: strin
                   {item.plataforma}
                 </div>
                 <div className="flex-1 bg-gray-200 rounded-full h-3 mx-3">
-                  <div 
+                  <div
                     className={`${item.color} h-3 rounded-full transition-all duration-1000 ease-out`}
                     style={{ width: `${Math.max(item.porcentaje, 0)}%` }}
                   ></div>
@@ -202,9 +202,9 @@ const VisualizacionNoticia = ({ noticiaId, datosDelSistema }: { noticiaId: strin
         {/* Footer con timestamp */}
         <div className="text-center">
           <div className="text-xs text-gray-500">
-            Análisis generado: {new Date().toLocaleDateString('es-ES', { 
-              day: 'numeric', 
-              month: 'long', 
+            Análisis generado: {new Date().toLocaleDateString('es-ES', {
+              day: 'numeric',
+              month: 'long',
               year: 'numeric',
               hour: '2-digit',
               minute: '2-digit'
@@ -231,7 +231,7 @@ const HashtagsNoticiasGrafica = ({ hashtagsIds }: { hashtagsIds: string[] }) => 
 };
 
 export default function Dashboard() {
-  const nombreProducto = "Bolso Mariana :D";
+
   const [modoVisualizacion, setModoVisualizacion] = useState<'original' | 'logaritmo' | 'normalizado'>('original');
   const [hashtagSeleccionado, setHashtagSeleccionado] = useState<string>('');
   const [mostrarTendenciaUniforme, setMostrarTendenciaUniforme] = useState<boolean>(false);
@@ -242,38 +242,40 @@ export default function Dashboard() {
 
   const [datosDelSistema, setDatosDelSistema] = useState<any>(null);
   const [cargandoDatos, setCargandoDatos] = useState(true);
-  
+
   // 🚀 OBTENER DATOS DEL TU PROMPTCONTEXT
   const { analysisData } = usePrompt();
+  const nombreProducto = analysisData?.resource_name || "Bolso Mariana :D";
 
   // ✅ CARGAR DATOS SIGUIENDO TU FLUJO EXACTO
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        console.log('🔍 [Dashboard] Iniciando carga de datos...');
-        
-        // 🎯 PASO 5: DescargaDatos detecta automáticamente la fuente
+        console.log('🔍 [Dashboard] analysisData recibido:', analysisData);
+        console.log('🔍 [Dashboard] analysisData.resource_name:', analysisData?.resource_name);
+
         let descargaDatos;
         if (analysisData) {
           console.log('✅ [Dashboard] Usando datos del PromptContext');
-          descargaDatos = crearConDatosContext(analysisData); // 🆕 Nueva función
+          descargaDatos = crearConDatosContext(analysisData);
         } else {
           console.log('⚠️ [Dashboard] No hay datos del context, usando datos de prueba');
           descargaDatos = crearConDatosPrueba();
         }
-        
-        // 🎯 PASO 6: DescargaDatos hace su trabajo
+
         const resultado = await descargaDatos.obtenerResultadosCalculados();
-        
-        // 🎯 PASO 7: ConsolidacionDatos detecta calculated_results automáticamente
+        console.log('🔍 [Dashboard] Resultado de DescargaDatos:', resultado);
+        console.log('🔍 [Dashboard] resultado.resource_name:', resultado.resource_name);
+
         const consolidado = procesarParaDashboard(resultado);
-        
+        console.log('🔍 [Dashboard] Resultado consolidado:', consolidado);
+        console.log('🔍 [Dashboard] consolidado.resource_name:', consolidado.resource_name);
+
         setDatosDelSistema(consolidado);
-        console.log('✅ [Dashboard] Flujo completo ejecutado');
-        
+
       } catch (error) {
         console.error('❌ [Dashboard] Error en el flujo:', error);
-        
+
         // Fallback de emergencia
         const descargaDatos = crearConDatosPrueba();
         const resultado = await descargaDatos.obtenerResultadosCalculados();
@@ -283,9 +285,9 @@ export default function Dashboard() {
         setCargandoDatos(false);
       }
     };
-    
+
     cargarDatos();
-  }, [analysisData]); // 🎯 DEPENDENCIA: analysisData
+  }, [analysisData]);
 
   // ✅ Generar datosTasas dinámicamente cuando tengamos datos del sistema
   const datosTasas = useMemo(() => {
@@ -305,7 +307,6 @@ export default function Dashboard() {
   console.log('🔍 DEBUG: Todos los IDs de tasas disponibles:', Object.keys(datosTasas));
   console.log('🔍 DEBUG: Hashtags dinámicos disponibles:', hashtagsDinamicos);
 
-  // 🆕 MOSTRAR ESTADO DE CARGA DE DATOS
   if (cargandoDatos) {
     return (
       <div className="p-6 flex items-center justify-center">
@@ -318,27 +319,25 @@ export default function Dashboard() {
     );
   }
 
-  // 🆕 MOSTRAR FUENTE DE DATOS
   const fuenteDatos = datosDelSistema?.metadatos?.fuente || 'desconocida';
   const tieneCalculosBackend = !!(datosDelSistema?.calculated_results?.hashtags?.length);
 
   const handleEcoFriendlyClick = () => {
     setMostrarTendenciaUniforme(true);
     setHashtagSeleccionado('#EcoFriendly');
-    setMostrandoDesgloseTasas(true); 
+    setMostrandoDesgloseTasas(true);
   };
 
   const handleSeleccionItem = (itemId: string) => {
     console.log('🔍 Dashboard recibió selección:', itemId);
-    
+
     if (itemId === '') {
       setMostrarTendenciaUniforme(false);
       setHashtagSeleccionado('');
-      setMostrandoDesgloseTasas(false); 
+      setMostrandoDesgloseTasas(false);
     } else {
       setHashtagSeleccionado(itemId);
-      
-      // 🆕 NUEVO: Verificar si es una noticia
+
       if (itemId.startsWith('noticia_')) {
         console.log('📰 Es una noticia, no mostrar tendencias');
         setMostrarTendenciaUniforme(false);
@@ -348,9 +347,6 @@ export default function Dashboard() {
         const esHashtagDinamico = hashtagsDinamicos.includes(itemId);
         setMostrandoDesgloseTasas(esHashtagDinamico);
       }
-      
-      // MenuComponentes se encarga de generar las tasas correctas
-      // y las envía através de onTasasSeleccionadas
     }
   };
 
@@ -383,89 +379,59 @@ export default function Dashboard() {
     if (!hashtagSeleccionado || hashtagSeleccionado === '') {
       return <MensajeInicial />;
     }
-    
-if (hashtagSeleccionado === 'Ventas') {
-  const datosVentas = datosDelSistema?.sales || [];
-  const resourceName = datosDelSistema?.resource_name || 'Producto';
-  
-  // 🔍 DEBUG: Ver todo lo que contiene datosDelSistema
-  console.log('🔍 [DEBUG] datosDelSistema completo:', datosDelSistema);
-  console.log('🔍 [DEBUG] resource_name directo:', datosDelSistema?.resource_name);
-  console.log('🔍 [DEBUG] analysisData original:', analysisData);
-  
-  console.log('📊 [Dashboard] Pasando datos de ventas:', datosVentas);
-  console.log('🏷️ [Dashboard] Nombre del resource:', resourceName);
-  
-  return <VentasCalc datosVentas={datosVentas} resourceName={resourceName} />;
-}
-    
+
+    if (hashtagSeleccionado === 'Ventas') {
+      const datosVentas = datosDelSistema?.sales || [];
+      const resourceName = datosDelSistema?.resource_name || 'Producto';
+
+      console.log('🔍 [DEBUG] datosDelSistema completo:', datosDelSistema);
+      console.log('🔍 [DEBUG] resource_name directo:', datosDelSistema?.resource_name);
+      console.log('🔍 [DEBUG] analysisData original:', analysisData);
+
+      console.log('📊 [Dashboard] Pasando datos de ventas:', datosVentas);
+      console.log('🏷️ [Dashboard] Nombre del resource:', resourceName);
+
+      return <VentasCalc datosVentas={datosVentas} resourceName={resourceName} />;
+    }
+
     // 🆕 NUEVO: Mostrar visualización de noticias
     if (hashtagSeleccionado.startsWith('noticia_')) {
       return <VisualizacionNoticia noticiaId={hashtagSeleccionado} datosDelSistema={datosDelSistema} />;
     }
-    
+
     if (mostrandoDesgloseTasas && tasasSeleccionadas.length > 0) {
       console.log("🔍 Pasando a TasasGraficaDinamica:", tasasSeleccionadas);
       return <TasasGraficaDinamica tasasIds={tasasSeleccionadas} datosTasas={datosTasas} />;
     }
-    
+
     if (hashtagsNoticiasSeleccionados.length > 0 && hashtagSeleccionado === 'Noticia1') {
       return <HashtagsNoticiasGrafica hashtagsIds={hashtagsNoticiasSeleccionados} />;
     }
-    
+
     if (mostrarTendenciaUniforme) {
       return (
         <div>
-          <button
-            onClick={resetVisualizacion}
-            className="mb-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition"
-          >
+          <button onClick={resetVisualizacion} className="mb-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition">
             Volver a Gráfica de Líneas
           </button>
           <UniformTrendPlot tipo={getTipoVisualizacion()} />
         </div>
       );
     }
-    
+
     return <PlotTrend modoVisualizacion={modoVisualizacion} />;
   };
 
   return (
     <div className="p-6">
       <DashboardHeader nombreProducto={nombreProducto} />
-      
-      {/* 🆕 INDICADOR DE FUENTE DE DATOS */}
-      <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="text-2xl mr-3">
-              {tieneCalculosBackend ? '🚀' : '🧪'}
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-blue-800">
-                {tieneCalculosBackend ? '¡Números calculados en el backend!' : 'Usando datos de prueba'}
-              </h3>
-              <p className="text-xs text-blue-600">
-                Fuente: {fuenteDatos} | 
-                Hashtags: {hashtagsDinamicos.length} | 
-                {tieneCalculosBackend ? 'Con fórmulas Rust' : 'Datos hardcodeados'}
-              </p>
-            </div>
-          </div>
-          {tieneCalculosBackend && (
-            <div className="text-green-600 font-bold text-sm">
-              ✅ CALCULADO
-            </div>
-          )}
-        </div>
-      </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="flex flex-col gap-6">
           <div className="relative bg-gradient-to-br from-white via-gray-50/40 to-blue-50/60 shadow-2xl rounded-3xl p-8 border-2 border-gray-200/30 backdrop-blur-lg overflow-hidden">
             <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-gray-400/20 to-blue-500/20 rounded-full blur-3xl -translate-y-16 -translate-x-16"></div>
             <div className="absolute bottom-0 right-0 w-24 h-24 bg-gradient-to-tr from-indigo-400/20 to-purple-400/20 rounded-full blur-2xl translate-y-12 translate-x-12"></div>
-            
+
             <div className="relative z-10">
               <div className="mb-6 pb-4 border-b border-gray-200/50">
                 <div className="flex items-center mb-3">
@@ -482,16 +448,16 @@ if (hashtagSeleccionado === 'Ventas') {
                       {!hashtagSeleccionado || hashtagSeleccionado === ''
                         ? "📊 Visualización de Tendencias"
                         : hashtagSeleccionado === 'Ventas'
-                        ? "💰 Análisis de Ventas"
-                        : hashtagSeleccionado.startsWith('noticia_')
-                        ? "📰 Análisis de Noticia"
-                        : mostrandoDesgloseTasas && tasasSeleccionadas.length > 0
-                        ? "📈 Comparativa de Tasas Seleccionadas"
-                        : hashtagsNoticiasSeleccionados.length > 0 && hashtagSeleccionado === 'Noticia1'
-                        ? "📰 Análisis de Hashtags - Noticias"
-                        : mostrarTendenciaUniforme 
-                          ? `📋 Análisis: ${hashtagSeleccionado}`
-                          : '📉 Gráfica de Líneas'
+                          ? "💰 Análisis de Ventas"
+                          : hashtagSeleccionado.startsWith('noticia_')
+                            ? "📰 Análisis de Noticia"
+                            : mostrandoDesgloseTasas && tasasSeleccionadas.length > 0
+                              ? "📈 Comparativa de Tasas Seleccionadas"
+                              : hashtagsNoticiasSeleccionados.length > 0 && hashtagSeleccionado === 'Noticia1'
+                                ? "📰 Análisis de Hashtags - Noticias"
+                                : mostrarTendenciaUniforme
+                                  ? `📋 Análisis: ${hashtagSeleccionado}`
+                                  : '📉 Gráfica de Líneas'
                       }
                     </h3>
                     <div className="flex items-center mt-1">
@@ -502,7 +468,7 @@ if (hashtagSeleccionado === 'Ventas') {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-gradient-to-r from-gray-100/80 to-blue-100/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200/50">
                   <div className="flex items-center">
                     <span className="text-blue-600 mr-2">🔍</span>
@@ -510,10 +476,10 @@ if (hashtagSeleccionado === 'Ventas') {
                       {!hashtagSeleccionado || hashtagSeleccionado === ''
                         ? <>Aquí podrás ver tus <span className="text-blue-600 font-semibold">tendencias</span></>
                         : hashtagSeleccionado === 'Ventas'
-                        ? "Ventas del Bolso Marianne - Período Enero-Abril 2025"
-                        : hashtagSeleccionado.startsWith('noticia_')
-                        ? "Análisis detallado de noticia con impacto en redes sociales"
-                        : "Visualización activa - Datos actualizados"
+                          ? "Resumen de ventas"
+                          : hashtagSeleccionado.startsWith('noticia_')
+                            ? "Análisis detallado de noticia con impacto en redes sociales"
+                            : "Visualización activa - Datos actualizados"
                       }
                     </p>
                   </div>
@@ -526,12 +492,12 @@ if (hashtagSeleccionado === 'Ventas') {
             </div>
           </div>
         </div>
-        
+
 
         <div className="relative bg-gradient-to-br from-white via-blue-50/40 to-indigo-100/60 shadow-2xl rounded-3xl p-8 border-2 border-blue-200/30 backdrop-blur-lg overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-500/20 rounded-full blur-3xl -translate-y-16 translate-x-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-400/20 to-pink-400/20 rounded-full blur-2xl translate-y-12 -translate-x-12"></div>
-          
+
           <div className="relative z-10">
             <div className="mb-6 pb-4 border-b border-blue-200/50">
               <div className="flex items-center mb-3">
@@ -553,7 +519,7 @@ if (hashtagSeleccionado === 'Ventas') {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-r from-blue-100/80 to-indigo-100/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/50">
                 <div className="flex items-center">
                   <span className="text-blue-600 mr-2">💡</span>
@@ -575,16 +541,16 @@ if (hashtagSeleccionado === 'Ventas') {
                 onTasasSeleccionadas={handleTasasSeleccionadas}
                 onHashtagsNoticiasSeleccionados={handleHashtagsNoticiasSeleccionados}
                 datosDelSistema={datosDelSistema}
-                cargandoDatos={cargandoDatos} 
+                cargandoDatos={cargandoDatos}
               />
             </div>
           </div>
         </div>
-        
+
         <div className="relative bg-gradient-to-br from-white via-green-50/40 to-emerald-50/60 shadow-2xl rounded-3xl p-8 border-2 border-green-200/30 backdrop-blur-lg overflow-hidden lg:col-span-2">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-emerald-500/20 rounded-full blur-3xl -translate-y-16 translate-x-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-teal-400/20 to-cyan-400/20 rounded-full blur-2xl translate-y-12 -translate-x-12"></div>
-          
+
           <div className="relative z-10">
             <div className="mb-6 pb-4 border-b border-green-200/50">
               <div className="flex items-center mb-3">
@@ -608,7 +574,7 @@ if (hashtagSeleccionado === 'Ventas') {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gradient-to-r from-green-100/80 to-emerald-100/80 backdrop-blur-sm rounded-xl p-3 border border-green-200/50">
                 <div className="flex items-center">
                   <span className="text-green-600 mr-2">💡</span>
@@ -622,7 +588,7 @@ if (hashtagSeleccionado === 'Ventas') {
             </div>
 
             <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-6 border border-white/40 shadow-inner">
-              <InterpretacionDashboard />
+              <InterpretacionDashboard analysisData={analysisData} />
             </div>
           </div>
         </div>
@@ -630,9 +596,13 @@ if (hashtagSeleccionado === 'Ventas') {
         <div className="relative bg-gradient-to-br from-white via-purple-50/40 to-indigo-50/60 shadow-2xl rounded-3xl p-8 border-2 border-purple-200/30 backdrop-blur-lg overflow-hidden lg:col-span-2">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-indigo-500/20 rounded-full blur-3xl -translate-y-16 translate-x-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-2xl translate-y-12 -translate-x-12"></div>
-          
+
           <div className="relative z-10">
-            <CorrelacionVentas hashtagSeleccionado={hashtagSeleccionado} />
+            <CorrelacionVentas
+              hashtagSeleccionado={hashtagSeleccionado}
+              datosDelSistema={datosDelSistema}
+              analysisData={analysisData}
+            />
           </div>
         </div>
 

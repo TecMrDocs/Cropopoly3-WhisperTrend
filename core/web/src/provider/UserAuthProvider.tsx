@@ -1,55 +1,58 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AuthContext } from '@/contexts/AuthContext';
 import user from '@/utils/api/user';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';  // ← add useLocation
 
-
-
-export default function UserAuthProvider({ children }: {children: React.ReactNode}){
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+export default function UserAuthProvider({ children }: { children: React.ReactNode }) {
+  const [isLoading, setIsLoading]               = useState(true);
+  const [isAuthenticated, setIsAuthenticated]   = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();  // ← get current path
 
- // Al montar, chequeamos si ya hay token y si está verificado en localStorage
+  // define your public routes here (same as in Protected)
+  const publicRoutes = ['/', '/login'];
+
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const verified = localStorage.getItem("verified"); // "true" / "false"
-    if (token) {
-      if (verified === "true") {
-        // Si ya habíamos pasado 2FA en sesión anterior, validamos el token
-        user.user.check()
-          .then(() => {
+    const fullToken = localStorage.getItem("token");
+    const tempToken = localStorage.getItem("mfa_token");
+
+    if (fullToken) {
+      // validar JWT definitivo
+      user.user.check()
+        .then(() => setIsAuthenticated(true))
+        .catch(err => {
+          if (err?.response?.status === 404) {
+            console.warn("check endpoint no existe, asumiendo token válido");
             setIsAuthenticated(true);
-            setNeedsVerification(false);
-            setIsLoading(false);
-          })
-          .catch(() => {
-            // token inválido o expirado
-            localStorage.removeItem("token");
-            localStorage.removeItem("verified");
+          } else {
             setIsAuthenticated(false);
-            setNeedsVerification(false);
-            setIsLoading(false);
-          });
-      } else {
-        // Hay token pero no verificado → vamos a la pantalla de 2FA
-        setIsAuthenticated(false);
-        setNeedsVerification(true);
-        setIsLoading(false);
-        navigate("/holaDeNuevo");
+          }
+        })
+        .finally(() => {
+          setNeedsVerification(false);
+          setIsLoading(false);
+        });
+    }
+    else if (tempToken) {
+      setIsAuthenticated(false);
+      setNeedsVerification(true);
+      setIsLoading(false);
+      // only redirect if we’re _not_ already on a public route
+      if (!publicRoutes.includes(location.pathname)) {
+        navigate("/holaDeNuevo", { replace: true });
       }
-    } else {
-      // No hay token: usuario no está logueado
+    }
+    else {
       setIsAuthenticated(false);
       setNeedsVerification(false);
       setIsLoading(false);
     }
-  }, [navigate]); 
+  }, [navigate, location.pathname]);
 
   function signOut() {
     localStorage.removeItem("token");
-    localStorage.removeItem("verified");
+    localStorage.removeItem("mfa_token");
     setIsAuthenticated(false);
     setNeedsVerification(false);
     navigate("/login");
@@ -59,14 +62,12 @@ export default function UserAuthProvider({ children }: {children: React.ReactNod
   function signIn(email: string, password: string) {
     return user.user.signIn({ email, password })
       .then((result) => {
-        
-        if (!result || !result.token) {
-          throw new Error("No se recibió token de autenticación");
+        const { mfa_token } = result;
+        if (!mfa_token) {
+          throw new Error("No se recibió token intermedio para 2FA");
         }
-        
-        const { token } = result;
-        localStorage.setItem("token", token);
-        localStorage.setItem("verified", "false");
+        // Guardar token intermedio y forzar paso de verificación
+        localStorage.setItem("mfa_token", mfa_token);
         setNeedsVerification(true);
         setIsAuthenticated(false);
         navigate("/holaDeNuevo");
@@ -76,17 +77,22 @@ export default function UserAuthProvider({ children }: {children: React.ReactNod
       });
   }
 
-    // verifyCode: ACEPTA cualquier código de verificación que no esté vacío
-    const verifyCode = useCallback(async (code: string) => {
-      if (!code.trim()) {
-        throw new Error("Código vacío");
-      }
-      // Aquí, en lugar de llamar a la API real, simplemente aceptamos cualquier valor:
-      localStorage.setItem("verified", "true");
-      setIsAuthenticated(true);
-      setNeedsVerification(false);
-      navigate("/productos");
-    }, [navigate]);
+  const verifyCode = useCallback(async (code: string) => {
+    if (!code.trim()) {
+      throw new Error("El código de verificación es requerido");
+    }
+    // Llamamos al endpoint de verificación que devuelve el JWT definitivo
+    const result = await user.user.verifyMfa({ code });
+    const { token } = result;
+    if (!token) {
+      throw new Error("No se recibió JWT definitivo");
+    }
+    // Guardar JWT definitivo y eliminar el token intermedio
+    localStorage.setItem("token", token);
+    localStorage.removeItem("mfa_token");
+    setIsAuthenticated(true);
+    setNeedsVerification(false);
+  }, []); 
 
   return (
     <AuthContext.Provider value={{

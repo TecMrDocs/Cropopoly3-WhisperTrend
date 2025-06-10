@@ -83,7 +83,8 @@ interface DashboardData {
   resultadoRedditCalc: ResultadoRedditCalculado;
   resultadoXCalc: ResultadoXCalculado;
   noticias: Noticia[];
-  calculated_results?: BackendCalculatedResults; // 🆕 NÚMEROS DEL BACKEND
+  calculated_results?: BackendCalculatedResults;
+  resource_name?: string;
 
   consolidacion: {
     resumenEjecutivo: {
@@ -155,7 +156,8 @@ class ConsolidacionDatos {
       resultadoRedditCalc: resultadoFinal.resultadoRedditCalc,
       resultadoXCalc: resultadoFinal.resultadoXCalc,
       noticias: resultadoFinal.noticias,
-      calculated_results: resultadoFinal.calculated_results, // 🆕 PASAR NÚMEROS DEL BACKEND
+      calculated_results: resultadoFinal.calculated_results,
+      resource_name: resultadoFinal.resource_name,
       
       // Datos consolidados
       consolidacion: {

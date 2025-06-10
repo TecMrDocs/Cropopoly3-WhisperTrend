@@ -2,19 +2,21 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
-
-export default function Unprotected({ children }: { children: React.ReactNode}){
+export default function Unprotected({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const { isAuthenticated, needsVerification } = useAuth();
+  const { isAuthenticated, isLoading, needsVerification } = useAuth();
 
   useEffect(() => {
-    if(isAuthenticated) navigate("/dashboard");
-
-    // Si no está autenticado y necesita verificación, redirigimos a la pantalla de 2FA
-    if(!isAuthenticated && needsVerification){ 
-      navigate("/holaDeNuevo");
+    if (isLoading) return;
+    if (needsVerification) {
+      navigate("/holaDeNuevo", { replace: true });
+    } else if (isAuthenticated) {
+      navigate("/productos", { replace: true });
     }
-  }, [isAuthenticated, needsVerification,navigate]);
+  }, [isAuthenticated, needsVerification, isLoading, navigate]);
 
-  return <>{children}</>
+  // Mientras carga o hay 2FA pendiente, no mostrar la página pública
+  if (isLoading || needsVerification) return null;
+
+  return <>{children}</>;
 }

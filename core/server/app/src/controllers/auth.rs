@@ -1,171 +1,111 @@
-use crate::{
-    config::{Claims, Config},
-    database::DbResponder,
-    middlewares,
-    models::{Credentials, User},
-};
+// src/controllers/auth.rs
+
+use crate::cache::OtpCache;
+use crate::config::Config;
+use crate::controllers::auth_mfa::{verify_mfa, MfaClaims};
+use crate::database::DbResponder;
+use crate::models::{Credentials, User};
+
 use actix_web::{
-    HttpMessage, HttpRequest, HttpResponse, Responder, Result, error, get, middleware::from_fn,
-    post, web,
+    error, get, middleware::from_fn, post, web, HttpMessage, HttpRequest, HttpResponse, Responder,
+    Result,
 };
 use auth::{PasswordHasher, TokenService};
+use chrono::{Duration, Utc};
+use rand::rng;
+use resend_rs::Resend;
+use resend_rs::types::CreateEmailBaseOptions;
 use serde_json::json;
-use tracing::error;
 use validator::Validate;
-// use crate::controllers::user::send_verification_email_with_resend;
-use auth::MagicLinkService;
-use crate::controllers::admin::register;
-
-#[derive(serde::Deserialize)]
-struct VerifyEmailQuery {
-    token: String,
-}
 
 #[post("/register")]
-pub async fn create_user(user: web::Json<User>) -> Result<impl Responder> {
-    println!("🎯 create_user function called!");
-    
-    let mut user = user.into_inner();
-    
-    if let Err(errors) = user.validate() {
-        return Ok(HttpResponse::BadRequest().json(errors));
+pub async fn register(mut user: web::Json<User>) -> Result<impl Responder, actix_web::Error> {
+    if user.validate().is_err() {
+        return Ok(HttpResponse::Unauthorized().body("Invalid data"));
     }
-
     if let Ok(None) = User::get_by_email(user.email.clone()).await {
-        println!("✅ Email no existe, procediendo...");
-        
         if let Ok(hash) = PasswordHasher::hash(&user.password) {
-            println!("✅ Password hasheado correctamente");
-            user.password = hash.to_string();
-            // Asegurar que el usuario inicie sin verificar
-            // user.email_verified = Some(false);
-
+            user.password = hash.into();
             let id = User::create(user.clone()).await.to_web()?;
-            println!("✅ Usuario creado con ID: {}", id);
             user.id = Some(id);
-
-            // Enviar email de verificación automáticamente
-            let secret_key = std::env::var("JWT_SECRET")
-                .unwrap_or_else(|_| "default-super-secret-key-for-development".to_string());
-            println!("✅ Secret key obtenido: {}", &secret_key[..10]); // Solo primeros 10 chars
-
-            if let Ok(token) = MagicLinkService::create_email_verification_token(
-                &secret_key,
-                id,
-                user.email.clone(),
-            ) {
-                println!("✅ Token generado: {}", &token[..20]); // Solo primeros 20 chars
-                
-                let base_url = std::env::var("BASE_URL")
-                    .unwrap_or_else(|_| "http://localhost:8080".to_string());
-                let magic_link = format!("{}/api/v1/auth/verify-email?token={}", base_url, token);
-                
-                let _user_name = format!("{} {}", user.name, user.last_name);
-                
-                // Intentar enviar email de verificación (no fallar si no se puede)
-                // if let Err(e) = send_verification_email_with_resend(&user.email, &user_name, &magic_link).await {
-                //     error!("Failed to send verification email during user creation: {}", e);
-                //     // Continuar con el registro aunque no se pueda enviar el email
-                // }
-                
-                println!("🔗 Magic link generado: {}", magic_link);
-            } else {
-                println!("❌ Error generando token");
-            }
-
-            return Ok(HttpResponse::Created().json(serde_json::json!({
-                "message": "User created successfully",
-                "user_id": id,
-                "verification_email_sent": true,
-                "note": "Please check your email to verify your account"
-            })));
-        } else {
-            println!("❌ Error hasheando password");
+            return Ok(HttpResponse::Ok().finish());
         }
     } else {
         return Ok(HttpResponse::Unauthorized().body("Email already exists"));
     }
-
     Err(error::ErrorBadRequest("Failed"))
 }
 
 #[post("/signin")]
-pub async fn signin(profile: web::Json<Credentials>) -> impl Responder {
-    if let Ok(Some(user)) = User::get_by_email(profile.email.clone()).await {
-        if let Ok(true) = PasswordHasher::verify(&profile.password, &user.password) {
+pub async fn signin(
+    credentials: web::Json<Credentials>,
+    otp_cache: web::Data<OtpCache>,
+) -> impl Responder {
+    if let Ok(Some(user)) = User::get_by_email(credentials.email.clone()).await {
+        if PasswordHasher::verify(&credentials.password, &user.password).unwrap_or(false) {
             if let Some(id) = user.id {
-                if let Ok(token) =
-                    TokenService::<Claims>::create(&Config::get_secret_key(), Claims::new(id))
+                // 1. Generate OTP
+                let mut rng = rng();
+                let otp: u32 = rand::Rng::random_range(&mut rng, 0..1_000_000);
+                let otp_str = format!("{:06}", otp);
+                let expires_at = Utc::now() + Duration::minutes(5);
+
+                // 2. Send via Resend
+                let resend = Resend::default();
+                let from = Config::get_email_from();
+                let to = user.email.clone();
+                let email_opts = CreateEmailBaseOptions::new(
+                    from,
+                    vec![&to],
+                    "Your verification code",
+                )
+                .with_text(&format!(
+                    "Hello {},\n\nYour verification code is: {}\nIt expires in 5 minutes.",
+                    user.name, otp_str
+                ));
+                actix_web::rt::spawn(async move {
+                    if let Err(e) = resend.emails.send(email_opts).await {
+                        eprintln!("Failed to send OTP to {}: {:?}", to, e);
+                    }
+                });
+
+                // 3. Store in cache
+                otp_cache.insert(id, (otp_str, expires_at));
+
+                // 4. Return short-lived MFA token
+                let exp = (Utc::now() + Duration::minutes(5)).timestamp() as usize;
+                let mfa_claims = MfaClaims { id, exp };
+                if let Ok(mfa_token) =
+                    TokenService::<MfaClaims>::create(&Config::get_secret_key(), mfa_claims)
                 {
-                    return HttpResponse::Ok().json(json!({ "token": token }));
+                    return HttpResponse::Ok().json(json!({ "mfa_token": mfa_token }));
                 }
             }
         }
     }
-
     HttpResponse::Unauthorized().body("Email or password is incorrect")
 }
 
-#[get("/verify-email")]
-pub async fn verify_email_endpoint(query: web::Query<VerifyEmailQuery>) -> impl Responder {
-    println!("🔍 verify_email_endpoint called with token: {}", &query.token[..20]);
-    
-    let secret_key = std::env::var("JWT_SECRET")
-        .unwrap_or_else(|_| "default-super-secret-key-for-development".to_string());
-    
-    match MagicLinkService::verify_magic_link(&secret_key, &query.token, "email_verification") {
-        Ok(claims) => {
-            println!("✅ Token válido para usuario: {}", claims.user_id);
-            match User::update_email_verified_by_id(claims.user_id, true).await {
-                Ok(_) => {
-                    println!("✅ Email verificado exitosamente");
-                    HttpResponse::Ok().json(json!({
-                        "message": "Email verified successfully",
-                        "verified": true
-                    }))
-                }
-                Err(e) => {
-                    error!("Database error during email verification: {}", e);
-                    HttpResponse::InternalServerError().json(json!({
-                        "error": "Verification failed"
-                    }))
-                }
-            }
-        }
-        Err(e) => {
-            error!("Invalid verification token: {}", e);
-            HttpResponse::BadRequest().json(json!({
-                "error": "Invalid or expired token"
-            }))
+#[get("/check")]
+pub async fn check(req: HttpRequest) -> Result<impl Responder, actix_web::Error> {
+    if let Some(user_id) = req.extensions().get::<i32>() {
+        if let Some(user) = User::get_by_id(*user_id).await.to_web()? {
+            return Ok(HttpResponse::Ok().json(user));
+        } else {
+            return Ok(HttpResponse::NotFound().finish());
         }
     }
-}
-
-#[get("")]
-pub async fn check(req: HttpRequest) -> Result<impl Responder> {
-    if let Some(id) = req.extensions().get::<i32>() {
-        let user = User::get_by_id(*id).await.to_web()?;
-
-        return match user {
-            Some(user) => Ok(HttpResponse::Ok().json(user)),
-            None => Ok(HttpResponse::NotFound().finish()),
-        };
-    }
-
-    error!("No id found in request");
-    Ok(HttpResponse::Unauthorized().finish())
+    Err(error::ErrorUnauthorized("No id found in request"))
 }
 
 pub fn routes() -> actix_web::Scope {
-    println!("🔧 Registrando rutas de auth...");
-    
     web::scope("/auth")
-        .service(create_user)
-        .service(signin)
-        .service(verify_email_endpoint)
+        .service(register)      // POST /api/v1/auth/register
+        .service(signin)       // POST /api/v1/auth/signin
+        .service(verify_mfa)   // POST /api/v1/auth/mfa
         .service(
-            web::scope("/check")
-                .wrap(from_fn(middlewares::auth))
+            web::scope("/check")  // GET /api/v1/auth/check
+                .wrap(from_fn(crate::middlewares::auth))
                 .service(check),
         )
 }

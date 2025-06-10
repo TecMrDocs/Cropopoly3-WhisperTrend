@@ -42,6 +42,7 @@ type AnalysisData = {
     data_source: string;
   };
   sales: any;
+  resource_name?: string;
   processing?: {
     status: string;
     message: string;

@@ -3,11 +3,16 @@ import analysisApi from '../utils/api/analysis';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-const InterpretacionDashboard = () => {
+
+interface InterpretacionDashboardProps {
+  analysisData?: any;
+}
+const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analysisData }) => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState('');
+  const resourceName = analysisData?.resource_name || 'Bolso Mariana :D';
+  
   // Variable utilizada para el modelo de IA en el uso del endpoint principal
-  // const model = 'deepseek-r1-distill-llama-70b';
 
   const handleAnalyze = async () => {
     setLoading(true);
@@ -27,7 +32,7 @@ const InterpretacionDashboard = () => {
   if (loading) {
     return (
       <div className="p-6 text-center text-gray-600">
-        Procesando interpretación...
+        Procesando interpretación para "{resourceName}"...
       </div>
     );
   }
@@ -61,9 +66,10 @@ const InterpretacionDashboard = () => {
 
   return (
     <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
+      {/* 🆕 TEXTO DINÁMICO CON EL NOMBRE DEL RESOURCE */}
       <p className="text-gray-700 mb-3">
         En esta sección puedes visualizar cómo se comportan diferentes métricas
-        de rendimiento en redes sociales a lo largo del tiempo.
+        de rendimiento en redes sociales para <span className="font-semibold text-blue-600">"{resourceName}"</span> a lo largo del tiempo.
       </p>
       <p className="text-gray-700 mb-6">
         Usa las opciones para cambiar entre los valores originales, su escala
@@ -74,7 +80,7 @@ const InterpretacionDashboard = () => {
         onClick={handleAnalyze}
         className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
       >
-        Generar interpretación
+        Generar interpretación para "{resourceName}"
       </button>
     </div>
   );
