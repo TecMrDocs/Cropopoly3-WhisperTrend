@@ -8,7 +8,7 @@ use crate::{
     controllers::flow_config::FLOW_CONFIG,
 };
 use serde::Deserialize;
-use tracing::warn;
+use tracing::{warn, info, error};
 use regex::Regex;
 use rig::{
     completion::Prompt,
@@ -17,10 +17,247 @@ use rig::{
 
 use aws_sdk_dynamodb::types::AttributeValue;
 use crate::nosql::controllers::analytics::{AnalyticsRequest, TrendsData, HashtagData, process_all_hashtags};
+use crate::nosql::{save_scraped_data_to_dynamo, ScrapedPost};
 
 #[derive(Deserialize)]
 pub struct FlowRequest {
     resource_id: i32,
+}
+
+// 🆕 FUNCIÓN PARA GUARDAR TODOS LOS DATOS SCRAPED
+async fn save_all_scraped_data(scraped_data: &serde_json::Value) -> Vec<String> {
+    let mut saved_hashtags = Vec::new();
+    
+    info!("🚀 Iniciando guardado de TODOS los datos scraped...");
+    
+    // 📸 PROCESAR INSTAGRAM
+    if let Some(instagram_array) = scraped_data.get("data")
+        .and_then(|d| d.get("instagram"))
+        .and_then(|i| i.as_array()) {
+        
+        info!("📸 Procesando {} items de Instagram", instagram_array.len());
+        
+        for (index, item) in instagram_array.iter().enumerate() {
+            if let Some(keyword) = item.get("keyword").and_then(|k| k.as_str()) {
+                // 🔧 FIX: Manejar el Option correctamente para evitar lifetime issues
+                let scraped_posts: Vec<ScrapedPost> = match item.get("posts").and_then(|p| p.as_array()) {
+                    Some(posts_array) => {
+                        info!("📸 Instagram[{}]: {} con {} posts", index, keyword, posts_array.len());
+                        
+                        posts_array.iter()
+                            .filter_map(|post| {
+                                Some(ScrapedPost {
+                                    comments: post.get("comments")?.as_i64()? as i32,
+                                    followers: post.get("followers").and_then(|f| f.as_i64()).map(|f| f as i32),
+                                    likes: post.get("likes")?.as_i64()? as i32,
+                                    link: post.get("link").and_then(|l| l.as_str()).unwrap_or("").to_string(),
+                                    time: post.get("time")?.as_str()?.to_string(),
+                                    members: None,
+                                    subreddit: None,
+                                    title: None,
+                                    vote: None,
+                                })
+                            })
+                            .collect()
+                    },
+                    None => {
+                        info!("📸 Instagram[{}]: {} SIN posts (array vacío)", index, keyword);
+                        vec![] // Vector vacío si no hay posts
+                    }
+                };
+                
+                // 🚀 INTENTAR GUARDAR (incluso si está vacío)
+                match save_scraped_data_to_dynamo(
+                    keyword.to_string(), 
+                    "instagram".to_string(), 
+                    scraped_posts.clone()
+                ).await {
+                    Ok(saved) => {
+                        if saved {
+                            saved_hashtags.push(format!("{}:instagram", keyword));
+                            info!("✅ Instagram: {} guardado ({} posts)", keyword, scraped_posts.len());
+                        } else {
+                            warn!("⚠️ Instagram: {} NO guardado (posts vacíos)", keyword);
+                        }
+                    },
+                    Err(e) => {
+                        error!("❌ Instagram: Error guardando {}: {:?}", keyword, e);
+                    }
+                }
+            }
+        }
+    }
+    
+    // 🔴 PROCESAR REDDIT
+    if let Some(reddit_array) = scraped_data.get("data")
+        .and_then(|d| d.get("reddit"))
+        .and_then(|r| r.as_array()) {
+        
+        info!("🔴 Procesando {} items de Reddit", reddit_array.len());
+        
+        for (index, item) in reddit_array.iter().enumerate() {
+            if let Some(keyword) = item.get("keyword").and_then(|k| k.as_str()) {
+                // 🔧 FIX: Manejar el Option correctamente para evitar lifetime issues
+                let scraped_posts: Vec<ScrapedPost> = match item.get("posts").and_then(|p| p.as_array()) {
+                    Some(posts_array) => {
+                        info!("🔴 Reddit[{}]: {} con {} posts", index, keyword, posts_array.len());
+                        
+                        posts_array.iter()
+                            .filter_map(|post| {
+                                Some(ScrapedPost {
+                                    comments: post.get("comments")?.as_i64()? as i32,
+                                    followers: None, // Reddit no tiene followers
+                                    likes: 0, // Reddit usa upvotes en vez de likes
+                                    link: post.get("link").and_then(|l| l.as_str()).unwrap_or("").to_string(),
+                                    time: post.get("time")?.as_str()?.to_string(),
+                                    members: post.get("members").and_then(|m| m.as_i64()).map(|m| m as i32),
+                                    subreddit: post.get("subreddit").and_then(|s| s.as_str()).map(|s| s.to_string()),
+                                    title: post.get("title").and_then(|t| t.as_str()).map(|t| t.to_string()),
+                                    vote: post.get("vote").and_then(|v| v.as_i64()).map(|v| v as i32),
+                                })
+                            })
+                            .collect()
+                    },
+                    None => {
+                        info!("🔴 Reddit[{}]: {} SIN posts (array vacío)", index, keyword);
+                        vec![] // Vector vacío si no hay posts
+                    }
+                };
+                
+                // 🚀 INTENTAR GUARDAR (incluso si está vacío)
+                match save_scraped_data_to_dynamo(
+                    keyword.to_string(), 
+                    "reddit".to_string(), 
+                    scraped_posts.clone()
+                ).await {
+                    Ok(saved) => {
+                        if saved {
+                            saved_hashtags.push(format!("{}:reddit", keyword));
+                            info!("✅ Reddit: {} guardado ({} posts)", keyword, scraped_posts.len());
+                        } else {
+                            warn!("⚠️ Reddit: {} NO guardado (posts vacíos)", keyword);
+                        }
+                    },
+                    Err(e) => {
+                        error!("❌ Reddit: Error guardando {}: {:?}", keyword, e);
+                    }
+                }
+            }
+        }
+    }
+    
+    // 🐦 PROCESAR TWITTER (si existe)
+    if let Some(twitter_array) = scraped_data.get("data")
+        .and_then(|d| d.get("twitter"))
+        .and_then(|t| t.as_array()) {
+        
+        info!("🐦 Procesando {} items de Twitter", twitter_array.len());
+        
+        for (index, item) in twitter_array.iter().enumerate() {
+            if let Some(keyword) = item.get("keyword").and_then(|k| k.as_str()) {
+                // 🔧 FIX: Manejar el Option correctamente para evitar lifetime issues
+                let scraped_posts: Vec<ScrapedPost> = match item.get("posts").and_then(|p| p.as_array()) {
+                    Some(posts_array) => {
+                        info!("🐦 Twitter[{}]: {} con {} posts", index, keyword, posts_array.len());
+                        
+                        posts_array.iter()
+                            .filter_map(|post| {
+                                Some(ScrapedPost {
+                                    comments: post.get("comments").and_then(|c| c.as_i64()).unwrap_or(0) as i32,
+                                    followers: post.get("followers").and_then(|f| f.as_i64()).map(|f| f as i32),
+                                    likes: post.get("likes").and_then(|l| l.as_i64()).unwrap_or(0) as i32,
+                                    link: post.get("link").and_then(|l| l.as_str()).unwrap_or("").to_string(),
+                                    time: post.get("time")?.as_str()?.to_string(),
+                                    members: None,
+                                    subreddit: None,
+                                    title: None,
+                                    vote: None,
+                                })
+                            })
+                            .collect()
+                    },
+                    None => {
+                        info!("🐦 Twitter[{}]: {} SIN posts (array vacío)", index, keyword);
+                        vec![] // Vector vacío si no hay posts
+                    }
+                };
+                
+                // 🚀 INTENTAR GUARDAR
+                match save_scraped_data_to_dynamo(
+                    keyword.to_string(), 
+                    "twitter".to_string(), 
+                    scraped_posts.clone()
+                ).await {
+                    Ok(saved) => {
+                        if saved {
+                            saved_hashtags.push(format!("{}:twitter", keyword));
+                            info!("✅ Twitter: {} guardado ({} posts)", keyword, scraped_posts.len());
+                        } else {
+                            warn!("⚠️ Twitter: {} NO guardado (posts vacíos)", keyword);
+                        }
+                    },
+                    Err(e) => {
+                        error!("❌ Twitter: Error guardando {}: {:?}", keyword, e);
+                    }
+                }
+            }
+        }
+    }
+    
+    info!("🎯 Guardado completado. Total guardados: {}", saved_hashtags.len());
+    info!("📋 Hashtags guardados: {:?}", saved_hashtags);
+    
+    saved_hashtags
+}
+
+// 🆕 FUNCIÓN PARA EXTRAER TODOS LOS HASHTAGS DE LOS DATOS SCRAPED
+fn extract_all_hashtags_from_scraped_data(scraped_data: &serde_json::Value) -> Vec<String> {
+    let mut all_hashtags = Vec::new();
+    
+    // Extraer de Instagram
+    if let Some(instagram_array) = scraped_data.get("data")
+        .and_then(|d| d.get("instagram"))
+        .and_then(|i| i.as_array()) {
+        
+        for item in instagram_array {
+            if let Some(keyword) = item.get("keyword").and_then(|k| k.as_str()) {
+                if !all_hashtags.contains(&keyword.to_string()) {
+                    all_hashtags.push(keyword.to_string());
+                }
+            }
+        }
+    }
+    
+    // Extraer de Reddit
+    if let Some(reddit_array) = scraped_data.get("data")
+        .and_then(|d| d.get("reddit"))
+        .and_then(|r| r.as_array()) {
+        
+        for item in reddit_array {
+            if let Some(keyword) = item.get("keyword").and_then(|k| k.as_str()) {
+                if !all_hashtags.contains(&keyword.to_string()) {
+                    all_hashtags.push(keyword.to_string());
+                }
+            }
+        }
+    }
+    
+    // Extraer de Twitter
+    if let Some(twitter_array) = scraped_data.get("data")
+        .and_then(|d| d.get("twitter"))
+        .and_then(|t| t.as_array()) {
+        
+        for item in twitter_array {
+            if let Some(keyword) = item.get("keyword").and_then(|k| k.as_str()) {
+                if !all_hashtags.contains(&keyword.to_string()) {
+                    all_hashtags.push(keyword.to_string());
+                }
+            }
+        }
+    }
+    
+    info!("🔍 Hashtags extraídos de datos scraped: {:?}", all_hashtags);
+    all_hashtags
 }
 
 async fn enhance_trends_with_fallback(mut trends: serde_json::Value, hashtags: &[String]) -> serde_json::Value {
@@ -277,15 +514,6 @@ async fn generate_prompt_from_flow(
         .map(|m| m.as_str().strip_prefix('#').unwrap_or(m.as_str()).to_string())
         .collect();
 
-    // 🆕 PARA TESTING - FORZAR HASHTAGS QUE TENEMOS EN DYNAMODB
-    let hashtags = if hashtags.is_empty() || hashtags.len() < 3 {
-        vec!["ElectricGuitar".to_string(), "RockMusic".to_string(), "VintageGuitars".to_string()]
-    } else {
-        vec!["ElectricGuitar".to_string(), "RockMusic".to_string(), "VintageGuitars".to_string()]
-    };
-
-    warn!("🎯 Usando hashtags forzados para testing: {:?}", hashtags);
-
     let today = chrono::Utc::now().naive_utc().date();
     let six_months_ago = today
         .checked_sub_signed(chrono::Duration::days(180))
@@ -316,24 +544,36 @@ async fn generate_prompt_from_flow(
         error::ErrorInternalServerError("Invalid trends response")
     })?;
 
-    let enhanced_trends = enhance_trends_with_fallback(trends, &hashtags).await;
-    let calculated_results = process_trends_with_analytics(&enhanced_trends, &hashtags).await;
+    let all_hashtags = extract_all_hashtags_from_scraped_data(&trends);
+    let saved_hashtags = save_all_scraped_data(&trends).await;
+    let hashtags_for_calculations = if all_hashtags.is_empty() {
+        vec![] 
+    } else {
+        all_hashtags.clone()
+    };
+
+    let enhanced_trends = enhance_trends_with_fallback(trends, &hashtags_for_calculations).await;
+    let calculated_results = process_trends_with_analytics(&enhanced_trends, &hashtags_for_calculations).await;
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "sentence": sentence,
-        "hashtags": hashtags,
+        "resource_name": resource.name,
+        "hashtags": hashtags_for_calculations, 
         "trends": enhanced_trends,        
         "calculated_results": calculated_results,  
         "sales": sales_data,
         "processing": {
             "status": "✅ CALCULATED",
-            "message": "Datos procesados con fórmulas backend",
-            "backend_calculations": true
+            "message": "Datos procesados con fórmulas backend y guardados en DynamoDB",
+            "backend_calculations": true,
+            "scraped_data_saved": true,
+            "total_saved": saved_hashtags.len(),
+            "saved_hashtags": saved_hashtags
         }
     })))
 }
 
-//  ENDPOINT DE PRUEBA SIN AUTENTICACIÓN
+//  🧪 ENDPOINT DE PRUEBA SIN AUTENTICACIÓN
 #[post("/test-generate-prompt")]
 async fn test_generate_prompt_from_flow(
     payload: web::Json<FlowRequest>,
@@ -408,44 +648,276 @@ async fn test_generate_prompt_from_flow(
 
     let trends = serde_json::json!({
         "data": {
-            "instagram": hashtags.iter().map(|h| serde_json::json!({
-                "keyword": h,
-                "posts": []  
-            })).collect::<Vec<_>>(),
-            "reddit": hashtags.iter().map(|h| serde_json::json!({
-                "keyword": h,
-                "posts": []  
-            })).collect::<Vec<_>>(),
+            "instagram": [
+                {
+                    "keyword": "ElectricGuitar",
+                    "posts": []  
+                },
+                {
+                    "keyword": "RockMusic", 
+                    "posts": []
+                },
+                {
+                    "keyword": "VintageGuitars",
+                    "posts": []
+                },
+                {
+                    "keyword": "Reply", 
+                    "posts": []
+                },
+                {
+                    "keyword": "Mobilelive",
+                    "posts": []
+                },
+                {
+                    "keyword": "Sita",
+                    "posts": []
+                }
+            ],
+            "reddit": [
+                {
+                    "keyword": "ElectricGuitar",
+                    "posts": []  
+                },
+                {
+                    "keyword": "RockMusic", 
+                    "posts": []
+                },
+                {
+                    "keyword": "VintageGuitars",
+                    "posts": []
+                },
+                {
+                    "keyword": "Reply", // 🚀 INCLUIR DATOS QUE NORMALMENTE NO SE GUARDAN
+                    "posts": []
+                },
+                {
+                    "keyword": "Mobilelive",
+                    "posts": []
+                },
+                {
+                    "keyword": "Sita",
+                    "posts": []
+                }
+            ],
             "twitter": []
         },
         "metadata": []
     });
 
-    warn!("🔥 Aplicando fallback con hashtags: {:?}", hashtags);
-    let enhanced_trends = enhance_trends_with_fallback(trends, &hashtags).await;
-    let calculated_results = process_trends_with_analytics(&enhanced_trends, &hashtags).await;
+    warn!("🔥 Usando datos de prueba con todos los hashtags incluidos");
+    
+    let all_hashtags = extract_all_hashtags_from_scraped_data(&trends);
+    let saved_hashtags = save_all_scraped_data(&trends).await;
+    let hashtags_for_calculations = all_hashtags.clone();
+    let enhanced_trends = enhance_trends_with_fallback(trends, &hashtags_for_calculations).await;
+    let calculated_results = process_trends_with_analytics(&enhanced_trends, &hashtags_for_calculations).await;
 
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "status": "🧪 TEST MODE",
-        "message": "Endpoint de prueba - datos simulados",
+        "message": "Endpoint de prueba - datos simulados con TODOS los hashtags",
         "sentence": sentence,
-        "hashtags": hashtags,
+        "hashtags": hashtags_for_calculations, // 🆕 USAR TODOS LOS HASHTAGS
         "trends": enhanced_trends,  
-        "calculated_result": calculated_results,  
+        "calculated_results": calculated_results,  
         "sales": sales_data,
         "debug": {
             "user_id": user_id,
             "resource_id": payload.resource_id,
             "simulated": true,
             "fallback_applied": true,
-            "backend_calculations": true  
+            "backend_calculations": true,
+            "all_hashtags_extracted": all_hashtags,
+            "total_saved": saved_hashtags.len(),
+            "saved_hashtags": saved_hashtags
         }
+    })))
+}
+
+#[post("/debug/check-scraped-data")]
+async fn debug_check_scraped_data(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
+    let scraped_data = body.into_inner();
+    
+    info!("🔍 Iniciando análisis de datos scraped...");
+    
+    let mut debug_info = serde_json::json!({
+        "status": "🔍 DEBUGGING",
+        "found_hashtags": [],
+        "instagram_analysis": {},
+        "reddit_analysis": {},
+        "twitter_analysis": {},
+        "summary": {}
+    });
+    
+    let mut all_found_hashtags = Vec::new();
+    
+    if let Some(instagram_array) = scraped_data.get("data")
+        .and_then(|d| d.get("instagram"))
+        .and_then(|i| i.as_array()) {
+        
+        let mut instagram_hashtags = Vec::new();
+        for (index, item) in instagram_array.iter().enumerate() {
+            if let Some(keyword) = item.get("keyword").and_then(|k| k.as_str()) {
+                let posts_count = item.get("posts")
+                    .and_then(|p| p.as_array())
+                    .map(|arr| arr.len())
+                    .unwrap_or(0);
+                
+                instagram_hashtags.push(serde_json::json!({
+                    "index": index,
+                    "keyword": keyword,
+                    "posts_count": posts_count,
+                    "has_posts": posts_count > 0,
+                    "will_be_saved": posts_count > 0 // Solo se guardan los que tienen posts
+                }));
+                
+                if !all_found_hashtags.contains(&keyword.to_string()) {
+                    all_found_hashtags.push(keyword.to_string());
+                }
+            }
+        }
+        debug_info["instagram_analysis"] = serde_json::json!({
+            "total_items": instagram_array.len(),
+            "hashtags": instagram_hashtags
+        });
+    }
+    
+    // 🔴 ANALIZAR REDDIT
+    if let Some(reddit_array) = scraped_data.get("data")
+        .and_then(|d| d.get("reddit"))
+        .and_then(|r| r.as_array()) {
+        
+        let mut reddit_hashtags = Vec::new();
+        for (index, item) in reddit_array.iter().enumerate() {
+            if let Some(keyword) = item.get("keyword").and_then(|k| k.as_str()) {
+                let posts_count = item.get("posts")
+                    .and_then(|p| p.as_array())
+                    .map(|arr| arr.len())
+                    .unwrap_or(0);
+                
+                reddit_hashtags.push(serde_json::json!({
+                    "index": index,
+                    "keyword": keyword,
+                    "posts_count": posts_count,
+                    "has_posts": posts_count > 0,
+                    "will_be_saved": posts_count > 0 // Solo se guardan los que tienen posts
+                }));
+                
+                if !all_found_hashtags.contains(&keyword.to_string()) {
+                    all_found_hashtags.push(keyword.to_string());
+                }
+            }
+        }
+        debug_info["reddit_analysis"] = serde_json::json!({
+            "total_items": reddit_array.len(),
+            "hashtags": reddit_hashtags
+        });
+    }
+    
+    // 🐦 ANALIZAR TWITTER
+    if let Some(twitter_array) = scraped_data.get("data")
+        .and_then(|d| d.get("twitter"))
+        .and_then(|t| t.as_array()) {
+        
+        let mut twitter_hashtags = Vec::new();
+        for (index, item) in twitter_array.iter().enumerate() {
+            if let Some(keyword) = item.get("keyword").and_then(|k| k.as_str()) {
+                let posts_count = item.get("posts")
+                    .and_then(|p| p.as_array())
+                    .map(|arr| arr.len())
+                    .unwrap_or(0);
+                
+                twitter_hashtags.push(serde_json::json!({
+                    "index": index,
+                    "keyword": keyword,
+                    "posts_count": posts_count,
+                    "has_posts": posts_count > 0,
+                    "will_be_saved": posts_count > 0
+                }));
+                
+                if !all_found_hashtags.contains(&keyword.to_string()) {
+                    all_found_hashtags.push(keyword.to_string());
+                }
+            }
+        }
+        debug_info["twitter_analysis"] = serde_json::json!({
+            "total_items": twitter_array.len(),
+            "hashtags": twitter_hashtags
+        });
+    }
+    
+    debug_info["found_hashtags"] = serde_json::json!(all_found_hashtags);
+    debug_info["summary"] = serde_json::json!({
+        "total_unique_hashtags": all_found_hashtags.len(),
+        "all_hashtags": all_found_hashtags,
+        "analysis_timestamp": chrono::Utc::now().to_rfc3339(),
+        "note": "Solo se guardan hashtags que tienen posts (posts_count > 0)"
+    });
+    
+    info!("🎯 Análisis completado. Hashtags encontrados: {:?}", all_found_hashtags);
+    
+    Ok(HttpResponse::Ok().json(debug_info))
+}
+
+
+#[post("/debug/force-save-empty-hashtags")]
+async fn debug_force_save_empty_hashtags(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
+    let scraped_data = body.into_inner();
+    
+    info!("🚀 FORZANDO guardado de hashtags vacíos para testing...");
+    
+    let mut force_saved = Vec::new();
+    
+    // Obtener todos los hashtags únicos
+    let all_hashtags = extract_all_hashtags_from_scraped_data(&scraped_data);
+    
+    // Forzar guardado de cada hashtag (incluso vacíos)
+    for hashtag in &all_hashtags {
+        // Instagram
+        match save_scraped_data_to_dynamo(
+            hashtag.clone(), 
+            "instagram".to_string(), 
+            vec![] // Vector vacío
+        ).await {
+            Ok(_) => {
+                force_saved.push(format!("{}:instagram", hashtag));
+                info!("✅ Forzado guardado: {} (Instagram)", hashtag);
+            },
+            Err(e) => {
+                error!("❌ Error forzando {}: {:?}", hashtag, e);
+            }
+        }
+        
+        // Reddit
+        match save_scraped_data_to_dynamo(
+            hashtag.clone(), 
+            "reddit".to_string(), 
+            vec![] // Vector vacío
+        ).await {
+            Ok(_) => {
+                force_saved.push(format!("{}:reddit", hashtag));
+                info!("✅ Forzado guardado: {} (Reddit)", hashtag);
+            },
+            Err(e) => {
+                error!("❌ Error forzando {}: {:?}", hashtag, e);
+            }
+        }
+    }
+    
+    Ok(HttpResponse::Ok().json(serde_json::json!({
+        "status": "🚀 FORCE SAVE COMPLETED",
+        "message": "Hashtags vacíos guardados forzadamente",
+        "all_hashtags_found": all_hashtags,
+        "force_saved": force_saved,
+        "total_saved": force_saved.len(),
+        "note": "Este endpoint fuerza el guardado incluso si los posts están vacíos"
     })))
 }
 
 pub fn routes() -> actix_web::Scope {
     web::scope("/flow")
         .service(test_generate_prompt_from_flow)  
+        .service(debug_force_save_empty_hashtags) 
         .service(
             web::scope("/secure")
                 .wrap(from_fn(middlewares::auth))

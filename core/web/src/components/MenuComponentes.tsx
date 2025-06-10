@@ -528,9 +528,9 @@ const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 
                   className={`${getCircleStyle({ id: 'Ventas' })} bg-blue-600`}
                   onClick={() => handleItemClick('Ventas', 'original')}
                 ></div>
-                <span className={`text-gray-800 font-medium ${isActive('Ventas') ? 'font-bold' : ''}`}>
-                  Ventas de Bolso Marianne
-                </span>
+<span className={`text-gray-800 font-medium ${isActive('Ventas') ? 'font-bold' : ''}`}>
+  Ventas de {datosDelSistema?.resource_name || 'Producto'}
+</span>
               </div>
               <button
                 className={getButtonStyle('Ventas')}
