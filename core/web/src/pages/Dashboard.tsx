@@ -608,10 +608,13 @@ export default function Dashboard() {
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-2xl translate-y-12 -translate-x-12"></div>
 
           <div className="relative z-10">
+
+            //pruebas de contexto
             <CorrelacionVentas
               hashtagSeleccionado={hashtagSeleccionado}
               datosDelSistema={datosDelSistema}
               analysisData={analysisData}
+
             />
           </div>
         </div>
