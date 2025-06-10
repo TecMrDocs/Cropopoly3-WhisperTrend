@@ -2,9 +2,9 @@ use actix_web::{
     web, HttpRequest, HttpResponse, Responder, Result, post, error, middleware::from_fn, HttpMessage,
 };
 use crate::{
-    models::{User, Resource},
+    models::{User, Resource, Sale},
     middlewares,
-    database::DbResponder,
+    database::{Database, DbResponder},
     controllers::flow_config::FLOW_CONFIG,
 };
 use serde::Deserialize;
@@ -450,22 +450,24 @@ async fn generate_prompt_from_flow(
         .to_web()?
         .ok_or_else(|| error::ErrorNotFound("Resource not found"))?;
 
-    let sales_url = FLOW_CONFIG.get_sales_url(&format!("resource/{}", payload.resource_id));
-    let http_client = reqwest::Client::new();
+    // let sales_url = FLOW_CONFIG.get_sales_url(&format!("resource/{}", payload.resource_id));
+    // let http_client = reqwest::Client::new();
 
-    let sales_response = http_client
-        .get(&sales_url)
-        .send()
-        .await
-        .map_err(|e| {
-            warn!("Error fetching sales data: {}", e);
-            error::ErrorInternalServerError("Failed to get sales data")
-        })?;
+    // let sales_response = http_client
+    //     .get(&sales_url)
+    //     .send()
+    //     .await
+    //     .map_err(|e| {
+    //         warn!("Error fetching sales data: {}", e);
+    //         error::ErrorInternalServerError("Failed to get sales data")
+    //     })?;
 
-    let sales_data: serde_json::Value = sales_response.json().await.map_err(|e| {
-        warn!("Invalid sales response: {}", e);
-        error::ErrorInternalServerError("Invalid sales response")
-    })?;
+    // let sales_data: serde_json::Value = sales_response.json().await.map_err(|e| {
+    //     warn!("Invalid sales response: {}", e);
+    //     error::ErrorInternalServerError("Invalid sales response")
+    // })?;
+
+    let sales = Database::get_resource_sales(payload.resource_id).await.to_web()?;
 
     let prompt = format!(
         "Me dedico a la industria de {}. Tengo una {} con alcance {} y {} sucursales. Desarrollo mis operaciones en {}. Ofrezco un {} llamado {}. Consiste en: {}, y se asocia con: {}. Por favor escribe una lista de 5 palabras (palabras individuales, no términos ni frases, separadas con comas) en inglés mi producto (procura no mencionar el nombre de mi producto) y mi empresa para realizar una búsqueda de noticias. Que ninguna palabra contenga guiones. También dame 3 hashtags en inglés que hayan sido populares, que pueda buscar en redes sociales y que se relacionen con mi empresa y con mi producto (procura que los hashtags no incluyan el nombre de mi producto). No incluyas más texto en tu respuesta. Al final de la lista y antes de los hashtags, escribe el símbolo @.",
@@ -561,7 +563,7 @@ async fn generate_prompt_from_flow(
         "hashtags": hashtags_for_calculations, 
         "trends": enhanced_trends,        
         "calculated_results": calculated_results,  
-        "sales": sales_data,
+        "sales": sales,
         "processing": {
             "status": "✅ CALCULATED",
             "message": "Datos procesados con fórmulas backend y guardados en DynamoDB",
