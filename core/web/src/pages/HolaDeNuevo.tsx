@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { getConfig } from "@/utils/auth";
 import WhiteButton from '@/components/WhiteButton';
 import BlueButton from '@/components/BlueButton';
 import TextFieldWHolder from '@/components/TextFieldWHolder';
@@ -11,14 +12,48 @@ export default function HolaDeNuevo() {
   const [error, setError] = useState('');
   const [apiError, setApiError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { verifyCode, isAuthenticated, needsVerification } = useAuth();
+  const { verifyCode, isAuthenticated, needsVerification, isDefault } = useAuth();
   const navigate = useNavigate();
 
+    const getUserId = async (): Promise<number|null> => {
+    try {
+      const res = await fetch(`${API_URL}auth/check`, getConfig());
+      if (!res.ok) throw new Error();
+      const { id } = await res.json();
+      return id;
+    } catch {
+      return null;
+    }
+  };
+
   // Redirige si ya no hace falta verificar
-  useEffect(() => {
+ useEffect(() => {
     if (!needsVerification) {
       if (isAuthenticated) {
-        navigate('/productos', { replace: true });
+        (async () => {
+          const id = await getUserId();
+          if (!id) {
+            navigate('/login', { replace: true });
+            return;
+          }
+          try {
+            const res = await fetch(`${API_URL}user/${id}`, getConfig());
+            const data = await res.json();
+            const isDefault =
+              data.plan === 'tracker' &&
+              data.business_name === 'test' &&
+              data.industry === 'test' &&
+              data.company_size === '1234' &&
+              data.scope === 'internacional' &&
+              data.locations === 'test' &&
+              data.num_branches === '1234';
+
+            navigate(isDefault ? '/launchProcess' : '/productos', { replace: true });
+          } catch {
+            // if profile fetch fails, send to productos by default
+            navigate('/productos', { replace: true });
+          }
+        })();
       } else {
         navigate('/login', { replace: true });
       }
