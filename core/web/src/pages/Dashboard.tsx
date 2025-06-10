@@ -307,7 +307,6 @@ export default function Dashboard() {
   console.log('🔍 DEBUG: Todos los IDs de tasas disponibles:', Object.keys(datosTasas));
   console.log('🔍 DEBUG: Hashtags dinámicos disponibles:', hashtagsDinamicos);
 
-  // 🆕 MOSTRAR ESTADO DE CARGA DE DATOS
   if (cargandoDatos) {
     return (
       <div className="p-6 flex items-center justify-center">
@@ -320,7 +319,6 @@ export default function Dashboard() {
     );
   }
 
-  // 🆕 MOSTRAR FUENTE DE DATOS
   const fuenteDatos = datosDelSistema?.metadatos?.fuente || 'desconocida';
   const tieneCalculosBackend = !!(datosDelSistema?.calculated_results?.hashtags?.length);
 
@@ -340,7 +338,6 @@ export default function Dashboard() {
     } else {
       setHashtagSeleccionado(itemId);
 
-      // 🆕 NUEVO: Verificar si es una noticia
       if (itemId.startsWith('noticia_')) {
         console.log('📰 Es una noticia, no mostrar tendencias');
         setMostrarTendenciaUniforme(false);
@@ -350,9 +347,6 @@ export default function Dashboard() {
         const esHashtagDinamico = hashtagsDinamicos.includes(itemId);
         setMostrandoDesgloseTasas(esHashtagDinamico);
       }
-
-      // MenuComponentes se encarga de generar las tasas correctas
-      // y las envía através de onTasasSeleccionadas
     }
   };
 
@@ -390,7 +384,6 @@ export default function Dashboard() {
       const datosVentas = datosDelSistema?.sales || [];
       const resourceName = datosDelSistema?.resource_name || 'Producto';
 
-      // 🔍 DEBUG: Ver todo lo que contiene datosDelSistema
       console.log('🔍 [DEBUG] datosDelSistema completo:', datosDelSistema);
       console.log('🔍 [DEBUG] resource_name directo:', datosDelSistema?.resource_name);
       console.log('🔍 [DEBUG] analysisData original:', analysisData);
@@ -418,10 +411,7 @@ export default function Dashboard() {
     if (mostrarTendenciaUniforme) {
       return (
         <div>
-          <button
-            onClick={resetVisualizacion}
-            className="mb-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition"
-          >
+          <button onClick={resetVisualizacion} className="mb-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition">
             Volver a Gráfica de Líneas
           </button>
           <UniformTrendPlot tipo={getTipoVisualizacion()} />
@@ -608,13 +598,10 @@ export default function Dashboard() {
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-400/20 to-blue-400/20 rounded-full blur-2xl translate-y-12 -translate-x-12"></div>
 
           <div className="relative z-10">
-
-            //pruebas de contexto
             <CorrelacionVentas
               hashtagSeleccionado={hashtagSeleccionado}
               datosDelSistema={datosDelSistema}
               analysisData={analysisData}
-
             />
           </div>
         </div>
