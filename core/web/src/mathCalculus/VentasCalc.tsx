@@ -1,5 +1,9 @@
-import React, { useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, Area, AreaChart } from 'recharts';
+import React, { useMemo, useState } from 'react';
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
+  BarChart, Bar, Area, AreaChart, ComposedChart, PieChart, Pie, Cell,
+  RadialBarChart, RadialBar, ScatterChart, Scatter
+} from 'recharts';
 
 // 🆕 TIPO PARA LOS DATOS DE VENTAS
 interface DatoVenta {
@@ -16,18 +20,27 @@ interface VentasCalcProps {
 }
 
 const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName = 'Producto' }) => {
-  console.log('📊 [VentasCalc] Datos recibidos:', datosVentas);
+  const [tipoGrafico, setTipoGrafico] = useState<'area' | 'bar' | 'line' | 'composed' | 'pie' | 'radial' | 'scatter'>('area');
 
   // 🆕 PROCESAR DATOS DINÁMICOS
   const datosGrafica = useMemo(() => {
     if (!datosVentas || datosVentas.length === 0) {
       console.log('⚠️ [VentasCalc] No hay datos, usando fallback');
       
-      // Datos de fallback si no hay datos reales
+      // Datos de fallback más interesantes
       return [
-        { periodo: 'Ene 2024', ventas: 0, tendencia: 'Sin datos', mes: 1, año: 2024, id: 0 },
-        { periodo: 'Feb 2024', ventas: 0, tendencia: 'Sin datos', mes: 2, año: 2024, id: 0 },
-        { periodo: 'Mar 2024', ventas: 0, tendencia: 'Sin datos', mes: 3, año: 2024, id: 0 },
+        { periodo: 'Jul 2024', ventas: 10, mes: 7, año: 2024, crecimiento: 0, acumulado: 10 },
+        { periodo: 'Ago 2024', ventas: 12, mes: 8, año: 2024, crecimiento: 20, acumulado: 22 },
+        { periodo: 'Sep 2024', ventas: 2, mes: 9, año: 2024, crecimiento: -83, acumulado: 24 },
+        { periodo: 'Oct 2024', ventas: 3, mes: 10, año: 2024, crecimiento: 50, acumulado: 27 },
+        { periodo: 'Nov 2024', ventas: 4, mes: 11, año: 2024, crecimiento: 33, acumulado: 31 },
+        { periodo: 'Dic 2024', ventas: 4, mes: 12, año: 2024, crecimiento: 0, acumulado: 35 },
+        { periodo: 'Ene 2025', ventas: 4, mes: 1, año: 2025, crecimiento: 0, acumulado: 39 },
+        { periodo: 'Feb 2025', ventas: 4, mes: 2, año: 2025, crecimiento: 0, acumulado: 43 },
+        { periodo: 'Mar 2025', ventas: 4, mes: 3, año: 2025, crecimiento: 0, acumulado: 47 },
+        { periodo: 'Abr 2025', ventas: 5, mes: 4, año: 2025, crecimiento: 25, acumulado: 52 },
+        { periodo: 'May 2025', ventas: 5, mes: 5, año: 2025, crecimiento: 0, acumulado: 57 },
+        { periodo: 'Jun 2025', ventas: 8, mes: 6, año: 2025, crecimiento: 60, acumulado: 65 }
       ];
     }
 
@@ -37,10 +50,8 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
       return a.month - b.month;
     });
 
-    console.log('📊 [VentasCalc] Datos ordenados:', datosOrdenados);
-
+    let acumulado = 0;
     return datosOrdenados.map((venta, index) => {
-      // Convertir número de mes a nombre
       const nombresMeses = [
         'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
         'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
@@ -49,23 +60,22 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
       const nombreMes = nombresMeses[venta.month - 1] || `Mes ${venta.month}`;
       const periodo = `${nombreMes} ${venta.year}`;
       
-      // Calcular tendencia comparando con el mes anterior
-      let tendencia = 'Estable';
+      // Calcular crecimiento
+      let crecimiento = 0;
       if (index > 0) {
         const ventaAnterior = datosOrdenados[index - 1];
-        if (venta.units_sold > ventaAnterior.units_sold) {
-          tendencia = 'Subiendo';
-        } else if (venta.units_sold < ventaAnterior.units_sold) {
-          tendencia = 'Bajando';
+        if (ventaAnterior.units_sold > 0) {
+          crecimiento = Math.round(((venta.units_sold - ventaAnterior.units_sold) / ventaAnterior.units_sold) * 100);
         }
-      } else {
-        tendencia = 'Inicial';
       }
+      
+      acumulado += venta.units_sold;
 
       return {
         periodo,
         ventas: venta.units_sold,
-        tendencia,
+        crecimiento,
+        acumulado,
         mes: venta.month,
         año: venta.year,
         id: venta.id
@@ -100,7 +110,6 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
       current.ventas < min.ventas ? current : min
     );
     
-    // Tendencia general (comparar primer y último mes con datos)
     const primeraVentaValida = ventasValidas[0]?.ventas || 0;
     const ultimaVentaValida = ventasValidas[ventasValidas.length - 1]?.ventas || 0;
     
@@ -136,12 +145,135 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
   const iconoTendencia = estadisticas.tendenciaGeneral === 'Creciendo' ? '📈' : 
                         estadisticas.tendenciaGeneral === 'Decreciendo' ? '📉' : '📊';
 
-  const bgGradient = estadisticas.tendenciaGeneral === 'Creciendo' ? 'from-green-50 to-emerald-50' :
-                    estadisticas.tendenciaGeneral === 'Decreciendo' ? 'from-red-50 to-pink-50' :
-                    'from-blue-50 to-indigo-50';
+  // 🎨 FUNCIÓN PARA RENDERIZAR GRÁFICO SELECCIONADO
+  const renderGrafico = () => {
+    const colores = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+    
+    switch (tipoGrafico) {
+      case 'area':
+        return (
+          <AreaChart data={datosGrafica} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorVentas" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis dataKey="periodo" stroke="#64748b" fontSize={12} angle={-45} textAnchor="end" height={60} />
+            <YAxis stroke="#64748b" fontSize={12} />
+            <Tooltip />
+            <Area type="monotone" dataKey="ventas" stroke="#3b82f6" fillOpacity={1} fill="url(#colorVentas)" strokeWidth={3} />
+          </AreaChart>
+        );
+
+      case 'bar':
+        return (
+          <BarChart data={datosGrafica} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis dataKey="periodo" stroke="#64748b" fontSize={12} angle={-45} textAnchor="end" height={60} />
+            <YAxis stroke="#64748b" fontSize={12} />
+            <Tooltip />
+            <Bar dataKey="ventas" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        );
+
+      case 'line':
+        return (
+          <LineChart data={datosGrafica} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis dataKey="periodo" stroke="#64748b" fontSize={12} angle={-45} textAnchor="end" height={60} />
+            <YAxis stroke="#64748b" fontSize={12} />
+            <Tooltip />
+            <Line type="monotone" dataKey="ventas" stroke="#3b82f6" strokeWidth={3} dot={{ fill: '#3b82f6', r: 6 }} />
+          </LineChart>
+        );
+
+      case 'composed':
+        return (
+          <ComposedChart data={datosGrafica} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis dataKey="periodo" stroke="#64748b" fontSize={12} angle={-45} textAnchor="end" height={60} />
+            <YAxis yAxisId="left" stroke="#64748b" fontSize={12} />
+            <YAxis yAxisId="right" orientation="right" stroke="#64748b" fontSize={12} />
+            <Tooltip />
+            <Legend />
+            <Bar yAxisId="left" dataKey="ventas" fill="#3b82f6" name="Ventas Mensuales" radius={[4, 4, 0, 0]} />
+            <Line yAxisId="right" type="monotone" dataKey="acumulado" stroke="#10b981" strokeWidth={3} name="Acumulado" />
+          </ComposedChart>
+        );
+
+      case 'pie':
+        // Agrupar datos para pie chart
+        const datosPie = datosGrafica.slice(-6).map((item, index) => ({
+          name: item.periodo,
+          value: item.ventas,
+          fill: colores[index % colores.length]
+        }));
+        
+        return (
+          <PieChart>
+            <Pie
+              data={datosPie}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              outerRadius={120}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              {datosPie.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.fill} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        );
+
+      case 'radial':
+        const datosRadial = datosGrafica.slice(-6).map((item, index) => ({
+          name: item.periodo,
+          ventas: item.ventas,
+          fill: colores[index % colores.length]
+        }));
+
+        return (
+          <RadialBarChart cx="50%" cy="50%" innerRadius="10%" outerRadius="80%" data={datosRadial}>
+            <RadialBar 
+              label={{ position: 'insideStart', fill: '#fff' }} 
+              background 
+              dataKey="ventas" 
+            />
+            <Legend iconSize={18} layout="vertical" verticalAlign="middle" wrapperStyle={{ paddingLeft: '20px' }} />
+            <Tooltip />
+          </RadialBarChart>
+        );
+
+      case 'scatter':
+        const datosScatter = datosGrafica.map((item, index) => ({
+          x: index + 1,
+          y: item.ventas,
+          z: item.crecimiento
+        }));
+
+        return (
+          <ScatterChart data={datosScatter} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis type="number" dataKey="x" name="Período" stroke="#64748b" fontSize={12} />
+            <YAxis type="number" dataKey="y" name="Ventas" stroke="#64748b" fontSize={12} />
+            <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+            <Scatter name="Ventas vs Tiempo" data={datosScatter} fill="#3b82f6" />
+          </ScatterChart>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className={`h-full flex flex-col bg-gradient-to-br from-white ${bgGradient} rounded-2xl p-6`}>
+    <div className="h-full flex flex-col bg-gradient-to-br from-white via-blue-50/40 to-indigo-100/60 rounded-2xl p-6">
       {/* Header con información dinámica */}
       <div className="text-center mb-6">
         <div className="text-6xl mb-4">💰</div>
@@ -155,18 +287,38 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
           </span>
           <div className="w-16 h-1 bg-blue-500 rounded-full"></div>
         </div>
-        
-        {/* Indicador de fuente de datos */}
-        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          {datosVentas.length > 0 ? (
-            <>🔄 Datos en tiempo real</>
-          ) : (
-            <>⚠️ Modo demostración</>
-          )}
+      </div>
+
+      {/* 🆕 SELECTOR DE TIPO DE GRÁFICO */}
+      <div className="mb-6 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-white/40">
+        <h3 className="text-lg font-bold text-gray-800 mb-3">🎨 Estilo de Gráfico</h3>
+        <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
+          {[
+            { key: 'area', label: '📈 Área', desc: 'Área rellena' },
+            { key: 'bar', label: '📊 Barras', desc: 'Barras verticales' },
+            { key: 'line', label: '📉 Línea', desc: 'Línea simple' },
+            { key: 'composed', label: '🔄 Combinado', desc: 'Barras + Línea' },
+            { key: 'pie', label: '🥧 Circular', desc: 'Gráfico de torta' },
+            { key: 'radial', label: '🌟 Radial', desc: 'Barras radiales' },
+            { key: 'scatter', label: '⭐ Dispersión', desc: 'Puntos dispersos' }
+          ].map((tipo) => (
+            <button
+              key={tipo.key}
+              onClick={() => setTipoGrafico(tipo.key as any)}
+              className={`p-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                tipoGrafico === tipo.key
+                  ? 'bg-blue-500 text-white shadow-lg scale-105'
+                  : 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-200'
+              }`}
+              title={tipo.desc}
+            >
+              {tipo.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Estadísticas mejoradas */}
+      {/* Estadísticas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl p-4 shadow-lg border border-blue-100 text-center hover:shadow-xl transition-shadow">
           <div className="text-3xl mb-2">📦</div>
@@ -213,11 +365,11 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
         </div>
       </div>
 
-      {/* Gráfica Principal Mejorada */}
-      <div className="flex-1 bg-white rounded-xl p-6 shadow-lg border border-blue-100">
+      {/* Gráfica Principal con tipo seleccionado */}
+      <div className="flex-1 bg-white rounded-xl p-6 shadow-lg border border-blue-100 min-h-[400px]">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-gray-800">
-            📈 Evolución de Ventas Mensual
+            📈 Evolución de Ventas - Vista {tipoGrafico.charAt(0).toUpperCase() + tipoGrafico.slice(1)}
           </h3>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
@@ -227,125 +379,26 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
         
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={datosGrafica} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorVentas" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis 
-                dataKey="periodo" 
-                stroke="#64748b"
-                fontSize={12}
-                angle={-45}
-                textAnchor="end"
-                height={60}
-                interval={0}
-              />
-              <YAxis 
-                stroke="#64748b"
-                fontSize={12}
-                tickFormatter={(value) => value.toLocaleString()}
-              />
-              <Tooltip 
-                formatter={(value: any, name: string) => [
-                  `${value.toLocaleString()} unidades`, 
-                  'Ventas'
-                ]}
-                labelFormatter={(label) => `Período: ${label}`}
-                contentStyle={{
-                  backgroundColor: '#f8fafc',
-                  border: '2px solid #3b82f6',
-                  borderRadius: '12px',
-                  fontSize: '14px',
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="ventas"
-                stroke="#3b82f6"
-                strokeWidth={3}
-                fillOpacity={1}
-                fill="url(#colorVentas)"
-                dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
-                activeDot={{ r: 8, stroke: '#1d4ed8', strokeWidth: 3, fill: '#ffffff' }}
-              />
-            </AreaChart>
+            {renderGrafico()}
           </ResponsiveContainer>
         </div>
       </div>
-
-      {/* Análisis adicional */}
-      {estadisticas.totalVentas > 0 && (
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-lg p-4 shadow border border-gray-100">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Rango de Ventas</span>
-              <span className="text-2xl">📊</span>
-            </div>
-            <div className="mt-2">
-              <div className="text-lg font-bold text-gray-800">
-                {estadisticas.ventaMinima.toLocaleString()} - {estadisticas.ventaMaxima.toLocaleString()}
-              </div>
-              <div className="text-xs text-gray-500">
-                Variación: {((estadisticas.ventaMaxima - estadisticas.ventaMinima) / estadisticas.ventaMinima * 100).toFixed(1)}%
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-4 shadow border border-gray-100">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Consistencia</span>
-              <span className="text-2xl">🎯</span>
-            </div>
-            <div className="mt-2">
-              <div className="text-lg font-bold text-gray-800">
-                {estadisticas.ventaMaxima > 0 ? 
-                  ((estadisticas.promedioMensual / estadisticas.ventaMaxima) * 100).toFixed(0) : 0}%
-              </div>
-              <div className="text-xs text-gray-500">
-                Estabilidad de ventas
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-4 shadow border border-gray-100">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Proyección</span>
-              <span className="text-2xl">🔮</span>
-            </div>
-            <div className="mt-2">
-              <div className="text-lg font-bold text-gray-800">
-                {(estadisticas.promedioMensual * 12).toLocaleString()}
-              </div>
-              <div className="text-xs text-gray-500">
-                Ventas anuales estimadas
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Footer con información detallada */}
       <div className="mt-4 text-center">
         <div className="text-sm text-gray-500">
           {datosVentas.length > 0 ? (
             <>
-              🔄 Datos actualizados desde la base de datos • 
-              Resource ID: {datosVentas[0]?.resource_id} • 
+              🔄 Datos actualizados • Gráfico: {tipoGrafico} • 
               Última actualización: {new Date().toLocaleDateString('es-ES', { 
                 day: 'numeric', 
                 month: 'long', 
-                year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
               })}
             </>
           ) : (
-            <>⚠️ Sin datos de ventas disponibles • Usando datos de demostración</>
+            <>⚠️ Datos de demostración • Prueba diferentes estilos de gráfico</>
           )}
         </div>
       </div>

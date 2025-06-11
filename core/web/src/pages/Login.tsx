@@ -35,7 +35,7 @@ export default function Login() {
     } else if (!email.includes("@")) {
       newErrors.email = "El correo debe contener @";
       valid = false;
-    } else if (!/^[a-zA-Z0-9_]+@[a-zA-Z]+\.[a-zA-Z]+(\.[a-zA-Z]+)?$/.test(email)) {
+    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,})+$/.test(email)) {
       newErrors.email = "El correo no tiene un formato válido";
       valid = false;
     }

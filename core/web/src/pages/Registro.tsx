@@ -92,7 +92,7 @@ export default function Registro() {
     } else if (!formData.email.includes("@")) {
       newErrors.email = "El correo debe contener @";
       valid = false;
-    } else if (!/^[a-z0-9_]+@[a-z]+\.[a-z]+(\.[a-z]+)?$/.test(formData.email)) {
+    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,})+$/.test(formData.email)) {
       newErrors.email = "El correo no tiene un formato válido";
       valid = false;
     }
@@ -403,7 +403,7 @@ export default function Registro() {
         </div>
 
         <div className="max-w-3xl mx-auto w-full pt-7">
-          <div className="grid grid-cols-[2fr_5fr] justify-center gap-5 w-full">
+          <div className="grid grid-cols-2justify-center gap-5 w-full">
             <WhiteButton
               text="Cancelar"
               width="100%"

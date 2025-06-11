@@ -14,7 +14,7 @@ pub struct EmailRequest {
 pub async fn send(email_request: web::Json<EmailRequest>) -> impl Responder {
     let resend = Resend::default(); 
 
-    let from = "Acme <onboarding@resend.dev>";
+    let from = "WhisperTrend<noreply@whispertrend.lat>";
     let to: Vec<&str> = email_request.to.iter().map(|s| s.as_str()).collect();
     let subject = &email_request.subject;
     let html = &email_request.html;
