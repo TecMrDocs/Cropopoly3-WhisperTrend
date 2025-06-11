@@ -2,6 +2,13 @@ use crate::{database::Database, schema};
 use diesel::prelude::*;
 use validator::Validate;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::Mutex;
+use once_cell::sync::Lazy;
+
+pub static VERIFIED_USERS: Lazy<Mutex<HashMap<i32, bool>>> = Lazy::new(||
+    Mutex::new(HashMap::new())
+);
 
 #[derive(Debug, Clone, Deserialize, Serialize, Validate)]
 pub struct BusinessData {   
@@ -75,15 +82,18 @@ pub struct User {
     pub locations: String,
     #[validate(length(min = 1, max = 20))]
     pub num_branches: String,
-    // Campos problemáticos removidos temporalmente
 }
 
-// Implementación manual de la función que necesitamos
 impl User {
-    /// Simula la actualización del estado de verificación de email
-    /// TODO: Implementar cuando tengamos los campos email_verified en la DB
     pub async fn update_email_verified_by_id(user_id: i32, verified: bool) -> anyhow::Result<()> {
-        println!("✅ Simulando verificación de email para usuario {}: verified={}", user_id, verified);
+        VERIFIED_USERS.lock().unwrap().insert(user_id, verified);
+        // println!("En memoria: usuario {} → verified = {}", user_id, verified);
         Ok(())
+    }
+
+    pub async fn is_email_verified(user_id: i32) -> anyhow::Result<bool> {
+        let verified = VERIFIED_USERS.lock().unwrap().get(&user_id).copied().unwrap_or(false);
+        // println!("is_email_verified usuario {} → {}", user_id, verified);
+        Ok(verified)
     }
 }
