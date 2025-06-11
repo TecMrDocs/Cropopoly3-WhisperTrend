@@ -5,6 +5,21 @@ The system leverages **web scraping**, **natural language processing (NLP)**, an
 
 Through the integration of multiple data sources and the analysis of public sentiment, keysPROtting provides a modern approach to understanding the influence of digital narratives on financial trends.
 
+## Team members 
+
+| Nombre completo                             | Matrícula     |
+|--------------------------------------------|---------------|
+| Arturo Barrios Mendoza                     | A01168331     |
+| Lucio Arturo Reyes Castillo                | A01378985     |
+| Santiago Villazón Ponce de León            | A01746396     |
+| Mariana Balderrábano Aguilar               | A01749581     |
+| Andrés Cabrera Alvarado                    | A01798681     |
+| Renato García Morán                        | A01799387     |
+| Iván Alexander Ramos Ramírez               | A01750817     |
+| Julio Cesar Vivas Medina                   | A01749879     |
+| Carlos Alberto Zamudio Velázquez           | A01799283     |
+| Sebastián Antonio Almanza                  | A01749694     |
+
 ## Development
 
 ### Prerequisites
