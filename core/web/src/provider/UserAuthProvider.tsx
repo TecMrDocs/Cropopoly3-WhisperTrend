@@ -7,6 +7,7 @@ export default function UserAuthProvider({ children }: { children: React.ReactNo
   const [isLoading, setIsLoading]               = useState(true);
   const [isAuthenticated, setIsAuthenticated]   = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
+  const [isDefault, setIsDefault] = useState(true); // Asumimos que el usuario no ha cambiado su info de empresa
   const navigate = useNavigate();
   const location = useLocation();  // ← get current path
 
@@ -99,6 +100,7 @@ export default function UserAuthProvider({ children }: { children: React.ReactNo
       isAuthenticated,
       isLoading,
       needsVerification,
+      isDefault: true, // Asumiendo que el usuario no ha cambiado su info de empresa
       signOut,
       signIn,
       verifyCode
