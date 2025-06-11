@@ -3,212 +3,219 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 
 interface TasasGraficaDinamicaProps {
   tasasIds: string[];
-  datosTasas: Record<string, {
-    nombre: string;
-    datos: Array<{ fecha: string; tasa: number }>;
-    color: string;
-  }>;
+  datosTasas: any;
 }
 
-const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ 
-  tasasIds, 
-  datosTasas 
-}) => {
-  console.log('🔍 [TasasGraficaDinamica] Props recibidas:', { tasasIds, datosTasas });
+const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, datosTasas }) => {
+  
 
-  // 🔧 PROCESAR Y NORMALIZAR DATOS
-  const datosGraficaNormalizados = useMemo(() => {
-    if (!tasasIds || tasasIds.length === 0 || !datosTasas) {
-      console.warn('⚠️ [TasasGraficaDinamica] No hay tasas seleccionadas o datos');
+  // Procesar datos para la gráfica
+  const datosParaGrafica = useMemo(() => {
+    if (!tasasIds || tasasIds.length === 0) {
       return [];
     }
 
-    // 🎯 RECOLECTAR TODAS LAS FECHAS ÚNICAS Y NORMALIZARLAS
-    const fechasNormalizadas = new Set<string>();
-    const tasasValidas = tasasIds
-      .map(id => ({ id, info: datosTasas[id] }))
-      .filter(item => item.info && item.info.datos && item.info.datos.length > 0);
-
-    console.log('✅ [TasasGraficaDinamica] Tasas válidas encontradas:', tasasValidas.length);
-    console.log('🔍 [DEBUG] Datos de tasas recibidos:', tasasValidas.map(t => ({
-      id: t.id,
-      fechas: t.info.datos.map(d => d.fecha)
-    })));
-
-    // 🔧 CREAR FECHAS LIMPIAS Y CONSISTENTES
-    // En lugar de usar fechas que pueden venir mal formateadas, generamos fechas limpias
-    const fechasLimpias = ['Ene 25', 'Feb 25', 'Mar 25', 'Abr 25', 'May 25', 'Jun 25'];
-
-    console.log('📅 [TasasGraficaDinamica] Usando fechas limpias fijas:', fechasLimpias);
-
-    // 🎯 CREAR ESTRUCTURA DE DATOS PARA LA GRÁFICA
-    const datosFinales = fechasLimpias.map((fecha, index) => {
-      const punto: any = { fecha };
-
-      tasasValidas.forEach(({ id, info }) => {
-        // Si hay datos en esa posición del array, usarlos; si no, usar null
-        const dato = info.datos[index];
-        punto[id] = dato?.tasa || null;
-      });
-
-      return punto;
+    // Obtener todas las fechas únicas
+    const todasFechas = new Set<string>();
+    tasasIds.forEach(tasaId => {
+      const dataTasa = datosTasas[tasaId];
+      if (dataTasa && dataTasa.datos) {
+        dataTasa.datos.forEach((punto: any) => {
+          todasFechas.add(punto.fecha);
+        });
+      }
     });
 
-    console.log('✅ [TasasGraficaDinamica] Datos finales para gráfica:', datosFinales);
-    return datosFinales;
+    const fechasOrdenadas = Array.from(todasFechas).sort();
+
+    // Crear datos combinados
+    return fechasOrdenadas.map(fecha => {
+      const punto: any = { fecha };
+      
+      tasasIds.forEach(tasaId => {
+        const dataTasa = datosTasas[tasaId];
+        if (dataTasa && dataTasa.datos) {
+          const datoFecha = dataTasa.datos.find((d: any) => d.fecha === fecha);
+          punto[tasaId] = datoFecha ? datoFecha.tasa : 0;
+        }
+      });
+      
+      return punto;
+    });
   }, [tasasIds, datosTasas]);
 
-  // 🎨 OBTENER INFORMACIÓN DE LAS TASAS SELECCIONADAS
-  const tasasInfo = useMemo(() => {
-    return tasasIds
-      .map(id => ({ id, ...datosTasas[id] }))
-      .filter(tasa => tasa.nombre && tasa.color);
+  // Generar información de las líneas
+  const lineasInfo = useMemo(() => {
+    return tasasIds.map(tasaId => {
+      const dataTasa = datosTasas[tasaId];
+      if (!dataTasa) {
+        return {
+          id: tasaId,
+          nombre: tasaId,
+          color: '#94a3b8'
+        };
+      }
+
+      // Simplificar el nombre quitando las etiquetas de hashtags
+      let nombreSimplificado = dataTasa.nombre || tasaId;
+      
+      // Quitar referencias específicas a hashtags (todo después del emoji de plataforma)
+      if (nombreSimplificado.includes('📸')) {
+        nombreSimplificado = nombreSimplificado.split('📸')[0].trim() + ' 📸';
+      } else if (nombreSimplificado.includes('🔴')) {
+        nombreSimplificado = nombreSimplificado.split('🔴')[0].trim() + ' 🔴';
+      } else if (nombreSimplificado.includes('🐦')) {
+        nombreSimplificado = nombreSimplificado.split('🐦')[0].trim() + ' 🐦';
+      }
+      
+      // Remover hashtags específicos del nombre
+      nombreSimplificado = nombreSimplificado
+        .replace(/#\w+\s*/g, '') // Quitar hashtags
+        .replace(/\s+/g, ' ') // Normalizar espacios
+        .trim();
+
+      return {
+        id: tasaId,
+        nombre: nombreSimplificado,
+        color: dataTasa.color || '#3b82f6'
+      };
+    });
   }, [tasasIds, datosTasas]);
 
-  // 🚨 CASOS DE ERROR
-  if (!tasasIds || tasasIds.length === 0) {
+  if (datosParaGrafica.length === 0) {
     return (
-      <div className="flex items-center justify-center h-80">
+      <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="text-6xl mb-4">📊</div>
-          <h3 className="text-xl font-bold text-gray-600">Selecciona tasas para visualizar</h3>
-          <p className="text-gray-500">Elige al menos una tasa de interacción o viralidad del menú</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (tasasInfo.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-80">
-        <div className="text-center">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h3 className="text-xl font-bold text-gray-600">No se encontraron datos</h3>
-          <p className="text-gray-500">Las tasas seleccionadas no tienen información disponible</p>
-          <div className="mt-2 text-sm text-gray-400">
-            IDs buscados: {tasasIds.join(', ')}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (datosGraficaNormalizados.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-80">
-        <div className="text-center">
-          <div className="text-6xl mb-4">📈</div>
-          <h3 className="text-xl font-bold text-gray-600">Datos en proceso</h3>
-          <p className="text-gray-500">Los datos de las tasas se están cargando...</p>
+          <h3 className="text-xl font-bold text-gray-600">No hay datos para mostrar</h3>
+          <p className="text-gray-500 mt-2">
+            Selecciona al menos una tasa para visualizar
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full bg-white rounded-2xl p-6">
-      {/* Header dinámico */}
-      <div className="mb-6 text-center">
-        <div className="text-6xl mb-4">📈</div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+    <div className="w-full">
+      {/* Header más compacto */}
+      <div className="text-center mb-6">
+        <div className="text-4xl mb-3">📈</div>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">
           Comparativa de Tasas Seleccionadas
         </h2>
         <div className="flex items-center justify-center gap-2 mb-3">
-          <div className="w-16 h-1 bg-blue-500 rounded-full"></div>
+          <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
           <span className="text-sm text-gray-600 font-medium">
-            Mostrando {tasasInfo.length} tasa(s) • {datosGraficaNormalizados.length} períodos
+            Mostrando {tasasIds.length} tasa(s) • {datosParaGrafica.length} períodos
           </span>
-          <div className="w-16 h-1 bg-blue-500 rounded-full"></div>
+          <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
         </div>
         
-        {/* Indicador simple sin las selecciones */}
-        <div className="text-center mb-4">
-          <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            🔄 Datos en tiempo real
+        {/* Indicador de datos en tiempo real */}
+        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          🔄 Datos en tiempo real
+        </div>
+      </div>
+
+      {/* Gráfica más grande */}
+      <div className="w-full h-[600px] bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart 
+            data={datosParaGrafica} 
+            margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
+          >
+            <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" />
+            <XAxis 
+              dataKey="fecha" 
+              stroke="#64748b"
+              fontSize={12}
+              angle={-45}
+              textAnchor="end"
+              height={80}
+              interval={0}
+            />
+            <YAxis 
+              stroke="#64748b"
+              fontSize={12}
+              domain={[0, 'dataMax']}
+              tickFormatter={(value) => `${value}%`}
+            />
+            <Tooltip 
+              formatter={(value: any, name: string) => {
+                const lineaInfo = lineasInfo.find(l => l.id === name);
+                const nombreDisplay = lineaInfo?.nombre || name;
+                return [`${value}%`, nombreDisplay];
+              }}
+              labelFormatter={(label) => `Período: ${label}`}
+              contentStyle={{
+                backgroundColor: '#f8fafc',
+                border: '2px solid #3b82f6',
+                borderRadius: '12px',
+                fontSize: '14px',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+              }}
+            />
+            <Legend 
+              wrapperStyle={{ paddingTop: '20px' }}
+              formatter={(value, entry) => {
+                const lineaInfo = lineasInfo.find(l => l.id === value);
+                return lineaInfo?.nombre || value;
+              }}
+            />
+            
+            {/* Renderizar líneas dinámicamente */}
+            {lineasInfo.map((linea, index) => (
+              <Line
+                key={linea.id}
+                type="linear"
+                dataKey={linea.id}
+                stroke={linea.color}
+                strokeWidth={3}
+                dot={{ fill: linea.color, strokeWidth: 2, r: 6 }}
+                activeDot={{ r: 8, stroke: linea.color, strokeWidth: 3, fill: '#ffffff' }}
+                connectNulls={false}
+                name={linea.id}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Footer con estadísticas */}
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-lg p-4 shadow border border-gray-100 text-center">
+          <div className="text-2xl mb-2">📊</div>
+          <div className="text-lg font-bold text-blue-600">
+            {tasasIds.length}
           </div>
+          <div className="text-sm text-gray-600">Tasas activas</div>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 shadow border border-gray-100 text-center">
+          <div className="text-2xl mb-2">📅</div>
+          <div className="text-lg font-bold text-green-600">
+            {datosParaGrafica.length}
+          </div>
+          <div className="text-sm text-gray-600">Períodos analizados</div>
+        </div>
+        
+        <div className="bg-white rounded-lg p-4 shadow border border-gray-100 text-center">
+          <div className="text-2xl mb-2">🎯</div>
+          <div className="text-lg font-bold text-purple-600">
+            {lineasInfo.length}
+          </div>
+          <div className="text-sm text-gray-600">Líneas de tendencia</div>
         </div>
       </div>
 
-      {/* Gráfica principal - MÁS GRANDE */}
-      <div className="bg-gray-50 rounded-xl p-4">
-        <div className="h-[500px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart 
-              data={datosGraficaNormalizados} 
-              margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis 
-                dataKey="fecha" 
-                stroke="#64748b"
-                fontSize={12}
-                angle={-45}
-                textAnchor="end"
-                height={80}
-                interval={0}
-                minTickGap={5}
-                tick={{ fontSize: 11 }}
-              />
-              <YAxis 
-                stroke="#64748b"
-                fontSize={12}
-                tickFormatter={(value) => `${value}%`}
-                domain={[0, 100]}
-              />
-              <Tooltip 
-                formatter={(value: any, name: string) => {
-                  const tasa = tasasInfo.find(t => t.id === name);
-                  return [
-                    `${value}%`, 
-                    tasa?.nombre || name
-                  ];
-                }}
-                labelFormatter={(label) => `Período: ${label}`}
-                contentStyle={{
-                  backgroundColor: '#f8fafc',
-                  border: '2px solid #3b82f6',
-                  borderRadius: '12px',
-                  fontSize: '14px',
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
-                }}
-              />
-              <Legend 
-                wrapperStyle={{ paddingTop: '20px' }}
-                formatter={(value) => {
-                  const tasa = tasasInfo.find(t => t.id === value);
-                  return tasa?.nombre || value;
-                }}
-              />
-              
-              {/* Líneas dinámicas para cada tasa seleccionada - MÁS GRUESAS */}
-              {tasasInfo.map((tasa, index) => (
-                <Line
-                  key={tasa.id}
-                  type="linear"
-                  dataKey={tasa.id}
-                  stroke={tasa.color}
-                  strokeWidth={5}
-                  dot={{ fill: tasa.color, strokeWidth: 3, r: 8 }}
-                  activeDot={{ r: 12, stroke: tasa.color, strokeWidth: 4, fill: '#ffffff' }}
-                  connectNulls={false}
-                />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
+      {/* Debug info (solo en desarrollo) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
+          <strong>Debug:</strong> tasasIds: {JSON.stringify(tasasIds)} | 
+          datosTasas keys: {Object.keys(datosTasas).join(', ')}
         </div>
-      </div>
-
-      {/* Footer con información técnica */}
-      <div className="mt-4 text-center">
-        <div className="text-sm text-gray-500">
-          🔍 Debug: {tasasIds.length} tasa(s) seleccionada(s) • 
-          {datosGraficaNormalizados.length} período(s) • 
-          Última actualización: {new Date().toLocaleTimeString('es-ES', { 
-            hour: '2-digit', 
-            minute: '2-digit'
-          })}
-        </div>
-      </div>
+      )}
     </div>
   );
 };
