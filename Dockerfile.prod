@@ -64,7 +64,7 @@ RUN . /etc/environment && cargo build --manifest-path /project/core/zbrowser/com
 RUN . /etc/environment && cargo build --manifest-path /project/core/zbrowser/Cargo.toml --release
 RUN . /etc/environment && cargo build --manifest-path /project/core/server/app/Cargo.toml --release
 
-FROM debian:latest AS runner
+FROM ubuntu:latest AS runner
 
 # Install dependencies including PostgreSQL client libraries
 RUN apt-get update && apt-get install -y \
