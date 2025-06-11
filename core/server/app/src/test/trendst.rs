@@ -3,7 +3,7 @@
 // Tester: Santiago Villazón Ponce de León
 // Fecha: 05-06-2025
 
-// Este módulo contiene pruebas unitarias para el funcionamiento de las rutas en trendsrs
+// Este módulo contiene pruebas unitarias para el funcionamiento de las rutas en trends.rs
 
 use crate::scraping::notices::Details;
 use crate::scraping::trends::TrendsScraper;
