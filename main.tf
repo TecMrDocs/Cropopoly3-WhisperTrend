@@ -306,7 +306,9 @@ resource "aws_launch_template" "ksp_template" {
       -e AWS_REGION=${var.aws_region} \
       -e DYNAMODB_TABLE_PREFIX=${var.dynamodb_table_prefix} \
       -e JWT_SECRET=${var.jwt_secret} \
-      --name ksp-app zamcv/ksp:v4
+      -e RESEND_API_KEY=${var.resend_api_key} \
+      -e EMAIL_FROM=${var.email_from} \
+      --name ksp-app zamcv/ksp:v5
     
     EOF
   )

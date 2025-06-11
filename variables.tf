@@ -166,3 +166,13 @@ variable "jwt_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "resend_api_key" {
+  description = "Resend API key"
+  type        = string
+}
+
+variable "email_from" {
+  description = "Email from"
+  type        = string
+}
