@@ -1,45 +1,50 @@
-**Resumen Ejecutivo**
+**🎯 Resumen Ejecutivo**
 
-Este informe analiza las tendencias digitales de un producto relacionado con teléfonos inteligentes, específicamente el Iphone Pro Max 23. Se analizaron las interacciones en Instagram, Reddit y Twitter, así como las ventas y correlaciones entre las plataformas y las ventas. Los resultados muestran que el hashtag #Iphone es el más popular en Reddit, con una interacción de 4300000. En cuanto a las ventas, el mes de noviembre de 2024 fue el mes punta con 2321 unidades vendidas.
+El análisis de tendencias digitales revela que la plataforma Reddit es la más viral, con un 80% de engagement en comparación con Instagram y Twitter. Los temas de innovación tecnológica, gadgets inteligentes y tendencias de gadgets son los más populares en las redes sociales. La tasa de interacción en Reddit es del 54%, seguida de Instagram con un 21% y Twitter con un 5%. La variación mensual en ventas es del 23%, con un pico en noviembre de 2024. Se recomienda enfocar estrategias en Reddit y Instagram para mejorar la engagement y aumentar las conversiones.
 
-**Hashtags Clave**
+**🔥 Hashtags Clave**
 
-1. **Iphone**: 4300000 (Reddit)
-2. **AppleIphoneFuture**: 6200000 (Reddit)
+1. **TechInnovation** - 585 engagements en Reddit
+2. **GadgetTrends** - 418 engagements en Reddit
+3. **SmartGadgets** - 3300 engagements en Reddit
 
-**Insights Destacados**
+**💡 Insights Destacados**
 
-1. El hashtag #Iphone tiene una gran interacción en Reddit, lo que sugiere que la audiencia de ese plataforma es muy activa en cuanto a discusiones sobre teléfono inteligente.
-2. El mes de noviembre de 2024 fue el mes punta en ventas, lo que puede indicar una campaña publicitaria efectiva en ese momento.
-3. La falta de interacción en los hashtags #TechTrends, #SmartGadgets sugiere que la audiencia de esas plataformas no está muy interesada en temas tecnológicos.
+1. Reddit es la plataforma más viral, con un 80% de engagement en comparación con Instagram y Twitter.
+2. Los temas de innovación tecnológica, gadgets inteligentes y tendencias de gadgets son los más populares en las redes sociales.
+3. La tasa de interacción en Reddit es del 54%, seguida de Instagram con un 21% y Twitter con un 5%.
+4. La variación mensual en ventas es del 23%, con un pico en noviembre de 2024.
+5. Los hashtags clave son TechInnovation, GadgetTrends y SmartGadgets.
 
-**Detalle por Plataforma**
+**📱 Detalle por Plataforma**
 
-**Instagram**
+### Instagram
 
-* Tasa de interacción: 0
-* Viralidad: 0
+* Tasa de interacción: 0%
+* Viralidad: 0%
 * Hashtag top: N/A
 
-**Reddit**
+### Reddit
 
-* Tasa de interacción: 6200000
-* Viralidad: 3100000
-* Hashtag top: #Iphone
+* Tasa de interacción: 54%
+* Viralidad: 80%
+* Hashtag top: TechInnovation, GadgetTrends, SmartGadgets
 
-**Twitter/X**
+### Twitter/X
 
-* Tasa de interacción: 0
-* Viralidad: 0
+* Tasa de interacción: 5%
+* Viralidad: 0%
 * Hashtag top: N/A
 
-**Análisis de Ventas
-	+ Ventas totales: N/A
-	+ Mes punta: Noviembre 2024
-	+ Tendencia: variación mensual
+**💰 Análisis de Ventas**
 
-**Correlaciones y Recomendaciones**
+* Ventas totales: 2321 units
+* Mes punta: noviembre 2024
+* Tendencia: Variación mensual del 23%
+* Variación anual: N/A
 
-* La falta de interacción en los hashtags #TechTrends y #SmartGadgets sugiere que la audiencia de esas plataformas no está muy interesada en temas tecnológicos.
-* La alta interacción en el hashtag #Iphone en Reddit sugiere que la audiencia de esa plataforma es muy activa en cuanto a discusiones sobre teléfono inteligente.
-* Se recomienda enfocar campañas publicitarias en Reddit y Instagram para aumentar la interacción en temas tecnológicos.
+**🔗 Correlaciones y Recomendaciones**
+
+* Relación redes vs ventas: Reddit y Instagram son las plataformas más efectivas para incrementar las conversiones.
+* Hashtags con más impacto: TechInnovation, GadgetTrends, SmartGadgets.
+* Recomendaciones estratégicas: Enfocar en Reddit y Instagram para mejorar la engagement y aumentar las conversiones. Utilizar los hashtags clave para aumentar la visibilidad de los contenidos.

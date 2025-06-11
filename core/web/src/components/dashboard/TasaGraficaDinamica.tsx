@@ -8,14 +8,35 @@ interface TasasGraficaDinamicaProps {
 
 const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, datosTasas }) => {
   
+  // 🔧 FUNCIÓN AUXILIAR: Ordenar fechas correctamente
+  const ordenarFechas = (fechas: string[]): string[] => {
+    const ordenMeses: Record<string, number> = {
+      'Ene': 1, 'Feb': 2, 'Mar': 3, 'Abr': 4, 'May': 5, 'Jun': 6,
+      'Jul': 7, 'Ago': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dic': 12
+    };
 
-  // Procesar datos para la gráfica
+    return fechas.sort((a, b) => {
+      // Extraer mes de cada fecha (formato: "Ene 25", "Feb 25", etc.)
+      const mesA = a.split(' ')[0];
+      const mesB = b.split(' ')[0];
+      
+      const ordenA = ordenMeses[mesA] || 999;
+      const ordenB = ordenMeses[mesB] || 999;
+      
+      return ordenA - ordenB;
+    });
+  };
+
+  // Procesar datos para la gráfica CON ORDENAMIENTO CORRECTO
   const datosParaGrafica = useMemo(() => {
     if (!tasasIds || tasasIds.length === 0) {
+      console.log('⚠️ [TasasGrafica] No hay tasas seleccionadas');
       return [];
     }
 
-    // Obtener todas las fechas únicas
+    console.log('🔧 [TasasGrafica] Procesando tasas:', tasasIds);
+
+    // 🎯 PASO 1: Obtener todas las fechas únicas
     const todasFechas = new Set<string>();
     tasasIds.forEach(tasaId => {
       const dataTasa = datosTasas[tasaId];
@@ -26,22 +47,29 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
       }
     });
 
-    const fechasOrdenadas = Array.from(todasFechas).sort();
+    // 🔧 PASO 2: ORDENAR FECHAS CORRECTAMENTE
+    const fechasOrdenadas = ordenarFechas(Array.from(todasFechas));
+    console.log('📅 [TasasGrafica] Fechas ordenadas:', fechasOrdenadas);
 
-    // Crear datos combinados
-    return fechasOrdenadas.map(fecha => {
-      const punto: any = { fecha };
+    // 🎯 PASO 3: Crear datos combinados con fechas ordenadas
+    const datosCombinados = fechasOrdenadas.map((fecha, index) => {
+      const punto: any = { fecha, orden: index }; // Agregar orden para debugging
       
       tasasIds.forEach(tasaId => {
         const dataTasa = datosTasas[tasaId];
         if (dataTasa && dataTasa.datos) {
           const datoFecha = dataTasa.datos.find((d: any) => d.fecha === fecha);
           punto[tasaId] = datoFecha ? datoFecha.tasa : 0;
+        } else {
+          punto[tasaId] = 0;
         }
       });
       
       return punto;
     });
+
+    console.log('📊 [TasasGrafica] Datos combinados ordenados:', datosCombinados);
+    return datosCombinados;
   }, [tasasIds, datosTasas]);
 
   // Generar información de las líneas
@@ -112,10 +140,7 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
           <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
         </div>
         
-        {/* Indicador de datos en tiempo real */}
-        <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          🔄 Datos en tiempo real
-        </div>
+
       </div>
 
       {/* Gráfica más grande */}
@@ -134,6 +159,7 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
               textAnchor="end"
               height={80}
               interval={0}
+              domain={['dataMin', 'dataMax']}
             />
             <YAxis 
               stroke="#64748b"
@@ -182,42 +208,21 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
         </ResponsiveContainer>
       </div>
 
-      {/* Footer con estadísticas 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-lg p-4 shadow border border-gray-100 text-center">
-          <div className="text-2xl mb-2">📊</div>
-          <div className="text-lg font-bold text-blue-600">
-            {tasasIds.length}
+      {/* Panel de debugging (solo en desarrollo) 
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-4 p-4 bg-gray-100 rounded-lg">
+          <h4 className="text-sm font-bold text-gray-700 mb-2">🔧 Debug Info:</h4>
+          <div className="text-xs text-gray-600 space-y-1">
+            <div><strong>Fechas procesadas:</strong> {datosParaGrafica.map(d => d.fecha).join(' → ')}</div>
+            <div><strong>Tasas seleccionadas:</strong> {tasasIds.length}</div>
+            <div><strong>Puntos de datos:</strong> {datosParaGrafica.length}</div>
+            <div><strong>Orden correcto:</strong> {datosParaGrafica.every((item, index) => 
+              index === 0 || item.orden > datosParaGrafica[index - 1].orden
+            ) ? '✅ Sí' : '❌ No'}</div>
           </div>
-          <div className="text-sm text-gray-600">Tasas activas</div>
         </div>
-        
-        <div className="bg-white rounded-lg p-4 shadow border border-gray-100 text-center">
-          <div className="text-2xl mb-2">📅</div>
-          <div className="text-lg font-bold text-green-600">
-            {datosParaGrafica.length}
-          </div>
-          <div className="text-sm text-gray-600">Períodos analizados</div>
-        </div>
-        
-        <div className="bg-white rounded-lg p-4 shadow border border-gray-100 text-center">
-          <div className="text-2xl mb-2">🎯</div>
-          <div className="text-lg font-bold text-purple-600">
-            {lineasInfo.length}
-          </div>
-          <div className="text-sm text-gray-600">Líneas de tendencia</div>
-        </div>
-      </div>
-
-      */}
-
-     
-    {/* ✅ COMENTADO - NO SE MOSTRARÁN LOS IDS LARGOS
-    <div className="text-xs font-mono text-gray-500 bg-white p-2 rounded">
-      {JSON.stringify(tasasIds, null, 2)}
-    </div>
-    */}
-    
+      )}
+        */}
     </div>
   );
 };

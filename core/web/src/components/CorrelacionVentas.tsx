@@ -526,7 +526,7 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({
                   wrapperStyle={{ paddingTop: '20px' }}
                   formatter={(value, entry) => {
                     const nombres: Record<string, string> = {
-                      correlacion: '🎓 Coeficiente de Pearson',
+                      correlacion: 'Coeficiente de Pearson',
                       instagram: '📸 Instagram',
                       reddit: '🔴 Reddit',
                       twitter: '🐦 Twitter'

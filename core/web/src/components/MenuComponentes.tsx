@@ -94,7 +94,7 @@ const combinarDatosInteraccion = () => {
      )
    );
 
-   return todasFechas.map((fecha) => {
+   const datosCombinados = todasFechas.map((fecha) => {
      const item: any = { fecha };
      seleccionadas.forEach((id) => {
        const hashtag = hashtagsDinamicos.find((h:any) => h.id === id);
@@ -102,6 +102,18 @@ const combinarDatosInteraccion = () => {
        item[id] = dato ? dato.tasa : 0;
      });
      return item;
+   });
+
+   // ✅ AGREGAR ESTA PARTE AL FINAL
+   const ordenMeses: Record<string, number> = {
+     'Ene': 1, 'Feb': 2, 'Mar': 3, 'Abr': 4, 'May': 5, 'Jun': 6,
+     'Jul': 7, 'Ago': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dic': 12
+   };
+
+   return datosCombinados.sort((a, b) => {
+     const mesA = a.fecha.split(' ')[0];
+     const mesB = b.fecha.split(' ')[0];
+     return (ordenMeses[mesA] || 0) - (ordenMeses[mesB] || 0);
    });
  };
 
