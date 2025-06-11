@@ -380,19 +380,15 @@ export default function Dashboard() {
       return <MensajeInicial />;
     }
 
-    if (hashtagSeleccionado === 'Ventas') {
-      const datosVentas = datosDelSistema?.sales || [];
-      const resourceName = datosDelSistema?.resource_name || 'Producto';
-
-      console.log('🔍 [DEBUG] datosDelSistema completo:', datosDelSistema);
-      console.log('🔍 [DEBUG] resource_name directo:', datosDelSistema?.resource_name);
-      console.log('🔍 [DEBUG] analysisData original:', analysisData);
-
-      console.log('📊 [Dashboard] Pasando datos de ventas:', datosVentas);
-      console.log('🏷️ [Dashboard] Nombre del resource:', resourceName);
-
-      return <VentasCalc datosVentas={datosVentas} resourceName={resourceName} />;
-    }
+if (hashtagSeleccionado === 'Ventas') {
+  // 🚀 USAR DATOS DIRECTOS DEL ANALYSISDATA
+  const datosVentas = analysisData?.sales || [];
+  const resourceName = analysisData?.resource_name || 'Voice en Honewwheel';
+  
+  console.log('📊 [Dashboard] Pasando datos de ventas REALES:', datosVentas);
+  
+  return <VentasCalc datosVentas={datosVentas} resourceName={resourceName} />;
+}
 
     // 🆕 NUEVO: Mostrar visualización de noticias
     if (hashtagSeleccionado.startsWith('noticia_')) {
