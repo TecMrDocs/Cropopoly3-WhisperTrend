@@ -8,3 +8,4 @@ pub mod admin;
 pub mod flow;
 pub mod email;
 pub mod auth_mfa;
+pub mod analysis;

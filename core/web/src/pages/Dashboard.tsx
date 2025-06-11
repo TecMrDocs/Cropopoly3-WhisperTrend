@@ -11,6 +11,7 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { crearConDatosPrueba, crearConDatosContext } from '../calculus/DescargaDatos';
 import { procesarParaDashboard } from '../calculus/ConsolidacionDatos';
 import { usePrompt } from "../contexts/PromptContext";
+import TestPromptContext from '../components/TestPromptContext';
 
 // Objeto de mapeo que convierte nombres legibles de contenido a identificadores únicos del sistema
 const mapeoTipos = {
@@ -586,6 +587,12 @@ if (hashtagSeleccionado === 'Ventas') {
             <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-6 border border-white/40 shadow-inner">
               <InterpretacionDashboard analysisData={analysisData} />
             </div>
+
+            {process.env.NODE_ENV === 'development' && (
+              <div className="container mx-auto px-4 py-4">
+                <TestPromptContext />
+              </div>
+            )}
           </div>
         </div>
 
