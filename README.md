@@ -1,5 +1,5 @@
-# keysPROtting
-**keysPROtting** is an intelligent system developed as part of the NDS initiative. Its goal is to correlate fluctuations in the stock market with sentiment derived from online news outlets and social media platforms such as X, Instagram, and Reddit.
+# WhisperTrend
+**WhisperTrend** is an intelligent system developed as part of the NDS initiative. Its goal is to correlate fluctuations in the stock market with sentiment derived from online news outlets and social media platforms such as X, Instagram, and Reddit.
 
 The system leverages **web scraping**, **natural language processing (NLP)**, and **machine learning (ML)** techniques to identify relevant patterns, uncover insights, and help anticipate market movements based on real-time media activity. These insights are designed to support financial analysts, researchers, and developers working on automated investment strategies.
 
