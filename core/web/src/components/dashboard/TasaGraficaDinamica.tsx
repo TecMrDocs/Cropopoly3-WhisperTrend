@@ -138,7 +138,7 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
             <YAxis 
               stroke="#64748b"
               fontSize={12}
-              domain={[0, 'dataMax']}
+              domain={[0, 100]}
               tickFormatter={(value) => `${value}%`}
             />
             <Tooltip 
@@ -182,7 +182,7 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
         </ResponsiveContainer>
       </div>
 
-      {/* Footer con estadísticas */}
+      {/* Footer con estadísticas 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg p-4 shadow border border-gray-100 text-center">
           <div className="text-2xl mb-2">📊</div>
@@ -209,13 +209,15 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
         </div>
       </div>
 
-      {/* Debug info (solo en desarrollo) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
-          <strong>Debug:</strong> tasasIds: {JSON.stringify(tasasIds)} | 
-          datosTasas keys: {Object.keys(datosTasas).join(', ')}
-        </div>
-      )}
+      */}
+
+     
+    {/* ✅ COMENTADO - NO SE MOSTRARÁN LOS IDS LARGOS
+    <div className="text-xs font-mono text-gray-500 bg-white p-2 rounded">
+      {JSON.stringify(tasasIds, null, 2)}
+    </div>
+    */}
+    
     </div>
   );
 };

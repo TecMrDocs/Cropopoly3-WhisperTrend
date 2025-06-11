@@ -265,8 +265,6 @@ const MenuComponentes: React.FC<MenuComponentesProps> = ({
 
   // ✅ FUNCIÓN PARA OBTENER TASAS POR HASHTAG - AHORA DENTRO DEL COMPONENTE
   const obtenerTasasPorHashtag = (hashtagId: string): string[] => {
-    console.log("🔍 MenuComponentes: Obteniendo tasas DINÁMICAMENTE para hashtag:", hashtagId);
-    
     if (!datosDelSistema) {
       console.warn("❌ No hay datos del sistema disponibles");
       return [];
@@ -641,7 +639,7 @@ const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 
                             )}
                           </div>
                           <span className="text-gray-800 font-medium text-sm">
-                            {tasa.nombre} - Correlación: {tasa.correlacion}%
+                            {tasa.nombre}
                           </span>
                         </label>
                       ))}
