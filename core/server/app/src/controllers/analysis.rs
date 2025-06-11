@@ -3,7 +3,7 @@ use tracing::{info, warn};
 use std::fs;
 use rig::{
     completion::Prompt,
-    providers::groq::Client,
+    providers,
 };
 use serde::{Deserialize, Serialize};
 
@@ -31,7 +31,6 @@ pub struct PromptContextData {
 }
 
 // 🆕 CONSTANTES DE RUTAS CORREGIDAS
-const DATA_DIR: &str = "src/data";
 const NEW_ANALYSIS_PATH: &str = "src/data/new_analysis.md";
 const OLD_ANALYSIS_PATH: &str = "src/data/old_analysis.md";
 const DUMMY_ANALYSIS_PATH: &str = "src/data/response.md";
@@ -61,55 +60,25 @@ pub async fn handle_analysis(body: web::Json<AnalysisRequest>) -> impl Responder
     // Crear el prompt mejorado basado en la estructura del JSON
     let mut prompt = String::from(
         "Eres un analista de datos senior especializado en análisis de tendencias digitales y marketing.\n\n\
-        CONTEXTO: Tienes acceso a datos completos de un producto/servicio que incluye:\n\
-        - Datos de redes sociales (Instagram, Reddit, Twitter) con métricas calculadas\n\
-        - Datos de ventas por períodos\n\
-        - Hashtags relevantes y su rendimiento\n\
-        - Metadatos de noticias relacionadas\n\n\
-        ESTRUCTURA DE RESPUESTA REQUERIDA:\n\
-        # 📊 ANÁLISIS DE TENDENCIAS DIGITALES\n\n\
-        ## 🎯 RESUMEN EJECUTIVO\n\
-        [Resumen de 100-150 palabras con los hallazgos más importantes]\n\n\
-        ## 📱 ANÁLISIS DE REDES SOCIALES\n\
-        ### Instagram\n\
-        - Tasa de interacción promedio: [valor]%\n\
-        - Tasa de viralidad promedio: [valor]%\n\
-        - Hashtag mejor performante: [nombre]\n\n\
-        ### Reddit\n\
-        - Tasa de interacción promedio: [valor]%\n\
-        - Tasa de viralidad promedio: [valor]%\n\
-        - Hashtag mejor performante: [nombre]\n\n\
-        ### Twitter/X\n\
-        - Tasa de interacción promedio: [valor]%\n\
-        - Tasa de viralidad promedio: [valor]%\n\
-        - Hashtag mejor performante: [nombre]\n\n\
-        ## 💰 ANÁLISIS DE VENTAS\n\
-        - Ventas totales período: [número] unidades\n\
-        - Mes con mayores ventas: [mes/año] ([número] unidades)\n\
-        - Tendencia general: [creciente/decreciente/estable]\n\
-        - Variación mensual promedio: [porcentaje]%\n\n\
-        ## 🔗 CORRELACIONES CLAVE\n\
-        - Correlación redes sociales vs ventas: [análisis]\n\
-        - Hashtags con mayor impacto en ventas: [lista]\n\
-        - Períodos de alta actividad digital y ventas: [análisis]\n\n\
-        ## 📈 RECOMENDACIONES ESTRATÉGICAS\n\
-        1. **Optimización de hashtags**: [recomendación específica]\n\
-        2. **Estrategia de contenido**: [recomendación específica]\n\
-        3. **Timing de campañas**: [recomendación específica]\n\
-        4. **Enfoque de plataformas**: [recomendación específica]\n\
-        5. **Métricas a monitorear**: [recomendación específica]\n\n\
-        ## 📊 DATOS CLAVE UTILIZADOS\n\
-        - Producto/Servicio: {resource_name}\n\
-        - Total de hashtags analizados: {total_hashtags}\n\
-        - Período de análisis: {date_range}\n\
-        - Fuente de datos: {data_source}\n\n\
-        INSTRUCCIONES:\n\
-        - Usa ÚNICAMENTE los datos proporcionados\n\
-        - Incluye números específicos y porcentajes exactos\n\
-        - Mantén un tono profesional pero accesible\n\
-        - Máximo 1000 palabras\n\
-        - Si algún dato está vacío o es 0, omíte esa información'\n\n\
-        DATOS COMPLETOS A ANALIZAR:\n"
+         # 📊 Análisis de Tendencias Digitales\n\n\
+         ## 🎯 Resumen Ejecutivo\n\
+         - Proporciona un resumen de 100–150 palabras con los hallazgos clave.\n\n\
+         ## 🔥 Hashtags Clave\n\
+         - Indica los 3 hashtags con mejor desempeño y sus métricas principales.\n\n\
+         ## 💡 Insights Destacados\n\
+         - Extrae hasta 5 insights o patrones relevantes basados en los datos.\n\n\
+         ## 📱 Detalle por Plataforma\n\
+         ### Instagram\n\
+         - Tasa de interacción, viralidad y hashtag top.\n\n\
+         ### Reddit\n\
+         - Tasa de interacción, viralidad y hashtag top.\n\n\
+         ### Twitter/X\n\
+         - Tasa de interacción, viralidad y hashtag top.\n\n\
+         ## 💰 Análisis de Ventas\n\
+         - Ventas totales, mes punta, tendencia y variación mensual.\n\n\
+         ## 🔗 Correlaciones y Recomendaciones\n\
+         - Relación redes vs ventas, hashtags con más impacto y recomendaciones estratégicas.\n\n\
+         ## 📊 Datos Originales Proporcionados (JSON)\n\n"
     );
 
     // Agregar los datos del análisis al prompt
@@ -119,7 +88,8 @@ pub async fn handle_analysis(body: web::Json<AnalysisRequest>) -> impl Responder
     prompt.push_str(&analysis_data_str);
 
     // Inicializar cliente de IA
-    let client = Client::from_env();    
+    let client = providers::groq::Client::from_env();
+
     let agent = client
         .agent(body.model.as_str())
         .preamble("Eres un analista de datos senior: proporciona insights cuantitativos precisos, identifica patrones clave y sugiere estrategias basadas exclusivamente en los datos proporcionados.")

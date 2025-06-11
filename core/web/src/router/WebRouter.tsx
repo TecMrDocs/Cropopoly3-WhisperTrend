@@ -67,7 +67,7 @@ export default function WebRouter(){
       {/* Rutas de autenticación */}
       
       {/* Rutas protegidas - requieren autenticación */}
-      <Route path="/dashboard" element={<Unprotected>{loadLayout(ProfileLayout, Dashboard)}</Unprotected>} />
+      <Route path="/dashboard" element={<Protected>{loadLayout(ProfileLayout, Dashboard)}</Protected>} />
       <Route path="/acercaDe" element={<Protected>{loadLayout(ProfileLayout, AcercaDe)}</Protected>} />
       <Route path="/editarProducto" element={<Protected>{loadLayout(ProfileLayout, EditarProducto)}</Protected>} />
       <Route path="/editarDatos" element={<Protected>{loadLayout(ProfileLayout, EditarDatos)}</Protected>} />

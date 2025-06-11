@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+import { get, post } from "../methods";
 
 export interface AnalysisRequest {
   model: string;
@@ -12,76 +12,20 @@ export interface AnalysisResponse {
 
 const analysisApi = {
   analysis: {
-    // ENDPOINT DE PRUEBA
-    testPromptContext: async (data: any): Promise<any> => {
-      console.log('🧪 [API] Enviando datos de prueba:', data);
-      
-      const response = await fetch(`${BASE_URL}/analysis/test-prompt-context`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+    testPromptContext: (data: any): Promise<any> =>
+      post("analysis/test-prompt-context", data, false),
 
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
+    generateNew: (data: AnalysisRequest): Promise<AnalysisResponse> =>
+      post("analysis", data, true),
 
-      const result = await response.json();
-      console.log('✅ [API] Respuesta del servidor:', result);
-      return result;
-    },
+    getLatest: (): Promise<string> =>
+      get("analysis/latest", true),
 
-    // Generar nuevo análisis con datos del contexto
-    generateNew: async (data: AnalysisRequest): Promise<AnalysisResponse> => {
-      const response = await fetch(`${BASE_URL}/analysis`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+    getPrevious: (): Promise<string> =>
+      get("analysis/previous", true),
 
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      return response.json();
-    },
-
-    // Obtener último análisis
-    getLatest: async (): Promise<string> => {
-      const response = await fetch(`${BASE_URL}/analysis/latest`);
-      
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      return response.text();
-    },
-
-    // Obtener análisis anterior
-    getPrevious: async (): Promise<string> => {
-      const response = await fetch(`${BASE_URL}/analysis/previous`);
-      
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      return response.text();
-    },
-
-    // Mantener el método dummy existente
-    getDummy: async (): Promise<string> => {
-      const response = await fetch(`${BASE_URL}/analysis/dummy`);
-      
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      return response.text();
-    },
+    getDummy: (): Promise<string> =>
+      get("analysis/dummy", true),
   },
 };
 

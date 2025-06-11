@@ -26,7 +26,7 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
       console.log('🔍 Enviando datos al backend:', analysisData);
       
       const response = await analysisApi.analysis.generateNew({
-        model: "llama-3.1-70b-versatile",
+        model: "llama3-70b-8192",
         analysis_data: analysisData
       });
       

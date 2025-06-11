@@ -588,11 +588,11 @@ if (hashtagSeleccionado === 'Ventas') {
               <InterpretacionDashboard analysisData={analysisData} />
             </div>
 
-            {process.env.NODE_ENV === 'development' && (
+            {/* {process.env.NODE_ENV === 'development' && (
               <div className="container mx-auto px-4 py-4">
                 <TestPromptContext />
               </div>
-            )}
+            )} */}
           </div>
         </div>
 
