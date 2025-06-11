@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isDefault] = useState(false);
 
   // 1) Estado para 2FA
   const [needsVerification, setNeedsVerification] = useState(false);
@@ -86,6 +87,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       isAuthenticated,
       isLoading,
       needsVerification,
+      isDefault,
       signOut,
       signIn,
       verifyCode
