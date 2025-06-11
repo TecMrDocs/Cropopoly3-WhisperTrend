@@ -615,7 +615,10 @@ async fn generate_prompt_from_flow(
         .take(5)
         .collect();
 
-    let sentence = format!("({})", words.join(" OR "));
+    let sentence = format!(
+            "({})",
+            words.iter().map(|w| w.replace("-", "")).collect::<Vec<_>>().join(" OR ")
+        );
 
     let hashtags_block = parts.get(1).map(|s| s.trim()).unwrap_or("");
     let re = Regex::new(r"#\w+").unwrap();
