@@ -546,7 +546,7 @@ const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-green-50 to-emerald-50">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h2 className="text-xl font-bold text-navy-900">🚀 Hashtags Dinámicos</h2>
+                <h2 className="text-xl font-bold text-navy-900">🚀 Hashtags</h2>
               </div>
             </div>
             <div className="mt-3 space-y-4">
@@ -562,7 +562,7 @@ const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 
                       onClick={() => handleItemClick(hashtag.id)}
                     ></div>
                     <span className={`text-gray-800 ${isActive(hashtag.id) ? 'font-bold' : 'font-medium'}`}>
-                      {hashtag.nombre} - Correlación: {hashtag.correlacion}%
+                      {hashtag.nombre} - Relación con la búsqueda: {hashtag.correlacion}%
                     </span>
                   </div>
                   <button
