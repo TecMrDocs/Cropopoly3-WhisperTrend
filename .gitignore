@@ -18,3 +18,7 @@ rules.json
 package-lock.json
 cookies.json
 x_cookies.json
+
+# Ignore all markdown files in the data directory
+/core/server/app/src/data/new_analysis.md
+/core/server/app/src/data/old_analysis.md

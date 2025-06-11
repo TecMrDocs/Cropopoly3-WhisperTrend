@@ -1,0 +1,341 @@
+{
+    "calculated_results": {
+        "data_source": "backend_calculations",
+        "formulas_used": [
+            "insta_ratio()",
+            "insta_viral_rate()",
+            "reddit_hourly_ratio()",
+            "reddit_viral_rate()",
+            "x_interaction_rate()",
+            "x_viral_rate()"
+        ],
+        "hashtags": [
+            {
+                "instagram_interaction": 0,
+                "instagram_virality": 0,
+                "name": "Pressreleases",
+                "reddit_interaction": 0,
+                "reddit_virality": 0,
+                "twitter_interaction": 0,
+                "twitter_virality": 0
+            },
+            {
+                "instagram_interaction": 0,
+                "instagram_virality": 0,
+                "name": "Ltd.",
+                "reddit_interaction": 0,
+                "reddit_virality": 0,
+                "twitter_interaction": 0,
+                "twitter_virality": 0
+            },
+            {
+                "instagram_interaction": 0,
+                "instagram_virality": 0,
+                "name": "Pixelworks",
+                "reddit_interaction": 0,
+                "reddit_virality": 0,
+                "twitter_interaction": 0,
+                "twitter_virality": 0
+            },
+            {
+                "instagram_interaction": 0,
+                "instagram_virality": 0,
+                "name": "TechForGood",
+                "reddit_interaction": 0,
+                "reddit_virality": 0,
+                "twitter_interaction": 0,
+                "twitter_virality": 0
+            },
+            {
+                "instagram_interaction": 0,
+                "instagram_virality": 0,
+                "name": "InnovationNation",
+                "reddit_interaction": 0,
+                "reddit_virality": 0,
+                "twitter_interaction": 0,
+                "twitter_virality": 0
+            },
+            {
+                "instagram_interaction": 0,
+                "instagram_virality": 0,
+                "name": "QualityMatters",
+                "reddit_interaction": 0,
+                "reddit_virality": 0,
+                "twitter_interaction": 0,
+                "twitter_virality": 0
+            }
+        ],
+        "total_hashtags": 6
+    },
+    "hashtags": [
+        "Pressreleases",
+        "Ltd.",
+        "Pixelworks",
+        "TechForGood",
+        "InnovationNation",
+        "QualityMatters"
+    ],
+    "processing": {
+        "backend_calculations": true,
+        "message": "Datos procesados con fórmulas backend y guardados en DynamoDB",
+        "saved_hashtags": [],
+        "scraped_data_saved": true,
+        "status": "✅ CALCULATED",
+        "total_saved": 0
+    },
+    "resource_name": "test",
+    "sales": [
+        {
+            "id": 109,
+            "month": 7,
+            "resource_id": 23,
+            "units_sold": 1,
+            "year": 2024
+        },
+        {
+            "id": 110,
+            "month": 1,
+            "resource_id": 23,
+            "units_sold": 3,
+            "year": 2025
+        },
+        {
+            "id": 111,
+            "month": 2,
+            "resource_id": 23,
+            "units_sold": 3,
+            "year": 2025
+        },
+        {
+            "id": 112,
+            "month": 3,
+            "resource_id": 23,
+            "units_sold": 3,
+            "year": 2025
+        },
+        {
+            "id": 113,
+            "month": 4,
+            "resource_id": 23,
+            "units_sold": 3,
+            "year": 2025
+        },
+        {
+            "id": 114,
+            "month": 5,
+            "resource_id": 23,
+            "units_sold": 3,
+            "year": 2025
+        },
+        {
+            "id": 115,
+            "month": 6,
+            "resource_id": 23,
+            "units_sold": 100000,
+            "year": 2025
+        },
+        {
+            "id": 116,
+            "month": 10,
+            "resource_id": 23,
+            "units_sold": 32,
+            "year": 2024
+        },
+        {
+            "id": 117,
+            "month": 8,
+            "resource_id": 23,
+            "units_sold": 2,
+            "year": 2024
+        },
+        {
+            "id": 118,
+            "month": 9,
+            "resource_id": 23,
+            "units_sold": 2,
+            "year": 2024
+        },
+        {
+            "id": 119,
+            "month": 11,
+            "resource_id": 23,
+            "units_sold": 3,
+            "year": 2024
+        },
+        {
+            "id": 120,
+            "month": 12,
+            "resource_id": 23,
+            "units_sold": 3,
+            "year": 2024
+        },
+        {
+            "id": 121,
+            "month": 7,
+            "resource_id": 23,
+            "units_sold": 10000000,
+            "year": 2024
+        },
+        {
+            "id": 122,
+            "month": 1,
+            "resource_id": 23,
+            "units_sold": 0,
+            "year": 2025
+        },
+        {
+            "id": 123,
+            "month": 2,
+            "resource_id": 23,
+            "units_sold": 0,
+            "year": 2025
+        },
+        {
+            "id": 124,
+            "month": 3,
+            "resource_id": 23,
+            "units_sold": 133492342,
+            "year": 2025
+        },
+        {
+            "id": 125,
+            "month": 4,
+            "resource_id": 23,
+            "units_sold": 3242342,
+            "year": 2025
+        },
+        {
+            "id": 126,
+            "month": 5,
+            "resource_id": 23,
+            "units_sold": 3242423,
+            "year": 2025
+        },
+        {
+            "id": 127,
+            "month": 6,
+            "resource_id": 23,
+            "units_sold": 100000,
+            "year": 2025
+        },
+        {
+            "id": 128,
+            "month": 8,
+            "resource_id": 23,
+            "units_sold": 0,
+            "year": 2024
+        },
+        {
+            "id": 129,
+            "month": 11,
+            "resource_id": 23,
+            "units_sold": 0,
+            "year": 2024
+        },
+        {
+            "id": 130,
+            "month": 9,
+            "resource_id": 23,
+            "units_sold": 0,
+            "year": 2024
+        },
+        {
+            "id": 131,
+            "month": 10,
+            "resource_id": 23,
+            "units_sold": 0,
+            "year": 2024
+        },
+        {
+            "id": 132,
+            "month": 12,
+            "resource_id": 23,
+            "units_sold": 0,
+            "year": 2024
+        }
+    ],
+    "sentence": "(quality OR assurance OR technology OR innovation OR testing)",
+    "trends": {
+        "data": {
+            "instagram": [
+                {
+                    "keyword": "Pressreleases",
+                    "posts": []
+                },
+                {
+                    "keyword": "Ltd.",
+                    "posts": []
+                },
+                {
+                    "keyword": "Pixelworks",
+                    "posts": []
+                },
+                {
+                    "keyword": "TechForGood",
+                    "posts": []
+                },
+                {
+                    "keyword": "InnovationNation",
+                    "posts": []
+                },
+                {
+                    "keyword": "QualityMatters",
+                    "posts": []
+                }
+            ],
+            "reddit": [
+                {
+                    "keyword": "Pressreleases",
+                    "posts": []
+                },
+                {
+                    "keyword": "Ltd.",
+                    "posts": []
+                },
+                {
+                    "keyword": "Pixelworks",
+                    "posts": []
+                },
+                {
+                    "keyword": "TechForGood",
+                    "posts": []
+                },
+                {
+                    "keyword": "InnovationNation",
+                    "posts": []
+                },
+                {
+                    "keyword": "QualityMatters",
+                    "posts": []
+                }
+            ],
+            "twitter": []
+        },
+        "metadata": [
+            {
+                "description": "Press release - KZero Worldswide - New BRAINS Index Reveals the World's Most AI-Ready Education Systems - published on openPR.com",
+                "keywords": [
+                    "Pressreleases"
+                ],
+                "title": "New BRAINS Index Reveals the World's Most AI-Ready Education Systems",
+                "url": "https://www.openpr.com/news/4053455/new-brains-index-reveals-the-world-s-most-ai-ready-education"
+            },
+            {
+                "description": "/PRNewswire/ -- Sigenergy, a leading energy innovator, and Intertek, a leading Total Quality Assurance provider to industries worldwide, have officially...",
+                "keywords": [
+                    "Ltd."
+                ],
+                "title": "Sigenergy and Intertek Jointly Release White Paper to Advance Safety in Commercial and Industrial Energy Storage\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\tUSA - English\n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tKorea - 한국어\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tMEXICO - Spanish\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tUSA - Français\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tIndia - English\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tJapan - Japanese\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tUSA - español\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tBRAZIL - Portuguese\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tUSA - Deutsch\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t",
+                "url": "https://www.prnewswire.com/news-releases/sigenergy-and-intertek-jointly-release-white-paper-to-advance-safety-in-commercial-and-industrial-energy-storage-302466524.html"
+            },
+            {
+                "description": "/PRNewswire/ -- Pixelworks, Inc. (NASDAQ: PXLW), a leading provider of visual processing solutions, today announced its strategic collaboration with PerfDog,...",
+                "keywords": [
+                    "Pixelworks"
+                ],
+                "title": "Pixelworks Collaborates with PerfDog Platform to Deliver Multi-Dimensional Testing of Mobile Gaming Performance\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\tUSA - English\n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tAPAC - English\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tAPAC - Traditional Chinese\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\n\n\t\t\t\t\t\t\t\t \n\t\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t",
+                "url": "https://www.prnewswire.com/news-releases/pixelworks-collaborates-with-perfdog-platform-to-deliver-multi-dimensional-testing-of-mobile-gaming-performance-302432742.html"
+            }
+        ]
+    }
+}

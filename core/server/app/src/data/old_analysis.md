@@ -1,0 +1,2 @@
+# 📋 ANÁLISIS ANTERIOR
+

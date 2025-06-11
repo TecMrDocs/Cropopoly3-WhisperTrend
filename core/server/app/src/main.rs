@@ -1,5 +1,3 @@
-// src/main.rs
-
 mod cache;
 use crate::cache::OtpCache;
 
@@ -62,6 +60,7 @@ impl Application for AppServer {
                         .service(controllers::sale::routes())
                         .service(controllers::admin::routes())
                         .service(controllers::flow::routes())
+                        .service(controllers::analysis::routes())
                         .service(nosql::routes())
                         .service(controllers::email::routes())
                 )
@@ -90,7 +89,22 @@ impl Application for AppServer {
     }
 }
 
+const NEW_ANALYSIS_PATH: &str = "src/data/new_analysis.md";
+const OLD_ANALYSIS_PATH: &str = "src/data/old_analysis.md";
+
+fn init_data_files() {
+    for &(path, default) in &[
+        (NEW_ANALYSIS_PATH, "# 📊 ANÁLISIS DE TENDENCIAS DIGITALES\n\n"),
+        (OLD_ANALYSIS_PATH, "# 📋 ANÁLISIS ANTERIOR\n\n")
+    ] {
+        if std::fs::metadata(path).is_err() {
+            let _ = std::fs::write(path, default);
+        }
+    }
+}
+
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
+    init_data_files();
     AppServer.start().await
 }

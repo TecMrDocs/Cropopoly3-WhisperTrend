@@ -1,17 +1,32 @@
-import { get, post } from '../methods';
+import { get, post } from "../methods";
 
-export interface ChatRequest { 
-  model: string; 
+export interface AnalysisRequest {
+  model: string;
+  analysis_data: any;
 }
 
-export type ChatResponse = string;
+export interface AnalysisResponse {
+  analysis: string;
+  saved: boolean;
+}
 
-export default {
+const analysisApi = {
   analysis: {
-    analyze: (model: string): Promise<ChatResponse> =>
-      post<ChatResponse, ChatRequest>('analysis', { model }, true),
-    
-    getDummy: (): Promise<ChatResponse> =>
-      get<ChatResponse>('analysis/dummy', true),
+    testPromptContext: (data: any): Promise<any> =>
+      post("analysis/test-prompt-context", data, false),
+
+    generateNew: (data: AnalysisRequest): Promise<AnalysisResponse> =>
+      post("analysis", data, true),
+
+    getLatest: (): Promise<string> =>
+      get("analysis/latest", true),
+
+    getPrevious: (): Promise<string> =>
+      get("analysis/previous", true),
+
+    getDummy: (): Promise<string> =>
+      get("analysis/dummy", true),
   },
 };
+
+export default analysisApi;
