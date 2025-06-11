@@ -3,7 +3,7 @@
 
 The system leverages **web scraping**, **natural language processing (NLP)**, and **machine learning (ML)** techniques to identify relevant patterns, uncover insights, and help anticipate market movements based on real-time media activity. These insights are designed to support financial analysts, researchers, and developers working on automated investment strategies.
 
-Through the integration of multiple data sources and the analysis of public sentiment, keysPROtting provides a modern approach to understanding the influence of digital narratives on financial trends.
+Through the integration of multiple data sources and the analysis of public sentiment, WhisperTrend provides a modern approach to understanding the influence of digital narratives on financial trends.
 
 ## Team members 
 
@@ -50,7 +50,7 @@ git clone https://github.com/TecMrDocs/Cropopoly3-WhisperTrend
 
 ```bash
 # Open the project directory in VSCode or use the terminal
-code keysPROtting
+code WhisperTrend
 ```
 
 **4. Open the project in a container**
