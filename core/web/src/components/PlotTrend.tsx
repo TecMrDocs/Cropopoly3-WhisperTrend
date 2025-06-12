@@ -1,3 +1,12 @@
+/**
+ * Componente React que muestra una gráfica de tendencias de métricas con opciones
+ * para visualizar datos en escala original, logarítmica o normalizada.
+ * Utiliza la librería recharts para renderizar líneas y un diseño basado en tarjetas.
+ * 
+ * Autor: Sebastián Antonio Almanza
+ * Contribuyentes: -
+ */
+
 import React from 'react';
 import { TrendingUp } from "lucide-react";
 import {
@@ -21,13 +30,17 @@ type DataRow = DataValue[];
 type DataTable = DataRow[];
 type ChartDataPoint = { [key: string]: DataValue };
 
-// Props del componente
+/**
+ * Props del componente PlotTrend
+ * @property {'original' | 'logaritmo' | 'normalizado'} modoVisualizacion - Define la escala para la gráfica
+ */
 interface PlotTrendProps {
   modoVisualizacion: 'original' | 'logaritmo' | 'normalizado';
 }
+
 const colores = ["#8884d8", "#82ca9d", "#ffc658", "#ff6384", "#00c49f", "#ff8042"];
 
-// Datos originales
+
 const datos: DataTable = [
   ["", "01/01/25 - 31/01/25", "1/02/25 - 28/02/25", "1/03/25 - 31/03/25", "1/04/25 - 19/04/25"],
   ["Tasa Interacción X", 3.47, 0.87, 2.17, 7.16],
@@ -38,7 +51,13 @@ const datos: DataTable = [
   ["Tasa viralidad reddit", 35.18, 24.8, 22.38, 35.88]
 ];
 
-// Función para aplicar logaritmo base 10
+/**
+ * Aplica logaritmo base 10 a todos los valores numéricos positivos de la tabla, 
+ * dejando sin cambio los encabezados (primera fila y primera columna).
+ * 
+ * @param {DataTable} tabla - Tabla de datos a transformar
+ * @returns {DataTable} - Nueva tabla con valores transformados
+ */
 const logBase10Tabla = (tabla: DataTable): DataTable =>
   tabla.map((fila, filaIdx) =>
     filaIdx === 0 ? fila : fila.map((valor, colIdx) =>
@@ -46,7 +65,12 @@ const logBase10Tabla = (tabla: DataTable): DataTable =>
     )
   );
 
-// Función para obtener mínimos y máximos por columna
+/**
+ * Obtiene el mínimo y máximo valor por cada columna (ignorando encabezados y valores no numéricos)
+ * 
+ * @param {DataTable} tabla - Tabla de datos numéricos
+ * @returns {{min: number[], max: number[]}} - Objetos con arrays de mínimos y máximos por columna
+ */
 const obtenerMinimosYMaximos = (tabla: DataTable): { min: number[]; max: number[] } => {
   const numCols = tabla[0].length;
   const min: number[] = [];
@@ -61,7 +85,15 @@ const obtenerMinimosYMaximos = (tabla: DataTable): { min: number[]; max: number[
   return { min, max };
 };
 
-// Función de normalización
+/**
+ * Normaliza los valores numéricos de la tabla para cada columna, transformándolos a un rango 0-100
+ * con base en los valores mínimos y máximos de cada columna.
+ * 
+ * @param {DataTable} tabla - Tabla con datos a normalizar
+ * @param {number[]} min - Valores mínimos por columna
+ * @param {number[]} max - Valores máximos por columna
+ * @returns {DataTable} - Tabla normalizada
+ */
 const normalizarTabla = (tabla: DataTable, min: number[], max: number[]): DataTable =>
   tabla.map((fila, filaIdx) =>
     filaIdx === 0 ? fila : fila.map((valor, colIdx) =>
@@ -71,7 +103,7 @@ const normalizarTabla = (tabla: DataTable, min: number[], max: number[]): DataTa
     )
   );
 
-// Preparar datos
+// Preparación de datos derivados para la gráfica
 const logTabla = logBase10Tabla(datos);
 const { min, max } = obtenerMinimosYMaximos(logTabla);
 const normalizada = normalizarTabla(logTabla, min, max);
@@ -79,6 +111,12 @@ const normalizada = normalizarTabla(logTabla, min, max);
 const fechas: DataValue[] = datos[0].slice(1);
 const metricas: DataTable = datos.slice(1);
 
+/**
+ * Transforma una tabla en un arreglo de objetos con clave "fecha" y claves para cada métrica con sus valores
+ * 
+ * @param {DataTable} tabla - Tabla de métricas para transformar
+ * @returns {ChartDataPoint[]} - Arreglo de puntos para graficar
+ */
 const transformarDatos = (tabla: DataTable): ChartDataPoint[] =>
   fechas.map((fecha, i) =>
     tabla.slice(1).reduce<ChartDataPoint>((punto, fila) => {
@@ -88,12 +126,22 @@ const transformarDatos = (tabla: DataTable): ChartDataPoint[] =>
     }, { fecha })
   );
 
-
+// Datos preparados para cada modo de visualización
 const dataOriginal = transformarDatos(metricas);
 const dataLogaritmica = transformarDatos(logTabla);
 const dataNormalizada = transformarDatos(normalizada);
 
+/**
+ * Componente principal que renderiza la gráfica con las métricas según el modo de visualización seleccionado.
+ * 
+ * @param {PlotTrendProps} props - Propiedades del componente
+ * @returns {JSX.Element} - Componente React con la gráfica
+ */
 const PlotTrend: React.FC<PlotTrendProps> = ({modoVisualizacion}) => {
+  /**
+   * Obtiene los datos a mostrar en la gráfica según el modo seleccionado
+   * @returns {ChartDataPoint[]} Datos procesados para graficar
+   */
   const getDatos = (): ChartDataPoint[] => {
     switch (modoVisualizacion) {
       case 'logaritmo': return dataLogaritmica;
@@ -103,12 +151,18 @@ const PlotTrend: React.FC<PlotTrendProps> = ({modoVisualizacion}) => {
     }
   };
 
+  /**
+   * Define el dominio del eje Y dependiendo del modo de visualización
+   * @returns {[string | number, string | number]} Dominio para el eje Y
+   */
   const getDomain = (): [string | number, string | number] => 
     modoVisualizacion === 'normalizado' ? [0, 100] : ['auto', 'auto'];
 
+  // Métricas actuales para configurar las líneas y leyendas
   const metricasActuales = modoVisualizacion === 'logaritmo' ? logTabla.slice(1) :
     modoVisualizacion === 'normalizado' ? normalizada.slice(1) : metricas;
 
+  // Configuración para la leyenda y colores de cada métrica
   const chartConfig: ChartConfig = metricasActuales.reduce((config, [nombreMetrica]) => ({
     ...config,
     [String(nombreMetrica)]: {
