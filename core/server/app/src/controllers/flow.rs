@@ -28,20 +28,16 @@ pub struct FlowRequest {
     resource_id: i32,
 }
 
-// 🆕 FUNCIÓN PARA GUARDAR TODOS LOS DATOS SCRAPED
 async fn save_all_scraped_data(scraped_data: &Trends) -> Vec<String> {
     let mut saved_hashtags = Vec::new();
 
     info!("🚀 Iniciando guardado de TODOS los datos scraped...");
-
-    // 📸 PROCESAR INSTAGRAM
     info!(
         "📸 Procesando {} items de Instagram",
         scraped_data.data.instagram.len()
     );
 
     for (index, item) in scraped_data.data.instagram.iter().enumerate() {
-        // 🔧 FIX: Manejar el Option correctamente para evitar lifetime issues
         let scraped_posts: Vec<ScrapedPost> = {
             info!(
                 "📸 Instagram[{}]: {} con {} posts",
@@ -67,8 +63,6 @@ async fn save_all_scraped_data(scraped_data: &Trends) -> Vec<String> {
                 })
                 .collect()
         };
-
-        // 🚀 INTENTAR GUARDAR (incluso si está vacío)
         match save_scraped_data_to_dynamo(
             item.keyword.clone(),
             "instagram".to_string(),
@@ -93,15 +87,12 @@ async fn save_all_scraped_data(scraped_data: &Trends) -> Vec<String> {
             }
         }
     }
-
-    // 🔴 PROCESAR REDDIT
     info!(
         "🔴 Procesando {} items de Reddit",
         scraped_data.data.reddit.len()
     );
 
     for (index, item) in scraped_data.data.reddit.iter().enumerate() {
-        // 🔧 FIX: Manejar el Option correctamente para evitar lifetime issues
         let scraped_posts: Vec<ScrapedPost> = {
             info!(
                 "🔴 Reddit[{}]: {} con {} posts",
@@ -127,8 +118,6 @@ async fn save_all_scraped_data(scraped_data: &Trends) -> Vec<String> {
                 })
                 .collect()
         };
-
-        // 🚀 INTENTAR GUARDAR (incluso si está vacío)
         match save_scraped_data_to_dynamo(
             item.keyword.clone(),
             "reddit".to_string(),
