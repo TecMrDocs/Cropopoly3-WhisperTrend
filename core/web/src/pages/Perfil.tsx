@@ -1,3 +1,13 @@
+/**
+ * Componente Perfil para la edición de datos personales del usuario.
+ * Permite consultar, mostrar y actualizar la información básica como nombre,
+ * apellido, teléfono y puesto o cargo dentro de la empresa.
+ * Incluye validación mínima y muestra alertas modales según el resultado de la operación.
+ * 
+ * Autor: Sebastián Antonio Almanza
+ * Contribuyentes: Mariana Balderrabano Aguilar (Front design)
+ */
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/utils/constants";
@@ -14,7 +24,14 @@ type PerfilData = {
   job: string;
 };
 
+/**
+ *
+ * Función que genera un componente de perfil para la edición de datos personales del usuario.
+ * 
+ * @return {JSX.Element} Elemento JSX que representa el componente de perfil.
+ */
 export default function Perfil() {
+
   const [userFormData, setUserFormData] = useState<PerfilData>({
     name: "",
     lastName: "",
@@ -22,19 +39,27 @@ export default function Perfil() {
     job: "",
   });
 
+
   const [showModal, setShowModal] = useState(false);
+
   const [isSuccess, setIsSuccess] = useState(true);
 
   const [showAlert, setShowAlert] = useState(false);
 
   const navigate = useNavigate();
 
+  /**
+   * Función para obtener el ID del usuario autenticado mediante un fetch a la API.
+   * 
+   * @async
+   * @returns {Promise<number | null>} El ID del usuario o null en caso de error.
+   */
   const getUserId = async (): Promise<number | null> => {
     try {
       const res = await fetch(`${API_URL}auth/check`, getConfig());
-  
+
       if (!res.ok) throw new Error("Error al verificar usuario");
-  
+
       const data = await res.json();
       return data.id;
     } catch (err) {
@@ -43,6 +68,12 @@ export default function Perfil() {
     }
   };
 
+  /**
+   * Función para actualizar el estado del formulario cuando cambian los campos.
+   * 
+   * @param {keyof PerfilData} field - Campo que fue modificado.
+   * @param {string} value - Nuevo valor del campo.
+   */
   const handleInputChange = (field: keyof PerfilData, value: string) => {
     setUserFormData(prev => ({
       ...prev,
@@ -50,10 +81,16 @@ export default function Perfil() {
     }));
   };
 
+  /**
+   * Función para guardar los datos del perfil del usuario en el backend.
+   * Realiza una petición POST con los datos actualizados.
+   * 
+   * Muestra un modal indicando éxito o fracaso.
+   */
   const handleSave = async () => {
     const id = await getUserId();
     if (!id) return;
-  
+
     try {
       const res = await fetch(`${API_URL}user/update/profile/${id}`, {
         method: "POST",
@@ -68,7 +105,7 @@ export default function Perfil() {
           position: userFormData.job,
         }),
       });
-  
+
       setIsSuccess(res.ok);
     } catch (err) {
       console.error("Error al guardar:", err);
@@ -78,15 +115,19 @@ export default function Perfil() {
     }
   };
 
+  /**
+   * Hook useEffect para cargar los datos del usuario al montar el componente.
+   * Realiza una llamada fetch para obtener los datos actuales y poblar el formulario.
+   */
   useEffect(() => {
     const fetchUserData = async () => {
       const id = await getUserId();
       if (!id) return;
-  
+
       try {
         const res = await fetch(`${API_URL}user/${id}`);
         if (!res.ok) throw new Error("No se pudo obtener el usuario");
-  
+
         const data = await res.json();
         setUserFormData({
           name: data.name,
@@ -98,9 +139,10 @@ export default function Perfil() {
         console.error("Error obteniendo datos del usuario:", error);
       }
     };
-  
+
     fetchUserData();
   }, []);
+
 
   return (
     <div className="px-24">
@@ -125,21 +167,6 @@ export default function Perfil() {
         />
       </div>
       <div className="grid grid-cols-1 gap-5 items-center justify-center mb-5">
-      {/*
-        <TextFieldWHolder
-          id="Correo"
-          placeholder="mail@example.com"
-          width="100%"
-          label="Correo electrónico"
-          onChange={(e) => handleInputChange("email", e.target.value)}
-          value={userFormData.email}
-        />
-        <TextFieldWHolder
-          id="Confirma correo"
-          label="Confirma tu correo"
-          width="100%"
-        />
-      */}
         <TextFieldWHolder
           id="Telefono"
           label="Número telefónico"
@@ -155,20 +182,6 @@ export default function Perfil() {
           onChange={(e) => handleInputChange("job", e.target.value)}
           value={userFormData.job}
         />
-        {/*
-        <TextFieldWHolder
-          id="Contraseña"
-          label="Contraseña"
-          width="100%"
-          onChange={(e) => handleInputChange("password", e.target.value)}
-          value={userFormData.password}
-        />
-        <TextFieldWHolder
-          id="Confirma contraseña"
-          label="Confirma tu contraseña"
-          width="100%"
-        />
-        */}
       </div>
       <div className="grid grid-cols-2 justify-center gap-10 pt-7">
         <WhiteButton text="Cancelar" width="100%" onClick={() => navigate("/productos")} />
