@@ -1,3 +1,12 @@
+/**
+ * Componente SideBar de navegación lateral.
+ * Este componente renderiza una barra lateral expandible que permite al usuario
+ * navegar entre diferentes secciones de la aplicación: Perfil, Empresa, Productos, 
+ * Acerca de y Cerrar sesión. También gestiona la visualización del modal de cierre de sesión.
+ *
+ * Autor: Sebastián Antonio Almanza 
+ * Contribuyentes: Carlos Zamudio Velazquez 
+ */
 import { FC, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CiUser } from "react-icons/ci";
@@ -7,6 +16,15 @@ import { GoQuestion } from "react-icons/go";
 import { TbLogout } from "react-icons/tb";
 import LogoutModal from './LogOut';
 
+/**
+ *
+ * Componente funcional que representa una barra lateral expandible.
+ * Al pasar el mouse por encima, se expande para mostrar etiquetas de texto junto a los íconos.
+ * Incluye navegación mediante `react-router-dom` y muestra un modal al solicitar cerrar sesión.
+ *
+ * @return {JSX.Element} Elemento JSX que representa la barra lateral de navegación.
+ *
+ */
 const SideBar: FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [mostrarModal, setMostrarModal] = useState(false);
