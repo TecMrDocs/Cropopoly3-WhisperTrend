@@ -1,3 +1,14 @@
+/**
+ * Componente modal: LogoutModal
+ *
+ * Muestra un modal centrado para confirmar si el usuario desea cerrar sesión.
+ * Ofrece dos botones de acción: "Cancelar" y "Cerrar sesión", con diseño estilizado
+ * y compatible con clic fuera del modal para cerrarlo automáticamente.
+ *
+ * Autor: Mariana Balderrabano Aguilar
+ * Contribuyentes: Andres Cabrera Alvarado (documentación)
+ */
+
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import BlueButton from "../components/BlueButton";
@@ -7,10 +18,20 @@ interface LogoutModalProps {
   setMostrarModal: (value: boolean) => void;
 }
 
+/**
+ * Modal de cierre de sesión con confirmación del usuario.
+ * 
+ * @param setMostrarModal - Función para controlar si el modal debe mostrarse o cerrarse
+ * @return JSX que representa el modal de confirmación de cierre de sesión
+ */
 const LogoutModal = ({ setMostrarModal }: LogoutModalProps) => {
   const navigate = useNavigate();
   const { signOut } = useAuth(); 
 
+  /**
+   * Función que ejecuta el cierre de sesión.
+   * Al completarse, redirige al inicio y oculta el modal.
+   */
   const cerrarSesion = async () => {
     try {
       signOut(); 

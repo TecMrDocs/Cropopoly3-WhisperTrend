@@ -1,3 +1,16 @@
+/**
+ * Componente principal: InterpretacionDashboard
+ *
+ * Este componente permite generar, visualizar y administrar interpretaciones generadas por IA
+ * basadas en datos de ventas y actividad en redes sociales. Puede obtener un nuevo análisis,
+ * consultar el último guardado o visualizar uno anterior. El resultado es mostrado como Markdown.
+ *
+ * Incluye control de estado de carga, manejo de errores y visualización condicional.
+ *
+ * Autor: Lucio Reyes Castillo
+ * Contribuyentes: Andrés Cabrera Alvarado (documentación, front design), Julio Vivas (dashobard analisis)
+ */
+
 import { useState } from 'react';
 import analysisApi from '../utils/api/analysis';
 import ReactMarkdown from 'react-markdown';
@@ -7,12 +20,22 @@ interface InterpretacionDashboardProps {
   analysisData?: any;
 }
 
+/**
+ * Componente React que permite generar y mostrar interpretaciones de datos con IA.
+ * 
+ * @param analysisData - Objeto con los datos de análisis (ventas, redes sociales, hashtags)
+ * @return JSX que muestra los controles, estados y resultados del análisis en Markdown
+ */
 const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analysisData }) => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState('');
   const [analysisType, setAnalysisType] = useState<'new' | 'latest' | 'previous' | null>(null);
   const resourceName = analysisData?.resource_name || 'Bolso Mariana :D';
 
+  /**
+   * Genera un nuevo análisis enviando los datos al backend.
+   * Maneja el estado de carga y el resultado devuelto por la API.
+   */
   const handleGenerateNew = async () => {
     if (!analysisData) {
       console.error('No hay datos de análisis disponibles');
@@ -23,22 +46,15 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
     setAnalysisType('new');
     
     try {
-      console.log('🔍 Enviando datos al backend:', analysisData);
-      
       const response = await analysisApi.analysis.generateNew({
         model: "llama3-70b-8192",
         analysis_data: analysisData
       });
-      
-      console.log('✅ Respuesta del backend:', response);
+
       setResult(response.analysis);
-      
-      if (response.saved) {
-        console.log('✅ Análisis guardado exitosamente');
-      } else {
+      if (!response.saved) {
         console.warn('⚠️ El análisis no se pudo guardar');
       }
-      
     } catch (err) {
       console.error('❌ Error al generar análisis:', err);
       setResult('Error al generar el análisis. Por favor, inténtalo de nuevo más tarde.');
@@ -47,6 +63,9 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
     }
   };
 
+  /**
+   * Carga el último análisis guardado desde el backend.
+   */
   const handleViewLatest = async () => {
     setLoading(true);
     setAnalysisType('latest');
@@ -62,6 +81,9 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
     }
   };
 
+  /**
+   * Carga el análisis anterior desde el backend.
+   */
   const handleViewPrevious = async () => {
     setLoading(true);
     setAnalysisType('previous');
@@ -77,11 +99,15 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
     }
   };
 
+  /**
+   * Limpia el resultado actual y reinicia el estado de tipo de análisis.
+   */
   const handleClearResult = () => {
     setResult('');
     setAnalysisType(null);
   };
 
+  // RENDER: Estado de carga
   if (loading) {
     return (
       <div className="p-6 text-center">
@@ -98,6 +124,7 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
     );
   }
 
+  // RENDER: Resultado de análisis
   if (result) {
     return (
       <div className="space-y-4">
@@ -111,15 +138,11 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
             </span>
             <div className="text-xs text-gray-500">
               {new Date().toLocaleDateString('es-ES', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                day: 'numeric', month: 'short', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
               })}
             </div>
           </div>
-          
           <div className="flex gap-2">
             <button
               onClick={handleGenerateNew}
@@ -137,7 +160,7 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
           </div>
         </div>
 
-        {/* Contenido del análisis */}
+        {/* Contenido del análisis (formato markdown) */}
         <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200 overflow-auto max-h-[600px]">
           <div className="prose max-w-none">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -149,6 +172,7 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
     );
   }
 
+  // RENDER: Vista inicial
   return (
     <div className="bg-white shadow-md rounded-lg p-6 border border-gray-200">
       <p className="text-gray-700 mb-3">
@@ -156,7 +180,6 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
         de <span className="font-semibold text-blue-600">"{resourceName}"</span> basados en 
         datos reales de redes sociales y ventas.
       </p>
-      
       <p className="text-gray-700 mb-6">
         Utiliza la inteligencia artificial para obtener insights profundos, correlaciones
         y recomendaciones estratégicas personalizadas para tu producto o servicio.
@@ -173,7 +196,6 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
             <span>🤖</span>
             Generar Nuevo Análisis
           </button>
-          
           <button
             onClick={handleViewLatest}
             className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
@@ -181,7 +203,6 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
             <span>📊</span>
             Ver Último Análisis
           </button>
-          
           <button
             onClick={handleViewPrevious}
             className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition"

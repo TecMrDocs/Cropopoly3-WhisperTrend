@@ -1,40 +1,42 @@
-**Resumen Ejecutivo (100-150 palabras)**
-El análisis de tendencias digitales revela que no hay interacciones ni viralidad en Instagram, Reddit y Twitter para los hashtags proporcionados. Sin embargo, se observa una tendencia alcista en las ventas totales del Modelo S, con un pico en diciembre de 2024 y una tendencia positiva en 2025. Se identifican tres hashtags con mejor desempeño: "LuxuryInnovation", "ElectricCars" y "MgMotors", con una mayor presencia en Reddit y una relación positiva con las ventas. Se recomienda una estrategia de contenido en redes sociales enfocada en la innovación y el lujo en el sector de vehículos eléctricos.
+**Resumen Ejecutivo**
+
+El análisis de tendencias digitales y marketing para la marca Sportster revela que no hay suficientes datos de interacción y viralidad en las plataformas de Instagram, Reddit y Twitter. Sin embargo, se identifican oportunidades de mejora en la estrategia de contenido en función de las tendencias y patrones en la venta de unidades.
 
 **Hashtags Clave**
-1. "LuxuryInnovation") - 3,29 millones de votos en Reddit
-2. "ElectricCars" - 1,43 millones de votos en Reddit
-3. "MgMotors" - 642,000 votos en Reddit
+
+No hay suficientes datos de interacción y viralidad para identificar los 3 hashtags con mejor desempeño.
 
 **Insights Destacados**
-1. No hay interacciones ni viralidad en Instagram, Reddit y Twitter para los hashtags proporcionados.
-2. La tendencia alcista en las ventas totales del Modelo S se relaciona con la presencia de hashtags como "LuxuryInnovation" y "ElectricCars".
-3. Los hashtags "LuxuryInnovation" y "MgMotors" tienen una mayor presencia en Reddit.
-4. Las plataformas de redes sociales no están siendo aprovechadas para promocionar el Modelo S.
-5. Se recomienda una estrategia de contenido en redes sociales enfocada en la innovación y el lujo en el sector de vehículos eléctricos.
+
+1. La ausencia de datos de interacción y viralidad en las plataformas sociales sugiere que la marca debe enfocarse en la creación de contenido atractivo y estratégico.
+2. La tendencia en la cantidad de ventas de unidades sugiere que la marca debe enfocarse en la creación de campañas publicitarias efectivas.
+3. La falta de datos de interacción y viralidad en las plataformas sociales puede ser un indicador de una estrategia de contenido ineficaz.
 
 **Detalle por Plataforma**
-### Instagram
-* Tasa de interacción: 0
-* Viralidad: 0
-* Hashtag top: Ninguno
 
-### Reddit
-* Tasa de interacción: 103 (LuxuryInnovation)
-* Viralidad: 288,000 (LuxuryInnovation)
-* Hashtag top: LuxuryInnovation
+**Instagram**
+* Tasa de interacción: 0%
+* Viralidad: 0%
+* Hashtag top: No hay suficientes datos
 
-### Twitter/X
-* Tasa de interacción: 0
-* Viralidad: 0
-* Hashtag top: Ninguno
+**Reddit**
+* Tasa de interacción: 0%
+* Viralidad: 0%
+* Hashtag top: No hay suficientes datos
+
+**Twitter/X**
+* Tasa de interacción: 0%
+* Viralidad: 0%
+* Hashtag top: No hay suficientes datos
 
 **Análisis de Ventas**
-* Ventas totales: 357,709 unidades (diciembre 2024)
-* Mes pico: diciembre 2024
-* Variación mensual: 10,52% (diciembre 2024 vs noviembre 2024)**
+
+* Ventas totales: 33,534 unidades
+* Mes pico: Julio 2024 con 3,937 unidades vendidas
+* Tendencia: La tendencia en la cantidad de ventas de unidades es positiva, con un aumento mensual promedio del 5,5%.
 
 **Correlaciones y Recomendaciones**
-* Relación positiva entre las ventas y la presencia de hashtags como "LuxuryInnovation" y "ElectricCars".
-* Se recomienda una estrategia de contenido en redes sociales enfocada en la innovación y el lujo en el sector de vehículos eléctricos.
-* Se sugiere aprovechar las plataformas de redes sociales para promocionar el Modelo S.
+
+* No se pueden establecer correlaciones entre las ventas y las métricas de interacción y viralidad en las plataformas sociales debido a la falta de datos.
+* Se recomienda enfocarse en la creación de contenido atractivo y estratégico en las plataformas sociales para mejorar la interacción y viralidad.
+* Se recomienda enfocarse en la creación de campañas publicitarias efectivas para impulsar las ventas de unidades.

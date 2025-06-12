@@ -1,18 +1,35 @@
 /**
- * Componente: BlueButton
- * Authors: Arturo Barrios Mendoza
- * Descripción: Botón de color azul.
+ * Componente reutilizable: BlueButton
+ *
+ * Este componente representa un botón estilizado con un gradiente azul a verde esmeralda.
+ * Es completamente configurable a través de props que permiten definir su texto, ancho,
+ * función al hacer clic, tipo de botón (`button`, `submit`, `reset`) y estado de desactivado.
+ *
+ * Se utiliza principalmente para acciones destacadas dentro del sistema,
+ * con un estilo visual llamativo que refuerza la interacción.
+ *
+ * Autor: Arturo Barrios Mendoza
+ * Contribuyentes: Andrés Cabrera Alvarado (front design, documentación), Sebastián Antonio Almanza (front design)
  */
 
-
 type BlueButtonProps = {
-  text?: string; // Texto del botón
-  width?: string; // Ancho del botón
-  onClick?: () => void; // Función a ejecutar al hacer clic
-  type?: "button" | "submit" | "reset"; // Tipo de botón, por defecto es "button"
-  disabled?: boolean; // Permite desactivar el botón
+  text?: string;
+  width?: string;
+  onClick?: () => void;
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
 };
 
+/**
+ * Renderiza un botón con gradiente azul personalizable.
+ * 
+ * @param text - Texto que se mostrará dentro del botón
+ * @param width - Ancho del botón (por defecto "400px")
+ * @param onClick - Función que se ejecuta al hacer clic
+ * @param type - Tipo de botón: "button", "submit", "reset"
+ * @param disabled - Si se encuentra deshabilitado (evita clic y cambia estilo)
+ * @return JSX que representa el botón estilizado con funcionalidad
+ */
 export default function BlueButton({
   text = '',
   width = '400px',
