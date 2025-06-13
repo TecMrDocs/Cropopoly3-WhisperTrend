@@ -1,3 +1,17 @@
+/**
+ * Componente: Registro
+ * 
+ * Descripción:
+ * Este componente maneja el formulario de registro de un nuevo usuario,
+ * validando los datos ingresados como nombre, correo, teléfono, puesto y contraseña.
+ * También verifica los criterios de seguridad de la contraseña antes de enviar
+ * los datos a la API para su registro.
+ * 
+ * Autor: Mariana Balderrábano Aguilar
+ * Contribuyentes: Sebastián Antonio Almanza, Carlos Alberto Zamudio Velázquez
+ *
+ */
+
 import { useState, FormEvent } from "react";
 import WhiteButton from "../components/WhiteButton";
 import BlueButton from "../components/BlueButton";
@@ -5,12 +19,12 @@ import TextFieldWHolder from "../components/TextFieldWHolder";
 import { useNavigate } from "react-router-dom";
 import user, { User } from "../utils/api/user";
 
-// Maneja el registro de un usuario nuevo
 export default function Registro() {
-  // Define estados necesarios para el formulario
   const navigate = useNavigate();
 
-  // Estructura de datos completos para el formulario
+  /**
+   * Estado para almacenar los valores del formulario.
+   */
   const [formData, setFormData] = useState({
     name: "",
     last_name: "",
@@ -19,7 +33,6 @@ export default function Registro() {
     position: "",
     password: "",
     confirmPassword: "",
-    // Valores por defecto para campos de empresa y plan
     plan: "tracker",
     business_name: "test",
     industry: "test",
@@ -29,7 +42,9 @@ export default function Registro() {
     num_branches: "1234"
   });
 
-  // Estructura de errores para cada campo del formulario
+  /**
+   * Estado para almacenar errores de validación del formulario.
+   */
   const [errors, setErrors] = useState({
     name: "",
     last_name: "",
@@ -40,7 +55,9 @@ export default function Registro() {
     confirmPassword: ""
   });
 
-  // Estado para manejar el cumplimiento de criterios de contraseña
+  /**
+   * Estado para controlar si se cumple cada criterio de contraseña segura.
+   */
   const [passwordCriteria, setPasswordCriteria] = useState({
     length: false,
     uppercase: false,
@@ -52,8 +69,10 @@ export default function Registro() {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
 
-  // Función para validar el formulario
-
+  /**
+   * Valida los datos del formulario.
+   * @returns {boolean} true si es válido, false si hay errores.
+   */
   const validateForm = () => {
     let valid = true;
     const newErrors = {
@@ -66,7 +85,6 @@ export default function Registro() {
       confirmPassword: ""
     };
 
-    // Valida el nombre
     if (!formData.name.trim()) {
       newErrors.name = "El nombre es requerido";
       valid = false;
@@ -75,17 +93,14 @@ export default function Registro() {
       valid = false;
     }
 
-    // Valida el apellido
     if (!formData.last_name.trim()) {
       newErrors.last_name = "El apellido es requerido";
       valid = false;
     } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(formData.last_name)) {
       newErrors.last_name = "El apellido solo puede contener letras y espacios";
-
       valid = false;
     }
 
-    // Valida estructura del correo
     if (!formData.email) {
       newErrors.email = "El correo es requerido";
       valid = false;
@@ -97,7 +112,6 @@ export default function Registro() {
       valid = false;
     }
 
-    // Valida teléfono
     if (!formData.phone) {
       newErrors.phone = "El número telefónico es requerido";
       valid = false;
@@ -106,7 +120,6 @@ export default function Registro() {
       valid = false;
     }
 
-    // Valida puesto o cargo
     if (!formData.position.trim()) {
       newErrors.position = "El puesto o cargo es requerido";
       valid = false;
@@ -115,31 +128,14 @@ export default function Registro() {
       valid = false;
     }
 
-    // Valida contraseña
-    // if (!formData.password) {
-    //   newErrors.password = "La contraseña es requerida";
-    //   valid = false;
-    // } else if (formData.password.length < 8) {
-    //   newErrors.password = "La contraseña debe tener al menos 8 caracteres";
-    //   valid = false;
-    // }
-
-    // Validación de criterios de contraseña
     if (!formData.password) {
       newErrors.password = "La contraseña es requerida";
       valid = false;
-    } else if (!(
-      passwordCriteria.length &&
-      passwordCriteria.uppercase &&
-      passwordCriteria.lowercase &&
-      passwordCriteria.number &&
-      passwordCriteria.specialChar
-    )) {
+    } else if (!(passwordCriteria.length && passwordCriteria.uppercase && passwordCriteria.lowercase && passwordCriteria.number && passwordCriteria.specialChar)) {
       newErrors.password = "Debe cumplir con todos los requisitos";
       valid = false;
     }
 
-    // Validata la confirmación de contraseña
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Por favor confirma tu contraseña";
       valid = false;
@@ -152,16 +148,13 @@ export default function Registro() {
     return valid;
   };
 
-  // Maneja el cambio de valor en los campos del formulario
-
+  /**
+   * Maneja el cambio del campo contraseña y evalúa los criterios de seguridad.
+   * @param e Evento de cambio del input
+   */
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-
-    setFormData(prev => ({
-      ...prev,
-      password: value
-    }));
-
+    setFormData(prev => ({ ...prev, password: value }));
     setPasswordCriteria({
       length: value.length >= 8,
       uppercase: /[A-Z]/.test(value),
@@ -171,25 +164,25 @@ export default function Registro() {
     });
   };
 
+  /**
+   * Maneja el cambio general de los campos del formulario.
+   * @param e Evento de cambio del input
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Maneja el envío del formulario
-
+  /**
+   * Envía el formulario si es válido y maneja la respuesta de la API.
+   * @param e Evento del envío del formulario
+   */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setApiError("");
 
-    // Si el formulario es válido, envía los datos a la API
-
     if (validateForm()) {
       setLoading(true);
-
       const dataToSend: User = {
         email: formData.email,
         name: formData.name,
@@ -209,24 +202,21 @@ export default function Registro() {
       try {
         await user.user.register(dataToSend);
         navigate("/confirmacionCorreo");
-
       } catch (error: any) {
         console.error("Error al registrar el usuario:", error);
-
         if (error.response) {
           const { status, data } = error.response;
           if (status === 400) {
             setApiError(data.message || "Datos de registro inválidos");
-
           } else if (status === 409) {
             setApiError(data.message || "El usuario ya existe");
           } else {
             setApiError(data.message || "Error al registrar el usuario");
           }
         } else if (error.message?.includes("Failed to fetch")) {
-          setApiError("No se puede conectar con el servidor")
+          setApiError("No se puede conectar con el servidor");
         } else {
-          setApiError("Error inesperado")
+          setApiError("Error inesperado");
         }
       } finally {
         setLoading(false);
@@ -234,13 +224,17 @@ export default function Registro() {
     }
   };
 
-  // Maneja la cancelación del registro
+  /**
+   * Cancela el registro y redirige al login.
+   */
   const handleCancel = () => {
     navigate("/Login");
-  }
+  };
 
-  // Renderiza el formulario de registro
-
+  /**
+   * Renderiza el formulario de registro de usuario con todos sus campos y validaciones.
+   * @return {JSX.Element} Contenido visual del formulario con validación y envío.
+   */
   return (
     <div className="p-7">
       <div className='flex items-center justify-center'>
