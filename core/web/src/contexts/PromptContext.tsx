@@ -1,28 +1,47 @@
 /**
- * Componente: PromptContext
- * Authors: Arturo Barrios Mendoza y Mariana Balderrábano Aguilar
- * Descripción: Contexto para manejar los datos de la empresa y el producto en la aplicación.
+ * Contexto Global para Gestión de Datos de Empresa y Análisis
+ * 
+ * Este archivo implementa el contexto principal de React para manejar el estado global
+ * de datos de empresa, productos, usuarios y resultados de análisis de tendencias.
+ * Proporciona un estado centralizado accesible desde cualquier componente de la aplicación.
+ * 
+ * @author Arturo Barrios Mendoza
+ * @contributors Mariana Barrios Mendoza y Lucio Arturo Reyes Castillo 
  */
 
 import { createContext, useContext, useState } from "react";
 
+/**
+ * Estructura de datos para información de empresa
+ * Contiene todos los campos necesarios para caracterizar una empresa
+ * incluyendo información operacional, geográfica y organizacional
+ */
 type DatosEmpresa = {
-  business_name: string; // Nombre de la empresa
-  industry: string; // Industria a la que pertenece la empresa
-  company_size: string; // Tamaño de la empresa
-  scope: string; // Alcance de la empresa (local, nacional, internacional)
-  locations: string; // Ubicaciones de la empresa
-  num_branches: string; // Número de sucursales
+  business_name: string;
+  industry: string;
+  company_size: string;
+  scope: string;
+  locations: string;
+  num_branches: string;
 };
 
+/**
+ * Estructura de datos para información de productos o servicios
+ * Define los campos básicos que describen un producto/servicio
+ * incluyendo metadatos y palabras clave relacionadas
+ */
 type DatosProducto = {
-  r_type: string; // Indica si es producto o servicio
-  name: string; // Nombre del producto o servicio
-  description: string; // Descripción del producto o servicio
-  related_words: string; // Palabras relacionadas con el producto o servicio (cadena)
+  r_type: string;
+  name: string;
+  description: string;
+  related_words: string;
 };
 
-// 🆕 TIPO PARA LOS DATOS DE ANÁLISIS DEL BACKEND
+/**
+ * Estructura completa de datos de análisis de tendencias
+ * Contiene todos los resultados procesados por el backend incluyendo
+ * hashtags, métricas de redes sociales, ventas y metadatos de procesamiento
+ */
 type AnalysisData = {
   sentence: string;
   hashtags: string[];
@@ -50,6 +69,11 @@ type AnalysisData = {
   };
 };
 
+/**
+ * Definición del tipo del contexto con todos los estados y funciones
+ * Especifica la interfaz completa que estará disponible para los componentes
+ * incluyendo datos, setters y flags de estado de la aplicación
+ */
 type PromptContextType = {
   empresa: DatosEmpresa | null;
   setEmpresa: (data: DatosEmpresa) => void;
@@ -63,17 +87,17 @@ type PromptContextType = {
   productId: number | null;
   setProductId: (id: number) => void;
 
-  // Indica si el usuario registró o no ventas para su producto
   hasSalesData: boolean;
   setHasSalesData: (hasData: boolean) => void;
 
-  // 🆕 DATOS DE ANÁLISIS DEL BACKEND
   analysisData: AnalysisData | null;
   setAnalysisData: (data: AnalysisData | null) => void;
 };
 
 /**
- * Contexto para manejar los datos de la empresa y el producto.
+ * Creación del contexto de React con valores por defecto
+ * Inicializa el contexto con valores null y funciones vacías
+ * que serán reemplazadas por el provider con funcionalidad real
  */
 const PromptContext = createContext<PromptContextType>({
   empresa: null,
@@ -96,44 +120,86 @@ const PromptContext = createContext<PromptContextType>({
 });
 
 /**
+ * Hook personalizado para acceder al contexto de forma simplificada
+ * Proporciona una interfaz limpia para que los componentes accedan
+ * al estado global sin necesidad de importar useContext directamente
  * 
- * @returns El contexto de PromptContext para acceder a los datos de la empresa y el producto.
+ * @return Objeto con todos los datos y funciones del contexto
  */
 export function usePrompt() {
   return useContext(PromptContext);
 }
 
 /**
+ * Componente proveedor del contexto que maneja el estado global
+ * Implementa toda la lógica de estado y proporciona los datos
+ * a todos los componentes hijos a través del contexto de React
  * 
- * @param param0 - children: Elementos hijos que se renderizarán dentro del contexto.
- * @returns 
+ * @param children Componentes hijos que tendrán acceso al contexto
+ * @return JSX.Element con el proveedor configurado y estado inicializado
  */
 export function PromptProvider({ children }: { children: React.ReactNode }) {
+  /**
+   * Estados locales para todos los datos de la aplicación
+   * Cada estado maneja una sección específica de información
+   * con sus respectivos setters para actualizaciones controladas
+   */
   const [empresa, setEmpresaState] = useState<DatosEmpresa | null>(null);
   const [producto, setProductoState] = useState<DatosProducto | null>(null);
   const [userId, setUserIdState] = useState<number | null>(null);
   const [productId, setProductIdState] = useState<number | null>(null);
   const [hasSalesData, setHasSalesDataState] = useState(false);
-  
   const [analysisData, setAnalysisDataState] = useState<AnalysisData | null>(null);
 
+  /**
+   * Setter para datos de empresa con validación y persistencia
+   * Actualiza el estado global de información empresarial
+   * manteniendo la consistencia de datos en toda la aplicación
+   */
   const setEmpresa = (data: DatosEmpresa) => setEmpresaState(data);
+
+  /**
+   * Setter para datos de producto con validación y persistencia
+   * Actualiza el estado global de información del producto/servicio
+   * asegurando disponibilidad en todos los componentes relevantes
+   */
   const setProducto = (data: DatosProducto) => setProductoState(data);
   
+  /**
+   * Setter para ID de usuario con control de sesión
+   * Gestiona la identificación del usuario autenticado
+   * y mantiene la referencia para operaciones backend
+   */
   const setUserId = (id: number) => setUserIdState(id);
+
+  /**
+   * Setter para ID de producto con control de recursos
+   * Gestiona la identificación del producto activo
+   * y mantiene la referencia para análisis y operaciones
+   */
   const setProductId = (id: number) => setProductIdState(id);
 
+  /**
+   * Setter para flag de datos de ventas con control de flujo
+   * Indica si el usuario ha proporcionado información de ventas
+   * affecting the analysis workflow and available features
+   */
   const setHasSalesData = (hasData: boolean) => setHasSalesDataState(hasData);
   
+  /**
+   * Setter para datos de análisis con logging y validación
+   * Maneja los resultados completos del análisis de tendencias
+   * incluyendo logging para debugging y monitoreo del flujo de datos
+   */
   const setAnalysisData = (data: AnalysisData | null) => {
     setAnalysisDataState(data);
-    if (data) {
-      console.log('✅ [PromptContext] Datos de análisis guardados:', data);
-    } else {
-      console.log('🧹 [PromptContext] Datos de análisis limpiados');
-    }
   };
 
+  /**
+   * Configuración del proveedor con todos los valores del contexto
+   * Combina todos los estados y setters en un objeto que será
+   * accesible por todos los componentes hijos através del contexto
+   */
   return (
     <PromptContext.Provider
       value={{
