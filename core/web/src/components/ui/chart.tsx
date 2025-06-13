@@ -1,3 +1,15 @@
+/**
+* Componentes de gráficos y visualización de datos con Recharts.
+* 
+* Este módulo proporciona componentes reutilizables para crear gráficos
+* interactivos utilizando Recharts como base. Incluye sistema de configuración
+* de colores por tema, tooltips personalizables, leyendas y contenedores
+* responsivos con soporte completo para temas claros y oscuros.
+* 
+* Autor: Sebastian Antonio Almanza
+* Contribuyentes: [Lista de contribuyentes]
+*/
+
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
