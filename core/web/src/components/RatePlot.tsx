@@ -1,3 +1,14 @@
+/**
+ * Componente React para la visualización comparativa de tasas de interacción y viralidad
+ * en diferentes plataformas (X, Instagram, Reddit) a lo largo del tiempo.
+ * 
+ * Importa los resultados calculados de cada plataforma y permite seleccionar
+ * múltiples tasas para graficarlas juntas en una línea temporal.
+ * 
+ * Autor: Sebastián Antonio Almanza 
+ * Contribuyentes:-
+ */
+
 import { TrendingUp } from "lucide-react";
 import {
   Card,
@@ -6,21 +17,20 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
-import { CartesianGrid, Line, LineChart, XAxis, YAxis, Legend,  } from "recharts";
+} from "@/components/ui/chart";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis, Legend } from "recharts";
 
-// Importamos los resultados de cada calculadora
 import { resultadoXCalc } from '../mathCalculus/XCalc';
 import { resultadoRedditCalc } from '../mathCalculus/RedditCalc';
 import { resultadoInstaCalc } from '../mathCalculus/InstaCalc';
 
-// Definición de los datos de tasa para mostrar en el componente seleccionado
+
 const datosTasas = {
   'virX': { 
     nombre: 'Tasa de viralidad en X', 
@@ -54,13 +64,27 @@ const datosTasas = {
   }
 };
 
+/**
+ * Componente principal que recibe un arreglo de IDs de tasas a mostrar y genera
+ * una gráfica combinada de líneas con las tasas seleccionadas.
+ * 
+ * @param {string[]} tasasIds - Lista de identificadores de tasas a graficar
+ * @returns JSX.Element - Componente visual con la gráfica y leyenda de tasas
+ */
 const RatePlot = ({ tasasIds }: { tasasIds: string[] }) => {
   if (!tasasIds || tasasIds.length === 0) {
     return <div>Selecciona al menos una tasa para visualizar</div>;
   }
 
+  /**
+   * Genera un arreglo de objetos con todas las fechas y los valores correspondientes
+   * de las tasas seleccionadas, combinando los datos para que puedan graficarse juntos.
+   * 
+   * @returns {Array<Object>} Arreglo con objetos donde cada objeto contiene una fecha
+   * y los valores de las tasas seleccionadas para esa fecha.
+   */
   const generarDatosCombinados = () => {
-    // Obtenemos todas las fechas de todos los conjuntos de datos seleccionados
+    // Obtener todas las fechas únicas de todos los datos seleccionados
     const todasFechas = Array.from(
       new Set(
         tasasIds.flatMap(id => {
@@ -70,7 +94,7 @@ const RatePlot = ({ tasasIds }: { tasasIds: string[] }) => {
       )
     );
 
-    // Para cada fecha, creamos un objeto con los valores de todas las tasas seleccionadas
+    // Crear un objeto para cada fecha con los valores de las tasas
     return todasFechas.map(fecha => {
       const item: any = { fecha };
       
@@ -88,6 +112,7 @@ const RatePlot = ({ tasasIds }: { tasasIds: string[] }) => {
 
   const datosCombinados = generarDatosCombinados();
 
+  // Configuración para la leyenda y colores de la gráfica basada en las tasas seleccionadas
   const chartConfig: ChartConfig = {};
   tasasIds.forEach(id => {
     const tasa = datosTasas[id as keyof typeof datosTasas];

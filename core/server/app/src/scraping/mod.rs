@@ -21,8 +21,8 @@ lazy_static! {
 
     // Global scraper instance configured with browserless WebSocket and resource blocking
     pub static ref SCRAPER: Arc<Scraper> = Arc::new(Scraper::new::<&str>(
-        // None,
-        Config::get_browserless_ws(),
+        None,
+        //Config::get_browserless_ws(),
         Config::get_workers_scraper(),
         // Block unnecessary resources to improve scraping performance
         vec![

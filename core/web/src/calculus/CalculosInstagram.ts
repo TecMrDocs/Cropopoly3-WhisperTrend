@@ -160,7 +160,7 @@ export default class CalculosInstagram {
         };
       });
 
-      // 🔄 Ordenar ambas series de datos por la secuencia correcta de fechas
+      // Ordenar ambas series de datos por la secuencia correcta de fechas
       const datosInteraccionOrdenados = ordenarDatosPorFecha(datosInteraccion, fechasOrdenadas);
       const datosViralidadOrdenados = ordenarDatosPorFecha(datosViralidad, fechasOrdenadas);
 

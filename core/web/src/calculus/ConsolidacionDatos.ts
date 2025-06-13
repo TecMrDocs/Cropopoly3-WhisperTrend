@@ -1,5 +1,4 @@
 // ConsolidacionDatos.ts
-// ACTUALIZADO: Usa números calculados del backend en vez de calcular en frontend
 
 import type { ResultadoFinal, Noticia } from './DescargaDatos';
 import type { ResultadoInstagramCalculado } from './CalculosInstagram';
@@ -29,7 +28,7 @@ interface ResultadoFinalActualizado extends Omit<ResultadoFinal, 'resultadoInsta
   resultadoInstaCalc: ResultadoInstagramCalculado;
   resultadoRedditCalc: ResultadoRedditCalculado;
   resultadoXCalc: ResultadoXCalculado;
-  calculated_results?: BackendCalculatedResults; // 🆕 NÚMEROS DEL BACKEND
+  calculated_results?: BackendCalculatedResults; 
 }
 
 interface HashtagComparativo {
@@ -104,7 +103,7 @@ interface DashboardData {
       engagement: number;
       potencialViral: number;
     };
-    dataSource: string; // 🆕 NUEVA PROPIEDAD
+    dataSource: string; 
   };
   
   metadatos: {
@@ -117,7 +116,7 @@ interface DashboardData {
       twitter: number;
     };
     procesamientoCompletado: boolean;
-    backendCalculations: boolean; // 🆕 NUEVA PROPIEDAD
+    backendCalculations: boolean; 
   };
 }
 
@@ -125,12 +124,10 @@ class ConsolidacionDatos {
 
   static procesarParaDashboard(resultadoFinal: ResultadoFinalActualizado): DashboardData {
     console.log('🔧 [ConsolidacionDatos] Iniciando consolidación final...');
-    
-    // 🆕 DETECTAR SI TENEMOS NÚMEROS DEL BACKEND
+
     const tieneCalculosBackend = !!(resultadoFinal.calculated_results?.hashtags?.length);
     console.log(`🔍 [ConsolidacionDatos] ¿Cálculos backend disponibles? ${tieneCalculosBackend}`);
-    
-    // 1. Crear comparaciones entre hashtags (NUEVA LÓGICA)
+
     const hashtagsComparativos = tieneCalculosBackend 
       ? this.crearComparacionHashtagsBackend(resultadoFinal)
       : this.crearComparacionHashtags(resultadoFinal);

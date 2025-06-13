@@ -1,3 +1,13 @@
+/**
+ * Componente React que muestra un gráfico de líneas con el promedio de métricas
+ * relacionadas a distintos tipos de tendencias (ventas, hashtags, noticias).
+ * Permite visualizar promedios por periodos y comparar diferentes categorías
+ * de datos con su respectiva descripción y color.
+ * 
+ * Autor: Sebastián Antonio Almanza
+ * Contribuyentes: -
+ */
+
 import React from 'react';
 import { TrendingUp } from "lucide-react";
 import {
@@ -14,8 +24,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import {CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 interface PromedioPorPeriodo {
   periodo: string;
@@ -25,6 +34,7 @@ interface PromedioPorPeriodo {
 interface UniformTrendPlotProps {
   tipo?: 'ventas' | 'hashtag1' | 'hashtag2' | 'hashtag3' | 'noticia1' | 'noticia2' | 'noticia3';
 }
+
 
 const datosPorTipo = {
   ventas: [
@@ -77,7 +87,7 @@ const datosPorTipo = {
   ]
 };
 
-// Títulos para cada tipo
+
 const titulos = {
   ventas: 'Tendencia de ventas para Bolso Marianne',
   hashtag1: '#EcoFriendly - Correlación: 91%',
@@ -88,7 +98,7 @@ const titulos = {
   noticia3: 'Tendencias eco para 2025'
 };
 
-// Colores para cada tipo
+
 const colores = {
   ventas: '#0891b2',
   hashtag1: '#16a34a',
@@ -99,7 +109,7 @@ const colores = {
   noticia3: '#14b8a6'
 };
 
-// Descripciones para cada tipo
+
 const descripciones = {
   ventas: 'Este gráfico muestra la tendencia de ventas del producto, analizando diferentes métricas relacionadas con los ingresos y unidades vendidas.',
   hashtag1: 'Este gráfico muestra el promedio de las métricas relacionadas con #EcoFriendly en redes sociales, que tiene una alta correlación (91%) con las ventas del producto.',
@@ -110,6 +120,7 @@ const descripciones = {
   noticia3: 'Este gráfico muestra la tendencia relacionada con noticias sobre "Tendencias eco para 2025" y su impacto en las preferencias de consumo futuras.'
 };
 
+
 const periodos = [
   "01/01/25 - 31/01/25",
   "01/02/25 - 28/02/25",
@@ -117,25 +128,39 @@ const periodos = [
   "01/04/25 - 19/04/25"
 ];
 
-
+/**
+ * Componente principal que renderiza un gráfico de línea con el promedio de valores
+ * calculados para el tipo seleccionado, mostrando título, descripción y leyenda.
+ * 
+ * @param {UniformTrendPlotProps} props Objeto con la propiedad opcional 'tipo' para seleccionar la categoría de datos a mostrar.
+ * @returns {JSX.Element} Elemento React que contiene la visualización del gráfico con datos promediados.
+ */
 const UniformTrendPlot: React.FC<UniformTrendPlotProps> = ({
   tipo = 'hashtag1'
 }) => {
+
   const datosActuales = datosPorTipo[tipo];
+
+  /**
+   * Calcula el promedio general para cada periodo, sumando los valores
+   * de todas las filas en ese periodo y dividiendo entre la cantidad de filas.
+   * 
+   * @returns {PromedioPorPeriodo[]} Arreglo con el promedio calculado para cada periodo.
+   */
   const calcularPromedioGeneral = (): PromedioPorPeriodo[] => {
     const promediosPorPeriodo: PromedioPorPeriodo[] = [];
-    
+
     for (let colIndex = 1; colIndex <= 4; colIndex++) {
       const valoresPeriodo = datosActuales.map(fila => Number(fila[colIndex]));
       const suma = valoresPeriodo.reduce((acc, curr) => acc + curr, 0);
       const promedio = suma / valoresPeriodo.length;
-      
+
       promediosPorPeriodo.push({
         periodo: periodos[colIndex - 1],
         promedio
       });
     }
-    
+
     return promediosPorPeriodo;
   };
 
@@ -144,11 +169,15 @@ const UniformTrendPlot: React.FC<UniformTrendPlotProps> = ({
   const color = colores[tipo];
   const descripcion = descripciones[tipo];
 
-  // Transformar datos para el gráfico
+  /**
+   * Transformación de los datos promedio para adaptarlos
+   * a la estructura requerida por el componente LineChart.
+   */
   const chartData = datosPromedio.map(item => ({
     periodo: item.periodo,
     promedio: item.promedio
   }));
+
 
   const chartConfig: ChartConfig = {
     promedio: {
