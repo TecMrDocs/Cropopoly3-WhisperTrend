@@ -1,3 +1,15 @@
+/**
+ * Página: Productos.tsx
+ * 
+ * Descripción:
+ * Este componente muestra la lista de productos o servicios creados por el usuario autenticado.
+ * Permite visualizar, editar, eliminar o agregar nuevos recursos. 
+ * También gestiona el estado de carga y muestra un modal de confirmación al intentar eliminar.
+ * 
+ * Autor: Andrés Cabrera Alvarado
+ * Contribuyentes: Arturo Barrios Mendoza
+ */
+
 import { useState, useEffect } from 'react';
 import { FiTrash2, FiEdit2, FiPlus } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -5,6 +17,9 @@ import { API_URL } from "@/utils/constants";
 import { getConfig } from "@/utils/auth";
 import { usePrompt } from "../contexts/PromptContext";
 
+/**
+ * Estructura que representa un recurso (producto o servicio).
+ */
 interface Resource {
   id: number;
   user_id: number;
@@ -23,6 +38,10 @@ export default function Productos() {
 
   const { setProducto, setProductId } = usePrompt();
 
+  /**
+   * Obtiene el ID del usuario autenticado a través del endpoint auth/check.
+   * @return {Promise<number | null>} ID del usuario o null si hubo un error
+   */
   const getUserId = async (): Promise<number | null> => {
     try {
       const res = await fetch(`${API_URL}auth/check`, getConfig());
@@ -35,6 +54,10 @@ export default function Productos() {
     }
   };
 
+  /**
+   * Obtiene los recursos asociados al usuario autenticado desde el backend
+   * y los almacena en el estado local.
+   */
   const fetchResources = async () => {
     try {
       const userId = await getUserId();
@@ -52,9 +75,13 @@ export default function Productos() {
     }
   };
 
+  /**
+   * Maneja la eliminación de un recurso seleccionado.
+   * Muestra alertas en caso de error y actualiza el estado local.
+   */
   const handleDelete = async () => {
     if (!resourceToDelete) return;
-  
+
     try {
       const res = await fetch(`${API_URL}resource/${resourceToDelete}`, {
         method: "DELETE",
@@ -63,12 +90,12 @@ export default function Productos() {
           ...getConfig().headers,
         },
       });
-  
+
       if (!res.ok) {
         const errorText = await res.text();
         throw new Error(`Error del servidor: ${errorText}`);
       }
-  
+
       setResources(prev => prev.filter(r => r.id !== resourceToDelete));
       setShowModal(false);
       setResourceToDelete(null);
@@ -78,20 +105,25 @@ export default function Productos() {
     }
   };
 
+  /**
+   * Hook que se ejecuta al montar el componente para cargar los recursos del usuario.
+   */
   useEffect(() => {
     fetchResources();
   }, []);
 
-  if (loading) {
-    return <div className="min-h-screen flex justify-center items-center">Cargando...</div>;
-  }
-
+  /**
+   * Maneja el clic en el botón de edición. 
+   * Carga los datos del recurso y redirige al formulario de edición.
+   * 
+   * @param {number} resourceId - ID del recurso a editar
+   */
   const handleEditClick = async (resourceId: number) => {
     try {
       const res = await fetch(`${API_URL}resource/${resourceId}`, getConfig());
       if (!res.ok) throw new Error("Error al obtener recurso");
       const data = await res.json();
-  
+
       setProducto({
         r_type: data.r_type,
         name: data.name,
@@ -99,13 +131,16 @@ export default function Productos() {
         related_words: data.related_words,
       });
       setProductId(data.id);
-  
+
       navigate(`/editarProducto`);
     } catch (error) {
       console.error("Error obteniendo recurso:", error);
     }
   };
 
+  /**
+   * Inicializa un nuevo producto vacío y redirige al formulario de creación.
+   */
   const handleNewProductClick = () => {
     setProducto({
       r_type: "Producto",
@@ -117,13 +152,18 @@ export default function Productos() {
     navigate("/newResource");
   }
 
+  /**
+   * Carga los datos del producto para visualizarlo y redirige a la página de análisis.
+   * 
+   * @param {number} resourceId - ID del recurso a visualizar
+   */
   const handleViewClick = async (resourceId: number) => {
     try {
       const res = await fetch(`${API_URL}resource/${resourceId}`, getConfig());
       if (!res.ok) throw new Error("Error al obtener el producto");
-  
+
       const data = await res.json();
-  
+
       setProductId(data.id);
       setProducto({
         r_type: data.r_type,
@@ -131,7 +171,7 @@ export default function Productos() {
         description: data.description,
         related_words: data.related_words,
       });
-  
+
       navigate("/loading");
     } catch (error) {
       console.error("Error al ver producto:", error);
@@ -139,6 +179,11 @@ export default function Productos() {
     }
   };
 
+  /**
+   * Renderizado principal del componente:
+   * Muestra la lista de recursos, botones para ver, editar y eliminar,
+   * y el botón para agregar nuevos. También incluye el modal de confirmación.
+   */
   return (
     <div className="min-h-screen relative p-8">
       <h1 className="text-5xl font-bold text-center mb-12">Mis productos y servicios</h1>
@@ -149,7 +194,7 @@ export default function Productos() {
             key={resource.id}
             className="w-60 border-2 border-blue-400 rounded-xl p-4 flex flex-col items-center space-y-5"
           >
-            {/* Badge para el tipo */}
+            {/* Badge para el tipo de recurso */}
             <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
               resource.r_type === "Producto" 
                 ? "bg-blue-100 text-blue-800" 
@@ -185,7 +230,7 @@ export default function Productos() {
           </div>
         ))}
 
-        {/* Tarjeta para agregar nuevo */}
+        {/* Tarjeta para agregar nuevo recurso */}
         <div 
           className="w-60 border-2 border-teal-400 rounded-xl p-4 flex flex-col items-center justify-center text-center space-y-5 hover:shadow-md transition cursor-pointer"
           onClick={() => handleNewProductClick()}
@@ -197,7 +242,7 @@ export default function Productos() {
         </div>
       </div>
 
-      {/* Modal de confirmación */}
+      {/* Modal de confirmación de eliminación */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white rounded-xl p-8 text-center space-y-6 w-96">
