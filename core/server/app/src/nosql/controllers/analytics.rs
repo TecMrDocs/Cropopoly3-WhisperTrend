@@ -24,28 +24,14 @@ pub fn x_viral_rate(reposts: u32, likes: u32, comments: u32, followers: u32) -> 
     
     let engagement = (reposts + likes + comments) as f64;
     let followers_f = followers as f64;
-    
-    /**
-     * Aplicación de logaritmo natural para suavizar valores extremos
-     * Evita que cuentas con engagement muy alto distorsionen las métricas
-     */
     let log_engagement = (engagement + 1.0).ln();
     let log_followers = (followers_f + 1.0).ln();
-    
-    /**
-     * Cálculo del ratio viral usando logaritmos normalizados
-     * Factor de escala de 20.0 ajustado empíricamente para Twitter
-     */
     let viral_ratio = if log_followers > 0.0 {
         (log_engagement / log_followers) * 20.0
     } else {
         0.0
     };
     
-    /**
-     * Aplicación de límites máximos y mínimos para mantener coherencia
-     * Cap máximo de 100% para evitar valores irreales
-     */
     viral_ratio.min(100.0).max(0.0)
 }
 
@@ -60,16 +46,7 @@ pub fn x_interaction_rate(reposts: u32, likes: u32, comments: u32, views: u32) -
     
     let engagement = (reposts + likes + comments) as f64;
     let views_f = views as f64;
-    
-    /**
-     * Cálculo directo de tasa de interacción como porcentaje
-     * No requiere logaritmos debido a la relación lineal engagement/views
-     */
     let interaction_rate = (engagement / views_f) * 100.0;
-    
-    /**
-     * Aplicación de límites para mantener valores dentro del rango esperado
-     */
     interaction_rate.min(100.0).max(0.0)
 }
 
@@ -83,18 +60,8 @@ pub fn reddit_hourly_ratio(upvotes: u32, comments: u32, hours_since_posted: f64)
     }
     
     let engagement = (upvotes + comments) as f64;
-    
-    /**
-     * Aplicación de logaritmo para suavizar tanto engagement como tiempo
-     * Permite comparar posts con diferentes tiempos de vida de forma equitativa
-     */
     let log_engagement = (engagement + 1.0).ln();
     let log_hours = (hours_since_posted + 1.0).ln();
-    
-    /**
-     * Cálculo del ratio horario usando transformación logarítmica
-     * Factor de escala de 15.0 optimizado para la dinámica temporal de Reddit
-     */
     let hourly_ratio = if log_hours > 0.0 {
         (log_engagement / log_hours) * 15.0
     } else {
@@ -115,18 +82,8 @@ pub fn reddit_viral_rate(upvotes: u32, comments: u32, subreddit_subs: u32) -> f6
     
     let engagement = (upvotes + comments) as f64;
     let subs_f = subreddit_subs as f64;
-    
-    /**
-     * Transformación logarítmica para normalizar diferentes tamaños de subreddits
-     * Permite comparar viralidad entre comunidades de diferente escala
-     */
     let log_engagement = (engagement + 1.0).ln();
     let log_subs = (subs_f + 1.0).ln();
-    
-    /**
-     * Cálculo de viralidad relativa al tamaño de la comunidad
-     * Factor de escala de 25.0 calibrado para la distribución de Reddit
-     */
     let viral_ratio = if log_subs > 0.0 {
         (log_engagement / log_subs) * 25.0
     } else {
@@ -147,11 +104,6 @@ pub fn insta_ratio(likes: u32, comments: u32, views: u32) -> f64 {
     
     let engagement = (likes + comments) as f64;
     let views_f = views as f64;
-    
-    /**
-     * Cálculo directo de ratio de engagement para Instagram
-     * Metodología estándar de la industria para esta plataforma
-     */
     let ratio = (engagement / views_f) * 100.0;
     
     ratio.min(100.0).max(0.0)
@@ -168,18 +120,8 @@ pub fn insta_viral_rate(comments: u32, shares: u32, followers: u32) -> f64 {
     
     let viral_actions = (comments + shares) as f64;
     let followers_f = followers as f64;
-    
-    /**
-     * Aplicación de logaritmos para normalizar cuentas de diferentes tamaños
-     * Los comentarios y shares son indicadores clave de viralidad en Instagram
-     */
     let log_viral = (viral_actions + 1.0).ln();
     let log_followers = (followers_f + 1.0).ln();
-    
-    /**
-     * Cálculo de viralidad basado en acciones de alta implicación
-     * Factor de escala de 30.0 ajustado para el comportamiento de Instagram
-     */
     let viral_ratio = if log_followers > 0.0 {
         (log_viral / log_followers) * 30.0
     } else {
@@ -203,10 +145,6 @@ fn apply_percentage_cap(value: f64) -> f64 {
  */
 fn normalize_extreme_value(value: f64, max_reasonable: f64) -> f64 {
     if value > max_reasonable {
-        /**
-         * Aplicación de mapeo logarítmico para valores extremos
-         * Preserva la relación ordinal mientras limita el rango
-         */
         let log_value = value.ln();
         let log_max = max_reasonable.ln();
         
@@ -224,10 +162,6 @@ fn sanitize_percentage(value: f64, context: &str) -> f64 {
     let sanitized = if value.is_nan() || value.is_infinite() {
         0.0
     } else if value > 1000.0 {
-        /**
-         * Normalización logarítmica para valores extremadamente altos
-         * Mantiene la información ordinal mientras aplica límites razonables
-         */
         let normalized = normalize_extreme_value(value, 100.0);
         normalized
     } else {
@@ -349,11 +283,6 @@ pub fn process_instagram_hashtag(posts: &[InstagramPost]) -> (f64, f64) {
     let mut total_interaction = 0.0;
     let mut total_virality = 0.0;
     let mut count = 0;
-
-    /**
-     * Procesamiento individual de cada post con aplicación de fórmulas
-     * Incluye sanitización para manejar valores extremos o inválidos
-     */
     for post in posts {
         let interaction = insta_ratio(post.likes, post.comments, post.views);
         let virality = insta_viral_rate(post.comments, post.shares, post.followers);
@@ -365,11 +294,6 @@ pub fn process_instagram_hashtag(posts: &[InstagramPost]) -> (f64, f64) {
         total_virality += sanitized_virality;
         count += 1;
     }
-
-    /**
-     * Cálculo de promedios con aplicación final de caps
-     * Garantiza que los resultados finales estén dentro de rangos válidos
-     */
     if count > 0 {
         let avg_interaction = total_interaction / count as f64;
         let avg_virality = total_virality / count as f64;
@@ -396,10 +320,6 @@ pub fn process_reddit_hashtag(posts: &[RedditPost]) -> (f64, f64) {
     let mut total_virality = 0.0;
     let mut count = 0;
 
-    /**
-     * Aplicación de fórmulas específicas de Reddit con sanitización
-     * Considera aspectos temporales y de comunidad únicos de la plataforma
-     */
     for post in posts {
         let interaction = reddit_hourly_ratio(post.upvotes, post.comments, post.hours);
         let virality = reddit_viral_rate(post.upvotes, post.comments, post.subscribers);
@@ -438,10 +358,6 @@ pub fn process_twitter_hashtag(posts: &[TwitterPost]) -> (f64, f64) {
     let mut total_virality = 0.0;
     let mut count = 0;
 
-    /**
-     * Procesamiento con fórmulas optimizadas para Twitter
-     * Considera retweets como factor clave de viralidad en la plataforma
-     */
     for post in posts {
         let interaction = x_interaction_rate(post.retweets, post.likes, post.comments, post.views);
         let virality = x_viral_rate(post.retweets, post.likes, post.comments, post.followers);
@@ -495,18 +411,8 @@ fn parse_twitter_posts(posts: &[serde_json::Value]) -> Vec<TwitterPost> {
  */
 pub fn process_all_hashtags(request: &AnalyticsRequest) -> Vec<HashtagMetrics> {
     let mut results = Vec::new();
-
-    /**
-     * Procesamiento iterativo de cada hashtag solicitado
-     * Busca datos en todas las plataformas y calcula métricas unificadas
-     */
     for hashtag_name in &request.hashtags {
         info!("🧮 Procesando hashtag con caps: {}", hashtag_name);
-
-        /**
-         * Extracción y parsing de datos por plataforma
-         * Maneja casos donde no hay datos disponibles para ciertos hashtags
-         */
         let instagram_data = request.trends.instagram.iter()
             .find(|h| h.keyword == *hashtag_name)
             .map(|h| parse_instagram_posts(&h.posts))
@@ -522,18 +428,9 @@ pub fn process_all_hashtags(request: &AnalyticsRequest) -> Vec<HashtagMetrics> {
             .map(|h| parse_twitter_posts(&h.posts))
             .unwrap_or_default();
 
-        /**
-         * Cálculo de métricas para cada plataforma
-         * Aplica las fórmulas específicas y obtiene resultados normalizados
-         */
         let (instagram_interaction, instagram_virality) = process_instagram_hashtag(&instagram_data);
         let (reddit_interaction, reddit_virality) = process_reddit_hashtag(&reddit_data);
         let (twitter_interaction, twitter_virality) = process_twitter_hashtag(&twitter_data);
-
-        /**
-         * Construcción del objeto de métricas completo
-         * Consolida todos los resultados en una estructura unificada
-         */
         let metrics = HashtagMetrics {
             name: hashtag_name.clone(),
             instagram_interaction,
@@ -557,19 +454,9 @@ pub fn process_all_hashtags(request: &AnalyticsRequest) -> Vec<HashtagMetrics> {
 #[post("/process")]
 async fn process_analytics(req: web::Json<AnalyticsRequest>) -> Result<impl Responder> {
     let start_time = std::time::Instant::now();
-    
-    /**
-     * Procesamiento principal de hashtags con medición de tiempo
-     * Ejecuta todas las fórmulas y cálculos para los datos proporcionados
-     */
+
     let hashtag_metrics = process_all_hashtags(&req);
-    
     let processing_time = start_time.elapsed().as_millis();
-    
-    /**
-     * Construcción de respuesta con métricas y metadatos
-     * Incluye información de performance y origen de datos
-     */
     let response = AnalyticsResponse {
         hashtags: hashtag_metrics,
         total_hashtags: req.hashtags.len(),
@@ -586,10 +473,6 @@ async fn process_analytics(req: web::Json<AnalyticsRequest>) -> Result<impl Resp
  */
 #[post("/test")]
 async fn test_analytics() -> Result<impl Responder> {
-    /**
-     * Creación de datos de prueba representativos
-     * Simula un escenario real de análisis de hashtags musicales
-     */
     let test_data = AnalyticsRequest {
         hashtags: vec!["RockMusic".to_string(), "ElectricGuitar".to_string()],
         trends: TrendsData {
@@ -615,11 +498,6 @@ async fn test_analytics() -> Result<impl Responder> {
     };
 
     let metrics = process_all_hashtags(&test_data);
-
-    /**
-     * Respuesta de prueba con información diagnóstica
-     * Incluye estado de las fórmulas y resultados calculados
-     */
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "status": "✅ TEST SUCCESS",
         "message": "Analytics funcionando con caps y logaritmos",

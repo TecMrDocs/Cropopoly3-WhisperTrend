@@ -77,11 +77,7 @@ pub async fn get_dashboard_cache(path: web::Path<(i32, i32)>) -> Result<impl Res
 pub async fn save_dashboard_cache(req: web::Json<serde_json::Value>) -> Result<impl Responder> {
     info!("Saving dashboard cache");
 
-    /**
-     * Extracción de identificadores desde el payload JSON
-     * Maneja casos donde los IDs no están presentes con valores por defecto
-     * para mantener la robustez del sistema ante datos incompletos
-     */
+
     let user_id = req.get("user_id")
         .and_then(|v| v.as_i64())
         .map(|v| v as i32)
@@ -92,19 +88,10 @@ pub async fn save_dashboard_cache(req: web::Json<serde_json::Value>) -> Result<i
         .map(|v| v as i32)
         .unwrap_or(0);
 
-    /**
-     * Construcción del objeto de métricas con datos actualizados
-     * Utiliza el builder pattern para crear estructuras de datos
-     * consistentes con timestamps y metadatos apropiados
-     */
+
     let metrics = DashboardMetrics::new(user_id, resource_id)
         .update_data(req.into_inner());
 
-    /**
-     * Persistencia de métricas en DynamoDB con manejo de errores
-     * Proporciona feedback claro sobre el estado de la operación
-     * tanto para éxito como para fallos de almacenamiento
-     */
     match save_dashboard_metrics(&metrics).await {
         Ok(_) => {
             Ok(HttpResponse::Ok().json(serde_json::json!({
@@ -132,19 +119,8 @@ pub async fn save_dashboard_cache(req: web::Json<serde_json::Value>) -> Result<i
 pub async fn save_hashtag_cache(req: web::Json<CacheRequest>) -> Result<impl Responder> {
     info!("Saving hashtag cache for: {}", req.hashtag);
 
-    /**
-     * Construcción del objeto de cache con métricas asociadas
-     * Utiliza fluent interface para configurar todos los parámetros
-     * necesarios incluyendo TTL y timestamps de creación
-     */
     let cache = HashtagCache::new(req.user_id, req.resource_id, req.hashtag.clone())
         .with_metrics(req.data.clone());
-
-    /**
-     * Persistencia de datos de hashtag con validación de resultados
-     * Maneja tanto escenarios exitosos como fallos de almacenamiento
-     * proporcionando feedback apropiado al cliente
-     */
     match save_hashtag_data(&cache).await {
         Ok(_) => {
             Ok(HttpResponse::Ok().json(serde_json::json!({
@@ -170,19 +146,8 @@ pub async fn save_hashtag_cache(req: web::Json<CacheRequest>) -> Result<impl Res
  * @return Resultado opcional con métricas encontradas o None si no existen
  */
 async fn get_cached_dashboard(user_id: i32, resource_id: i32) -> anyhow::Result<Option<DashboardMetrics>> {
-    /**
-     * Inicialización del cliente DynamoDB y configuración de tabla
-     * Utiliza el cliente centralizado para mantener consistencia
-     * en la configuración de conexiones y credenciales
-     */
     let client = get_client().await;
     let table_name = client.get_table_name("dashboard_metrics");
-
-    /**
-     * Consulta de elemento específico usando claves compuestas
-     * Utiliza partition key (pk) y sort key (sk) para localización eficiente
-     * de datos en la estructura NoSQL de DynamoDB
-     */
     let result = client.client
         .get_item()
         .table_name(table_name)
@@ -190,12 +155,6 @@ async fn get_cached_dashboard(user_id: i32, resource_id: i32) -> anyhow::Result<
         .key("sk", AttributeValue::S(format!("DASHBOARD#{}", resource_id)))
         .send()
         .await?;
-    
-    /**
-     * Procesamiento de resultados de consulta DynamoDB
-     * Implementación pendiente de deserialización de AttributeValue
-     * a estructura DashboardMetrics para casos de datos encontrados
-     */
     Ok(None)
 }
 
@@ -208,19 +167,10 @@ async fn get_cached_dashboard(user_id: i32, resource_id: i32) -> anyhow::Result<
  * @return Resultado de la operación de guardado
  */
 async fn save_dashboard_metrics(metrics: &DashboardMetrics) -> anyhow::Result<()> {
-    /**
-     * Configuración de cliente y tabla de destino
-     * Utiliza nomenclatura consistente para organización de datos
-     * y mantenimiento de la estructura del cache
-     */
+
     let client = get_client().await;
     let table_name = client.get_table_name("dashboard_metrics");
 
-    /**
-     * Construcción del item DynamoDB con todos los atributos
-     * Mapea campos de la estructura Rust a AttributeValue apropiados
-     * manteniendo tipos de datos consistentes con el esquema
-     */
     let mut item = HashMap::new();
     item.insert("pk".to_string(), AttributeValue::S(metrics.pk.clone()));
     item.insert("sk".to_string(), AttributeValue::S(metrics.sk.clone()));

@@ -1,13 +1,23 @@
+/**
+* Módulo NoSQL - Gestión de Datos DynamoDB
+* 
+* Este archivo implementa todas las operaciones de base de datos NoSQL para
+* el manejo de hashtags, datos scraped, análisis de redes sociales y cache
+* del dashboard con soporte completo para DynamoDB AWS.
+* 
+* Autor: Lucio Arturo Reyes Castillo
+*/
+
 use actix_web::{web, HttpResponse, Responder, get, post, Result};
 use serde_json::json;
 use aws_sdk_dynamodb::{Client, types::AttributeValue};
 use aws_config::BehaviorVersion;
 use std::collections::HashMap;
 use std::env;
-use tracing::{info, error, warn};
 use serde::{Deserialize, Serialize};
 pub mod controllers;
 
+/// Estructura que representa un post extraído de redes sociales
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScrapedPost {
     pub comments: i32,
@@ -15,63 +25,58 @@ pub struct ScrapedPost {
     pub likes: i32,
     pub link: String,
     pub time: String,
-    // Reddit específico
     pub members: Option<i32>,
     pub subreddit: Option<String>,
     pub title: Option<String>,
     pub vote: Option<i32>,
 }
 
+/// Contenedor para datos de hashtag scraped con metadatos
+/// Incluye información temporal y estadísticas del scraping
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScrapedHashtagData {
     pub hashtag: String,
-    pub platform: String, // "instagram", "reddit", "twitter"
+    pub platform: String, 
     pub posts: Vec<ScrapedPost>,
-    pub scraped_at: String, // timestamp
+    pub scraped_at: String, 
     pub total_posts: usize,
 }
 
+/// Crea y configura un cliente de DynamoDB usando las credenciales AWS del entorno
+/// Cliente de DynamoDB configurado con la región por defecto
 async fn get_dynamo_client() -> Client {
     let config = aws_config::defaults(BehaviorVersion::latest())
         .load()
         .await;
     
-    info!("🌍 AWS Region: {:?}", config.region());
     Client::new(&config)
 }
 
+/// Genera el nombre de la tabla DynamoDB usando el prefijo del entorno
 fn get_table_name() -> String {
     let prefix = env::var("DYNAMODB_TABLE_PREFIX").unwrap_or_else(|_| "trendhash_".to_string());
     format!("{}hashtag_cache", prefix)
 }
 
-// 🆕 FUNCIÓN PRINCIPAL: GUARDAR DATOS SCRAPED EN DYNAMODB
+// Guarda datos de posts extraídos de redes sociales en DynamoDB
 pub async fn save_scraped_data_to_dynamo(
     hashtag: String, 
     platform: String,
     posts: Vec<ScrapedPost>
 ) -> Result<bool, Box<dyn std::error::Error>> {
     if posts.is_empty() {
-        warn!("⚠️ No se guardan datos vacíos para hashtag: {}", hashtag);
         return Ok(false);
     }
 
-    info!("💾 Guardando {} posts scraped para hashtag: {} en {}", posts.len(), hashtag, platform);
-    
     let client = get_dynamo_client().await;
     let table_name = get_table_name();
     
-    // Asegurar que la tabla existe
-    if let Err(e) = ensure_table_exists(&client, &table_name).await {
-        error!("❌ Error creando/verificando tabla: {:?}", e);
-        return Err(e);
-    }
+    ensure_table_exists(&client, &table_name).await?;
 
     let timestamp = chrono::Utc::now().timestamp();
     let pk = format!("HASHTAG#{}", hashtag);
     let sk = format!("SCRAPED#{}#{}", platform, timestamp);
     
-    // Crear el objeto de datos scraped
     let scraped_data = ScrapedHashtagData {
         hashtag: hashtag.clone(),
         platform: platform.clone(),
@@ -89,80 +94,72 @@ pub async fn save_scraped_data_to_dynamo(
     item.insert("scraped_posts".to_string(), AttributeValue::S(serde_json::to_string(&scraped_data)?));
     item.insert("total_posts".to_string(), AttributeValue::N(posts.len().to_string()));
     item.insert("created_at".to_string(), AttributeValue::S(chrono::Utc::now().to_rfc3339()));
-    item.insert("quality_score".to_string(), AttributeValue::N("95".to_string())); // Scraped = mejor calidad
+    item.insert("quality_score".to_string(), AttributeValue::N("95".to_string()));
     
-    // 🆕 TTL - Los datos scraped expiran en 7 días
-    let ttl = timestamp + (7 * 24 * 60 * 60); // 7 días
+    // TTL - Los datos scraped expiran en 7 días
+    let ttl = timestamp + (7 * 24 * 60 * 60);
     item.insert("ttl".to_string(), AttributeValue::N(ttl.to_string()));
 
-    match client.put_item()
+    client.put_item()
         .table_name(&table_name)
         .set_item(Some(item))
         .send()
-        .await 
-    {
-        Ok(_) => {
-            info!("✅ Datos scraped guardados: {} posts para {} en {}", posts.len(), hashtag, platform);
-            Ok(true)
-        },
-        Err(e) => {
-            error!("❌ Error guardando datos scraped: {:?}", e);
-            Err(Box::new(e))
-        }
-    }
+        .await?;
+        
+    Ok(true)
 }
 
-// 🆕 FUNCIÓN: BUSCAR DATOS SCRAPED RECIENTES
+// Busca datos de scraping recientes para un hashtag y plataforma específicos
 pub async fn get_recent_scraped_data(
     hashtag: String, 
     platform: String,
     max_age_hours: i64
 ) -> Result<Option<ScrapedHashtagData>, Box<dyn std::error::Error>> {
-    info!("🔍 Buscando datos scraped recientes para: {} en {}", hashtag, platform);
-    
     let client = get_dynamo_client().await;
     let table_name = get_table_name();
     let pk = format!("HASHTAG#{}", hashtag);
     
-    // Buscar datos scraped para este hashtag
     let result = client.query()
         .table_name(&table_name)
         .key_condition_expression("pk = :pk AND begins_with(sk, :sk_prefix)")
         .expression_attribute_values(":pk", AttributeValue::S(pk))
         .expression_attribute_values(":sk_prefix", AttributeValue::S(format!("SCRAPED#{}", platform)))
-        .scan_index_forward(false) // Más recientes primero
-        .limit(5) // Solo los 5 más recientes
+        .scan_index_forward(false)
+        .limit(5)
         .send()
         .await?;
 
     if let Some(items) = result.items {
         for item in items {
-            // Verificar que no esté expirado
             if let Some(AttributeValue::S(created_at)) = item.get("created_at") {
                 if let Ok(created_time) = chrono::DateTime::parse_from_rfc3339(created_at) {
-                    let hours_ago = chrono::Utc::now().signed_duration_since(created_time.with_timezone(&chrono::Utc)).num_hours();
+                    let hours_ago = chrono::Utc::now()
+                        .signed_duration_since(created_time.with_timezone(&chrono::Utc))
+                        .num_hours();
                     
                     if hours_ago <= max_age_hours {
-                        // Datos recientes encontrados
                         if let Some(AttributeValue::S(scraped_posts_json)) = item.get("scraped_posts") {
                             if let Ok(scraped_data) = serde_json::from_str::<ScrapedHashtagData>(scraped_posts_json) {
-                                info!("✅ Datos scraped recientes encontrados: {} posts ({} horas)", scraped_data.total_posts, hours_ago);
                                 return Ok(Some(scraped_data));
                             }
                         }
-                    } else {
-                        info!("⚠️ Datos scraped encontrados pero expirados ({} horas)", hours_ago);
                     }
                 }
             }
         }
     }
 
-    info!("❌ No se encontraron datos scraped recientes para {} en {}", hashtag, platform);
     Ok(None)
 }
 
-// 🆕 FUNCIÓN: OBTENER ESTADÍSTICAS DE DATOS SCRAPED
+// Genera estadísticas agregadas de todos los datos de scraping almacenados
+//
+//  Returns
+// JSON con estadísticas incluyendo:
+// - Total de hashtags scraped
+// - Total de posts scraped
+// - Distribución por plataforma
+// - Promedio de posts por hashtag
 pub async fn get_scraping_stats() -> Result<serde_json::Value, Box<dyn std::error::Error>> {
     let client = get_dynamo_client().await;
     let table_name = get_table_name();
@@ -199,73 +196,23 @@ pub async fn get_scraping_stats() -> Result<serde_json::Value, Box<dyn std::erro
     }))
 }
 
-#[get("/test")]
-async fn test_connection() -> Result<impl Responder> {
-    info!("🧪 Probando conexión con DynamoDB...");
-    
-    let client = get_dynamo_client().await;
-    
-    // Verificar credenciales
-    let has_access_key = env::var("AWS_ACCESS_KEY_ID").is_ok();
-    let has_secret_key = env::var("AWS_SECRET_ACCESS_KEY").is_ok();
-    let has_region = env::var("AWS_REGION").is_ok();
-    
-    // Probar conexión listando tablas
-    match client.list_tables().send().await {
-        Ok(result) => {
-            let table_count = result.table_names().len();
-            info!("✅ Conexión exitosa! Tablas encontradas: {}", table_count);
-            
-            Ok(HttpResponse::Ok().json(json!({
-                "status": "✅ SUCCESS",
-                "message": "Conexión a DynamoDB establecida correctamente",
-                "aws_config": {
-                    "has_access_key": has_access_key,
-                    "has_secret_key": has_secret_key,
-                    "has_region": has_region,
-                    "region": env::var("AWS_REGION").unwrap_or("us-east-1".to_string()),
-                    "table_prefix": env::var("DYNAMODB_TABLE_PREFIX").unwrap_or("trendhash_".to_string())
-                },
-                "tables_found": table_count,
-                "table_names": result.table_names(),
-                "target_table": get_table_name(),
-                "timestamp": chrono::Utc::now().to_rfc3339()
-            })))
-        }
-        Err(e) => {
-            error!("❌ Error conectando a DynamoDB: {:?}", e);
-            
-            Ok(HttpResponse::InternalServerError().json(json!({
-                "status": "❌ ERROR",
-                "message": "No se pudo conectar a DynamoDB",
-                "error": format!("{:?}", e),
-                "aws_config": {
-                    "has_access_key": has_access_key,
-                    "has_secret_key": has_secret_key,
-                    "has_region": has_region
-                },
-                "suggestions": [
-                    "Verifica que AWS_ACCESS_KEY_ID esté configurado correctamente",
-                    "Verifica que AWS_SECRET_ACCESS_KEY esté configurado correctamente",
-                    "Verifica que AWS_REGION sea válida (ej: us-east-1)",
-                    "Verifica que las credenciales tengan permisos de DynamoDB"
-                ],
-                "timestamp": chrono::Utc::now().to_rfc3339()
-            })))
-        }
-    }
-}
-
-// Crear tabla si no existe
+/// Verifica si la tabla DynamoDB existe y la crea si es necesario
+/// 
+/// # Arguments
+/// * `client` - Cliente de DynamoDB configurado
+/// * `table_name` - Nombre de la tabla a verificar/crear
+/// 
+/// # Returns
+/// * `Ok(())` - Si la tabla existe o se creó exitosamente
+/// * `Err` - Si ocurrió un error en el proceso
+/// 
+/// # Notes
+/// - Usa claves compuestas: pk (Hash) y sk (Range)
+/// - Configurada con facturación on-demand (PayPerRequest)
 async fn ensure_table_exists(client: &Client, table_name: &str) -> Result<(), Box<dyn std::error::Error>> {
     match client.describe_table().table_name(table_name).send().await {
-        Ok(_) => {
-            info!("✅ Tabla '{}' ya existe", table_name);
-            Ok(())
-        },
+        Ok(_) => Ok(()),
         Err(_) => {
-            info!("🔧 Creando tabla '{}'...", table_name);
-            
             client.create_table()
                 .table_name(table_name)
                 .key_schema(
@@ -295,29 +242,78 @@ async fn ensure_table_exists(client: &Client, table_name: &str) -> Result<(), Bo
                 .billing_mode(aws_sdk_dynamodb::types::BillingMode::PayPerRequest)
                 .send()
                 .await?;
-            
-            info!("✅ Tabla '{}' creada exitosamente", table_name);
+                
             Ok(())
         }
     }
 }
 
+/// Endpoint de prueba para verificar conectividad con DynamoDB
+/// 
+/// # Returns
+/// JSON con estado de la conexión, configuración AWS y lista de tablas
+#[get("/test")]
+async fn test_connection() -> Result<impl Responder> {
+    let client = get_dynamo_client().await;
+    let has_access_key = env::var("AWS_ACCESS_KEY_ID").is_ok();
+    let has_secret_key = env::var("AWS_SECRET_ACCESS_KEY").is_ok();
+    let has_region = env::var("AWS_REGION").is_ok();
+    
+    match client.list_tables().send().await {
+        Ok(result) => {
+            let table_count = result.table_names().len();
+            Ok(HttpResponse::Ok().json(json!({
+                "status": "✅ SUCCESS",
+                "message": "Conexión a DynamoDB establecida correctamente",
+                "aws_config": {
+                    "has_access_key": has_access_key,
+                    "has_secret_key": has_secret_key,
+                    "has_region": has_region,
+                    "region": env::var("AWS_REGION").unwrap_or("us-east-1".to_string()),
+                    "table_prefix": env::var("DYNAMODB_TABLE_PREFIX").unwrap_or("trendhash_".to_string())
+                },
+                "tables_found": table_count,
+                "table_names": result.table_names(),
+                "target_table": get_table_name(),
+                "timestamp": chrono::Utc::now().to_rfc3339()
+            })))
+        }
+        Err(e) => {
+            Ok(HttpResponse::InternalServerError().json(json!({
+                "status": "❌ ERROR",
+                "message": "No se pudo conectar a DynamoDB",
+                "error": format!("{:?}", e),
+                "aws_config": {
+                    "has_access_key": has_access_key,
+                    "has_secret_key": has_secret_key,
+                    "has_region": has_region
+                },
+                "suggestions": [
+                    "Verifica que AWS_ACCESS_KEY_ID esté configurado correctamente",
+                    "Verifica que AWS_SECRET_ACCESS_KEY esté configurado correctamente",
+                    "Verifica que AWS_REGION sea válida (ej: us-east-1)",
+                ],
+                "timestamp": chrono::Utc::now().to_rfc3339()
+            })))
+        }
+    }
+}
+
+/// Guarda datos de hashtag en caché con metadatos del usuario y recurso
+/// 
+/// # Request Body
+/// JSON con campos: user_id, hashtag, resource_id, correlacion, plataforma
+/// 
+/// # Returns
+/// JSON confirmando el guardado exitoso con detalles del registro
 #[post("/cache/hashtag")]
 async fn save_hashtag_cache(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
-    info!("💾 Guardando hashtag en DynamoDB...");
-    
     let client = get_dynamo_client().await;
     let table_name = get_table_name();
     
-    if let Err(e) = ensure_table_exists(&client, &table_name).await {
-        error!("❌ Error creando/verificando tabla: {:?}", e);
-        return Ok(HttpResponse::InternalServerError().json(json!({
-            "status": "❌ ERROR",
-            "message": "No se pudo crear/verificar tabla",
-            "error": format!("{:?}", e),
-            "table": table_name
-        })));
-    }
+    ensure_table_exists(&client, &table_name).await.map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!("Error creando tabla: {:?}", e))
+    })?;
     
     let data = body.into_inner();
     let user_id = data.get("user_id").and_then(|v| v.as_i64()).unwrap_or(0);
@@ -338,7 +334,7 @@ async fn save_hashtag_cache(body: web::Json<serde_json::Value>) -> Result<impl R
     item.insert("created_at".to_string(), AttributeValue::S(chrono::Utc::now().to_rfc3339()));
     item.insert("ttl".to_string(), AttributeValue::N((timestamp + 86400).to_string())); // 24 horas TTL
     
-    // Datos adicionales del hashtag
+    // Datos adicionales opcionales
     if let Some(correlacion) = data.get("correlacion") {
         if let Some(val) = correlacion.as_f64() {
             item.insert("correlacion".to_string(), AttributeValue::N(val.to_string()));
@@ -358,8 +354,6 @@ async fn save_hashtag_cache(body: web::Json<serde_json::Value>) -> Result<impl R
         .await 
     {
         Ok(_) => {
-            info!("✅ Hashtag guardado exitosamente: {}", hashtag);
-            
             Ok(HttpResponse::Ok().json(json!({
                 "status": "✅ SUCCESS",
                 "message": "¡Hashtag guardado en DynamoDB exitosamente!",
@@ -378,32 +372,30 @@ async fn save_hashtag_cache(body: web::Json<serde_json::Value>) -> Result<impl R
             })))
         },
         Err(e) => {
-            error!("❌ Error guardando en DynamoDB: {:?}", e);
-            
             Ok(HttpResponse::InternalServerError().json(json!({
                 "status": "❌ ERROR",
                 "message": "Error guardando hashtag en DynamoDB",
                 "error": format!("{:?}", e),
-                "table": table_name,
-                "debug_info": {
-                    "pk": pk,
-                    "sk": sk,
-                    "hashtag": hashtag,
-                    "user_id": user_id
-                }
+                "table": table_name
             })))
         }
     }
 }
 
-// 🆕 ENDPOINT PARA PROBAR GUARDADO DE DATOS SCRAPED
+/// Endpoint de prueba para guardar datos scraped con posts de ejemplo
+/// 
+/// # Request Body
+/// JSON con campos opcionales: hashtag, platform
+/// 
+/// # Returns
+/// JSON confirmando el guardado de datos de prueba
 #[post("/test/save-scraped")]
 async fn test_save_scraped(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
     let data = body.into_inner();
     let hashtag = data.get("hashtag").and_then(|v| v.as_str()).unwrap_or("TestHashtag");
     let platform = data.get("platform").and_then(|v| v.as_str()).unwrap_or("instagram");
     
-    // Crear posts de prueba
+    // Crear posts de prueba con datos realistas
     let test_posts = vec![
         ScrapedPost {
             comments: 50,
@@ -452,7 +444,10 @@ async fn test_save_scraped(body: web::Json<serde_json::Value>) -> Result<impl Re
     }
 }
 
-// 🆕 ENDPOINT PARA VER ESTADÍSTICAS DE SCRAPING
+/// Obtiene estadísticas agregadas de todos los datos de scraping
+/// 
+/// # Returns
+/// JSON con estadísticas detalladas de scraping por plataforma
 #[get("/stats/scraping")]
 async fn get_scraping_statistics() -> Result<impl Responder> {
     match get_scraping_stats().await {
@@ -474,10 +469,17 @@ async fn get_scraping_statistics() -> Result<impl Responder> {
     }
 }
 
+/// Recupera el caché del dashboard para un usuario y recurso específicos
+/// 
+/// # Path Parameters
+/// * `user_id` - ID del usuario
+/// * `resource_id` - ID del recurso
+/// 
+/// # Returns
+/// JSON con los hashtags guardados y metadatos del dashboard
 #[get("/cache/dashboard/{user_id}/{resource_id}")]
 async fn get_dashboard_cache(path: web::Path<(i32, i32)>) -> Result<impl Responder> {
     let (user_id, resource_id) = path.into_inner();
-    info!("📊 Obteniendo cache del dashboard para user: {}, resource: {}", user_id, resource_id);
     
     let client = get_dynamo_client().await;
     let table_name = get_table_name();
@@ -535,8 +537,6 @@ async fn get_dashboard_cache(path: web::Path<(i32, i32)>) -> Result<impl Respond
             })))
         },
         Err(e) => {
-            warn!("⚠️ Error consultando DynamoDB: {:?}", e);
-            
             Ok(HttpResponse::Ok().json(json!({
                 "status": "⚠️ WARNING",
                 "message": "Error consultando datos o tabla no existe",
@@ -556,10 +556,12 @@ async fn get_dashboard_cache(path: web::Path<(i32, i32)>) -> Result<impl Respond
     }
 }
 
+/// Lista todos los hashtags almacenados en la base de datos
+/// 
+/// # Returns
+/// JSON con todos los hashtags encontrados (limitado a 50 resultados)
 #[get("/cache/list")]
 async fn list_all_hashtags() -> Result<impl Responder> {
-    info!("📈 Listando todos los hashtags...");
-    
     let client = get_dynamo_client().await;
     let table_name = get_table_name();
     
@@ -605,8 +607,6 @@ async fn list_all_hashtags() -> Result<impl Responder> {
             })))
         },
         Err(e) => {
-            error!("❌ Error escaneando DynamoDB: {:?}", e);
-            
             Ok(HttpResponse::Ok().json(json!({
                 "status": "❌ ERROR",
                 "message": "Error listando hashtags o tabla no existe",
@@ -622,6 +622,13 @@ async fn list_all_hashtags() -> Result<impl Responder> {
     }
 }
 
+/// Inicia un proceso de análisis simulado con identificador único
+/// 
+/// # Request Body
+/// JSON con datos de entrada para el análisis
+/// 
+/// # Returns
+/// JSON con ID de análisis y estado inicial
 #[post("/analytics/start")]
 async fn start_analysis(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
     let analysis_id = format!("analysis_{}", chrono::Utc::now().timestamp());
@@ -641,6 +648,13 @@ async fn start_analysis(body: web::Json<serde_json::Value>) -> Result<impl Respo
     })))
 }
 
+/// Obtiene el estado de un análisis por su ID
+/// 
+/// # Path Parameters
+/// * `analysis_id` - Identificador del análisis
+/// 
+/// # Returns
+/// JSON con estado completo del análisis y resultados simulados
 #[get("/analytics/status/{analysis_id}")]
 async fn get_analysis_status(path: web::Path<String>) -> Result<impl Responder> {
     let analysis_id = path.into_inner();
@@ -680,20 +694,21 @@ async fn get_analysis_status(path: web::Path<String>) -> Result<impl Responder> 
     })))
 }
 
+/// Puebla la base de datos con hashtags hardcodeados para testing
+/// Crea datos de ejemplo para guitarras eléctricas y música rock
+/// 
+/// # Returns
+/// JSON confirmando la creación de datos de prueba en todas las plataformas
 #[post("/populate/hashtags")]
 async fn populate_hashtags() -> Result<impl Responder> {
-    info!("🏪 Poblando DynamoDB con hashtags hardcodeados...");
-    
     let client = get_dynamo_client().await;
     let table_name = get_table_name();
     
-    if let Err(e) = ensure_table_exists(&client, &table_name).await {
-        return Ok(HttpResponse::InternalServerError().json(json!({
-            "error": "No se pudo crear/verificar tabla",
-            "details": format!("{:?}", e)
-        })));
-    }
+    ensure_table_exists(&client, &table_name).await.map_err(|e| {
+        actix_web::error::ErrorInternalServerError(format!("Error creando tabla: {:?}", e))
+    })?;
     
+    // Datos hardcodeados para testing con métricas realistas
     let hashtag_categories = vec![
         // GUITARRAS ELÉCTRICAS 🎸
         ("ElectricGuitar", "guitars", vec![
@@ -778,11 +793,9 @@ async fn populate_hashtags() -> Result<impl Responder> {
             {
                 Ok(_) => {
                     success_count += 1;
-                    info!("✅ Guardado: {} - {}", hashtag, platform);
                 },
                 Err(e) => {
-                    let error_msg = format!("❌ Error guardando {} - {}: {:?}", hashtag, platform, e);
-                    error!("{}", error_msg);
+                    let error_msg = format!("Error guardando {} - {}: {:?}", hashtag, platform, e);
                     errors.push(error_msg);
                 }
             }
@@ -806,10 +819,16 @@ async fn populate_hashtags() -> Result<impl Responder> {
     })))
 }
 
+/// Busca hashtags por categoría específica
+/// 
+/// # Path Parameters
+/// * `category` - Nombre de la categoría a buscar (ej: "guitars", "music")
+/// 
+/// # Returns
+/// JSON con todos los hashtags de la categoría especificada
 #[get("/hashtags/category/{category}")]
 async fn get_hashtags_by_category(path: web::Path<String>) -> Result<impl Responder> {
     let category = path.into_inner();
-    info!("🔍 Buscando hashtags de categoría: {}", category);
     
     let client = get_dynamo_client().await;
     let table_name = get_table_name();
@@ -864,7 +883,22 @@ async fn get_hashtags_by_category(path: web::Path<String>) -> Result<impl Respon
     }
 }
 
-// Todas las rutas
+/// Configura todas las rutas del módulo nosql
+/// 
+/// # Returns
+/// Scope de Actix-web con todas las rutas configuradas
+/// 
+/// # Routes
+/// - GET `/test` - Test de conexión DynamoDB
+/// - POST `/cache/hashtag` - Guardar hashtag en caché
+/// - GET `/cache/dashboard/{user_id}/{resource_id}` - Obtener caché de dashboard
+/// - GET `/cache/list` - Listar todos los hashtags
+/// - POST `/analytics/start` - Iniciar análisis
+/// - GET `/analytics/status/{analysis_id}` - Estado del análisis
+/// - POST `/populate/hashtags` - Poblar datos de prueba
+/// - GET `/hashtags/category/{category}` - Hashtags por categoría
+/// - POST `/test/save-scraped` - Test guardado scraped
+/// - GET `/stats/scraping` - Estadísticas de scraping
 pub fn routes() -> actix_web::Scope {
     web::scope("/nosql")
         .service(test_connection)
@@ -875,7 +909,7 @@ pub fn routes() -> actix_web::Scope {
         .service(get_analysis_status)
         .service(populate_hashtags)  
         .service(get_hashtags_by_category)
-        .service(test_save_scraped)        // 🆕 Endpoint de prueba
-        .service(get_scraping_statistics)  // 🆕 Estadísticas
+        .service(test_save_scraped)        
+        .service(get_scraping_statistics)  
         .service(controllers::analytics::routes())
 }

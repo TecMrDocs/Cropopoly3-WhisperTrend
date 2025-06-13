@@ -6,7 +6,6 @@
  * con métricas calculadas, TTL automático y gestión de ciclo de vida del cache.
  * 
  * Autor: Lucio Arturo Reyes Castillo
- * Contributor: Especialistas en optimización de cache
  */
 
 use serde::{Deserialize, Serialize};
