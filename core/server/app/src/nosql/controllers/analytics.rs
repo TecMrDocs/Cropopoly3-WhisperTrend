@@ -474,5 +474,5 @@ async fn test_analytics() -> Result<impl Responder> {
 pub fn routes() -> actix_web::Scope {
     web::scope("/analytics")
         .service(process_analytics)  
-        .service(test_analytics)     
+        .service(test_analytics)
 }

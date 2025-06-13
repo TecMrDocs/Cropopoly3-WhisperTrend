@@ -6,3 +6,9 @@ pub mod trendst;
 
 pub mod twittert;
 
+pub mod analysist;
+
+pub mod flowt;
+
+pub mod analyticst;
+

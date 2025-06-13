@@ -1068,6 +1068,7 @@ pub fn routes() -> actix_web::Scope {
     web::scope("/flow")
         .service(test_generate_prompt_from_flow)
         .service(debug_force_save_empty_hashtags)
+        .service(debug_check_scraped_data)
         .service(
             web::scope("/secure")
                 .wrap(from_fn(middlewares::auth))
