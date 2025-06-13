@@ -1,6 +1,21 @@
+/**
+ * Modelo de Resultado de Análisis para Almacenamiento NoSQL
+ * 
+ * Este archivo define la estructura principal para almacenar resultados de análisis
+ * de tendencias y correlaciones en DynamoDB. Incluye metadatos de procesamiento,
+ * datos de hashtags analizados y insights generados por IA con seguimiento temporal.
+ * 
+ * Autor: Lucio Arturo Reyes Castillo
+ */
+
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
 
+/**
+ * Estructura principal para resultados de análisis de tendencias
+ * Representa un análisis completo con todos sus metadatos, datos procesados
+ * y resultados de IA, diseñada para almacenamiento eficiente en DynamoDB
+ */
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalysisResult {
     pub pk: String,           
@@ -18,10 +33,30 @@ pub struct AnalysisResult {
 }
 
 impl AnalysisResult {
+    /**
+     * Constructor para crear un nuevo resultado de análisis
+     * Inicializa la estructura con identificadores únicos, timestamps
+     * y estado inicial de procesamiento para seguimiento del progreso
+     * 
+     * @param user_id Identificador del usuario propietario del análisis
+     * @param resource_id Identificador del recurso analizado
+     * @param hashtags Vector de hashtags incluidos en el análisis
+     * @return Nueva instancia de AnalysisResult con datos inicializados
+     */
     pub fn new(user_id: i32, resource_id: i32, hashtags: Vec<String>) -> Self {
+        /**
+         * Generación de identificador único para el análisis
+         * Utiliza UUID v4 para garantizar unicidad global
+         * y evitar conflictos en sistemas distribuidos
+         */
         let analysis_id = uuid::Uuid::new_v4().to_string();
         let now = Utc::now();
 
+        /**
+         * Construcción de la estructura completa con valores por defecto
+         * Configura claves de DynamoDB, estado inicial y timestamps
+         * preparando el objeto para almacenamiento y seguimiento
+         */
         Self {
             pk: format!("ANALYSIS#{}", analysis_id),
             sk: format!("RESULT#{}", now.timestamp()),
