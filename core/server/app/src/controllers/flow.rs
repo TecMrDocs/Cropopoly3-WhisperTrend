@@ -1,3 +1,15 @@
+/**
+* Módulo Flow - Orquestador de Análisis de Redes Sociales
+* 
+* Este archivo implementa el flujo completo de análisis desde la generación
+* de prompts con IA hasta el scraping de redes sociales, almacenamiento en
+* DynamoDB y procesamiento con fórmulas analíticas especializadas.
+* 
+* Autor: Arturo Barrios Mendoza
+* Contributor: Carlos Alberto Zamudio Velázquez y Lucio Arturo Reyes Castillo
+*/
+
+
 use crate::{
     database::{Database, DbResponder},
     middlewares,
@@ -28,6 +40,7 @@ pub struct FlowRequest {
     resource_id: i32,
 }
 
+// Guarda todos los datos scraped de las tres plataformas en DynamoDB de forma paralela
 async fn save_all_scraped_data(scraped_data: &Trends) -> Vec<String> {
     let mut saved_hashtags = Vec::new();
 
@@ -130,6 +143,7 @@ async fn save_all_scraped_data(scraped_data: &Trends) -> Vec<String> {
     saved_hashtags
 }
 
+// Extrae todos los hashtags únicos de los datos scraped de las tres plataformas
 fn extract_all_hashtags_from_scraped_data(scraped_data: &Trends) -> Vec<String> {
     let mut all_hashtags = Vec::new();
     
@@ -154,6 +168,7 @@ fn extract_all_hashtags_from_scraped_data(scraped_data: &Trends) -> Vec<String> 
     all_hashtags
 }
 
+// Mejora los datos scraped con datos de fallback desde DynamoDB cuando están vacíos
 async fn enhance_trends_with_fallback(mut trends: Trends, hashtags: &[String]) -> Trends {
     let config = aws_config::defaults(aws_config::BehaviorVersion::latest())
         .load()
@@ -203,6 +218,7 @@ async fn enhance_trends_with_fallback(mut trends: Trends, hashtags: &[String]) -
     trends
 }
 
+// Busca datos de fallback en DynamoDB para hashtags sin datos scraped
 async fn get_fallback_data(
     client: &aws_sdk_dynamodb::Client,
     table_name: &str,
@@ -283,6 +299,7 @@ async fn get_fallback_data(
     Ok(vec![])
 }
 
+// Procesa los datos scraped con las fórmulas analíticas especializadas del backend
 async fn process_trends_with_analytics(
     trends: &serde_json::Value,
     hashtags: &[String],
@@ -302,6 +319,7 @@ async fn process_trends_with_analytics(
     })
 }
 
+// Convierte los datos scraped al formato requerido por el sistema de analytics
 fn convert_trends_to_analytics_request(
     trends: &serde_json::Value,
     hashtags: &[String],
@@ -375,6 +393,7 @@ fn convert_trends_to_analytics_request(
     }
 }
 
+// Endpoint principal: genera prompts con IA, realiza scraping y procesa con analytics
 #[post("/generate-prompt")]
 async fn generate_prompt_from_flow(
     req: HttpRequest,
@@ -501,6 +520,7 @@ async fn generate_prompt_from_flow(
     })))
 }
 
+// Endpoint de testing con datos hardcodeados para desarrollo y pruebas
 #[post("/test-generate-prompt")]
 async fn test_generate_prompt_from_flow(payload: web::Json<FlowRequest>) -> Result<impl Responder> {
     let user_industry = "Music & Instruments";
@@ -606,6 +626,7 @@ async fn test_generate_prompt_from_flow(payload: web::Json<FlowRequest>) -> Resu
     })))
 }
 
+// Endpoint de debug para analizar la estructura de datos scraped recibidos
 #[post("/debug/check-scraped-data")]
 async fn debug_check_scraped_data(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
     let scraped_data = body.into_inner();
@@ -731,6 +752,7 @@ async fn debug_check_scraped_data(body: web::Json<serde_json::Value>) -> Result<
     Ok(HttpResponse::Ok().json(debug_info))
 }
 
+// Endpoint de debug para forzar el guardado de hashtags vacíos con fines de testing
 #[post("/debug/force-save-empty-hashtags")]
 async fn debug_force_save_empty_hashtags(
     body: web::Json<serde_json::Value>,
@@ -780,6 +802,7 @@ async fn debug_force_save_empty_hashtags(
     })))
 }
 
+// Configuración de rutas del módulo flow con endpoints seguros y de debug
 pub fn routes() -> actix_web::Scope {
     web::scope("/flow")
         .service(test_generate_prompt_from_flow)
