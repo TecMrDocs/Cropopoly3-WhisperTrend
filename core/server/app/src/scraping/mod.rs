@@ -1,3 +1,13 @@
+/**
+ * Módulo de utilidades para web scraping y procesamiento de datos de redes sociales.
+ * 
+ * Este módulo proporciona herramientas comunes para el scraping de diferentes plataformas
+ * sociales como Instagram, Reddit, Twitter, etc. Incluye utilidades para limpieza de texto,
+ * parsing de números en formato humano y configuración global del scraper.
+ * 
+ * Autor: Carlos Alberto Zamudio Velázquez
+ */
+
 use crate::config::Config;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -10,6 +20,14 @@ pub mod reddit;
 pub mod trends;
 pub mod twitter;
 
+/**
+ * Definición de expresiones regulares globales y configuración del scraper.
+ * 
+ * Se utilizan lazy_static para inicializar una sola vez las expresiones regulares
+ * y el scraper global, optimizando el rendimiento y evitando recompilaciones.
+ * Las regex incluyen patrones para normalización de espacios en blanco y
+ * parsing de números en formato humano con sufijos.
+ */
 lazy_static! {
     // Regex to match multiple whitespace characters and replace with single space
     static ref WHITESPACE_REGEX: Regex = Regex::new(r"\s+").unwrap();
@@ -34,18 +52,40 @@ lazy_static! {
     ));
 }
 
+/**
+ * Estructura de utilidades estáticas para procesamiento de texto y números.
+ * 
+ * Proporciona métodos helper para limpieza de texto y conversión de números
+ * en formato humano a valores numéricos estándar.
+ */
 pub struct Utils;
 
 impl Utils {
-    /// Cleans text by normalizing whitespace and removing newlines
+    /**
+     * Limpia y normaliza texto removiendo espacios en blanco excesivos y saltos de línea.
+     * 
+     * @param text - El texto a limpiar y normalizar
+     * @return String - Texto limpio con espacios normalizados
+     */
     pub fn clean_text(text: &str) -> String {
         let text = NEWLINE_REGEX.replace_all(text, " ");
         let text = WHITESPACE_REGEX.replace_all(&text, " ");
         text.trim().to_string()
     }
 
-    /// Parses human-readable numbers with suffixes (k, M, mil, millón, etc.) into u32
-    /// Examples: "1.5k" -> 1500, "2M" -> 2000000, "1 millón" -> 1000000
+    /**
+     * Convierte números en formato humano con sufijos a valores numéricos u32.
+     * 
+     * Soporta diferentes formatos y sufijos como:
+     * - "1.5k" -> 1500
+     * - "2M" -> 2000000  
+     * - "1 millón" -> 1000000
+     * - Maneja separadores decimales tanto punto como coma
+     * - Soporta sufijos en español e inglés (k, M, G, T, P, mil, millón)
+     * 
+     * @param text - El texto que contiene el número en formato humano
+     * @return u32 - El valor numérico convertido, 0 si no se puede parsear
+     */
     pub fn parse_human_number(text: &str) -> u32 {
         let text = Self::clean_text(text);
 
@@ -112,10 +152,15 @@ impl Utils {
     }
 }
 
+/**
+ * Módulo de pruebas unitarias para validar la funcionalidad de las utilidades.
+ * 
+ * Contiene tests para verificar el correcto funcionamiento del parsing
+ * de números en formato humano con diferentes casos de uso.
+ */
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
     fn test_parse_human_number() {
         assert_eq!(Utils::parse_human_number("4"), 4);

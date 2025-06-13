@@ -1,3 +1,14 @@
+/**
+ * Módulo para scraping de noticias y artículos utilizando la API de GDELT.
+ * 
+ * Este módulo proporciona funcionalidades para buscar artículos de noticias a través
+ * de la API de GDELT Project y realizar scraping de contenido detallado de cada artículo.
+ * Incluye extracción de títulos, descripciones, palabras clave y procesamiento de hashtags.
+ * 
+ * Autor: Carlos Alberto Zamudio Velázquez
+ * Contribuyentes: [Lista de contribuyentes]
+ */
+
 use futures::future::join_all;
 use lazy_static::lazy_static;
 use reqwest::Client;

@@ -1,3 +1,15 @@
+/**
+ * Módulo para scraping de contenido de Reddit.
+ * 
+ * Este módulo proporciona funcionalidades para extraer posts de Reddit mediante
+ * búsquedas por palabras clave. Incluye extracción de información básica de posts
+ * como títulos, votos, comentarios, subreddit y opcionalmente el número de miembros
+ * de cada subreddit. Utiliza técnicas de scraping concurrente y evita detección
+ * mediante user agents aleatorios.
+ * 
+ * Autor: Carlos Alberto Zamudio Velázquez
+ */
+
 use crate::scraping::{SCRAPER, Utils};
 use fake::{Fake, faker::internet::en::UserAgent};
 use futures::future::join_all;
