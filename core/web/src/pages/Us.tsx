@@ -1,3 +1,14 @@
+/**
+ * Componente: Us
+ * Descripción: Muestra una vista con los integrantes del equipo organizados en niveles jerárquicos.
+ * Incluye información como nombre, matrícula, rol e imagen de cada miembro, estructurados visualmente en tarjetas.
+ *
+ * @returns {JSX.Element} Página de presentación del equipo con opción de regresar a la página principal.
+ * 
+ * Autores: Andrés Cabrera Alvarado
+ * Contribuyentes: Sebastian Antonio Almanza
+ */
+
 import { Link } from 'react-router-dom';
 
 const equipo = {

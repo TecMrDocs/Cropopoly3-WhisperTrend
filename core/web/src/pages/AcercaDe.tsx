@@ -1,3 +1,13 @@
+/**
+ * Componente: AcercaDe
+ * Descripción: Muestra una vista informativa con los apartados de creación, misión y visión del proyecto WhisperTrend.
+ * Esta página está diseñada para proporcionar contexto sobre el origen y los objetivos del sistema.
+ *
+ * @returns {JSX.Element} Vista con secciones de Creación, Misión y Visión, estilizadas con TailwindCSS.
+ * 
+ * Autor: Andrés Cabrera Alvarado
+ * Contribuyentes: Sebastian Antonio Almanza
+ */
 
 export default function AcercaDe() {
   return (

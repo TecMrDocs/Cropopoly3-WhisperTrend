@@ -1,8 +1,12 @@
 /**
- * Componente: LaunchConfirmacion
- * Authors: Arturo Barrios Mendoza, Mariana Balderrábano Aguilar y Andrés Cabrera Alvarado
- * Descripción: Muestra la confirmación de la información ingresada por el usuario
- */
+* Componente: LaunchConfirmacion.tsx
+* Descripción: Muestra un resumen de la información ingresada por el usuario durante el proceso de configuración.
+* Incluye detalles de la empresa y producto, e indica si se ha registrado información de ventas.
+* Permite regresar o continuar al análisis.
+* @returns {JSX.Element} Página de confirmación con los datos ingresados por el usuario.
+* Authors: Andrés Cabrera Alvarado.
+* Contribuyentes: Arturo Barrios Mendoza, Mariana Balderrábano Aguilar 
+*/
 
 import ProgressBar from "../components/ProgressBar";
 import WhiteButton from "../components/WhiteButton";
@@ -29,7 +33,6 @@ export default function LaunchConfirmacion() {
         con un alcance geográfico <span className="font-bold">{scope}</span>, con operaciones en <span className="font-bold">{locations}</span> y <span className="font-bold">{num_branches}</span> sucursales. Además ofrece
         el <span className="font-bold">{r_type}</span>: <span className="font-bold">{name}</span>, que consiste en: <span className="font-bold">{description}</span> y que se relaciona con: <span className="font-bold">{related_words}</span>.
       </p>
-      {/* <p className="text-lg text-black">Para este producto registraste información de ventas.</p> */}
       
       <p className="text-lg text-black">Para este <span className="font-bold">{r_type ? r_type : ""} {hasSalesData ? "registraste " : "no registraste "} </span> información de ventas</p>
       

@@ -1,3 +1,21 @@
+/**
+ * Componente: Home.tsx
+ * Descripción: Vista principal de la página de inicio de WhisperTrend.
+ * Incluye navegación a Login y Nosotros, descripción del producto, y un video promocional
+ * con subtítulos sincronizados en dos modos: panel lateral o superpuestos en el video.
+ * 
+ * El componente realiza:
+ * - Carga y parseo de subtítulos desde un archivo .vtt.
+ * - Sincronización automática de los subtítulos con el video.
+ * - Alternancia entre mostrar subtítulos en un panel o en overlay.
+ * - Detección de modo fullscreen para forzar overlay.
+ * 
+ * @returns {JSX.Element} Interfaz visual de bienvenida con navegación y multimedia.
+ * 
+ * Authors: Andrés Cabrera Alvarado.
+ * Contribuyentes: Sebastian Antonio Almanza
+ */
+
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import logo from '../assets/Wtw2.png';

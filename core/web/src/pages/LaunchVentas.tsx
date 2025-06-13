@@ -1,3 +1,14 @@
+/**
+ * Componente: LaunchEmpresa.tsx
+ * Descripción: Componente del proceso de configuración donde se pregunta al usuario si desea proporcionar
+ * información sobre las ventas del producto para mejorar la precisión del análisis.
+ * Ofrece tres opciones: regresar, posponer o ingresar la información ahora.
+ *
+ * @returns {JSX.Element} Vista con mensaje explicativo y botones de navegación entre pasos del análisis.
+ *
+ * Autor: Andrés Cabrera Alvarado
+ */
+
 import ProgressBar from "../components/ProgressBar";
 import { useNavigate } from 'react-router-dom';
 

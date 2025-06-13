@@ -1,7 +1,14 @@
 /**
- * Componente: Loading
- * Authors: Andrés Cabrera Alvarado y Arturo Barrios Mendoza
- * Descripción: Página de carga que muestra mensajes de espera y realiza una petición para activar la búsqueda.
+ * Componente: Loading.tsx
+ * Descripción: Página de carga que ejecuta el análisis posterior al registro del producto.
+ * Realiza una petición a la API (`/flow/secure/generate-prompt`) para generar el prompt
+ * y guardar los datos obtenidos en el contexto. Redirige al dashboard si es exitoso,
+ * o vuelve a la confirmación si falla.
+ *
+ * @returns {JSX.Element} Interfaz con animación de carga y mensajes de progreso del análisis.
+ *
+ * Authors: Andrés Cabrera Alvarado.
+ * Contribuyentes: Arturo Barrios Mendoza 
  */
 
 import { useEffect, useRef } from 'react';
@@ -30,8 +37,6 @@ export default function AnalysisLoading() {
     hasFetched.current = true;
 
     // Función para realizar la petición al servidor y generar el prompt 
-
-    //esta es la llamada que necesito xd--> aqui llega todo
     const fetchPrompt = async () => {
       try {
         const res = await fetch(`${API_URL}flow/secure/generate-prompt`, {
@@ -45,8 +50,8 @@ export default function AnalysisLoading() {
 
         // Verifica si la respuesta es exitosa
         if (!res.ok) throw new Error("Error al generar prompt");
-        const data = await res.json(); // --> aqui llega todo
-        console.log("✅ [Loading] Datos obtenidos de la API:", data); //es donde esta la llamada --> aqui llega todo
+        const data = await res.json();
+        console.log("✅ [Loading] Datos obtenidos de la API:", data);
 
         setAnalysisData(data);
         console.log("✅ [Loading] Datos guardados en PromptContext!");

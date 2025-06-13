@@ -1,3 +1,15 @@
+/**
+ * Componente: PrivacyNotice.tsx
+ * Descripción: Componente que muestra el aviso de privacidad de la aplicación WhisperTrend.
+ * Presenta información sobre la recolección, uso y protección de datos personales,
+ * incluyendo derechos de los usuarios y contacto.
+ * Contiene un botón para regresar a la pantalla de login.
+ *
+ * @returns {JSX.Element} Página de aviso de privacidad con contenido textual y botón de navegación.
+ *
+ * Autor: Andrés Cabrera Alvarado
+ */
+
 import { useNavigate } from 'react-router-dom';
 
 export default function PrivacyNotice() {
