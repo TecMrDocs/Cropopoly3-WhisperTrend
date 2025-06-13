@@ -1,3 +1,11 @@
+/**
+ * Formulario para editar la información general de la empresa del usuario.
+ * Permite cargar, validar y actualizar datos como nombre, industria, número de empleados, alcance y ubicación.
+ * 
+ * Autor: Sebastian Antonio  
+ * Contribuyentes: Arturo Barrios Mendoza , Mariana Balderrabano Aguilar 
+ */
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "@/utils/constants";
@@ -8,6 +16,19 @@ import SelectField from "../components/SelectField";
 import TextAreaField from "../components/TextAreaField";
 import WhiteButton from "../components/WhiteButton";
 import BlueButton from "../components/BlueButton";
+
+/**
+ *
+ * Componente que permite visualizar y editar los datos de la empresa asociada al usuario autenticado.  
+ * Realiza validaciones básicas, muestra errores por campo y guarda los datos mediante una solicitud POST.
+ *
+ * Utiliza hooks como `useEffect` para cargar los datos actuales del usuario desde la API y `useState` para almacenar el estado local.
+ *
+ * También muestra un modal de confirmación (éxito o error) al guardar los datos.
+ *
+ * @return {JSX.Element} Página de edición del perfil empresarial.
+ *
+ */
 
 export default function Empresa() {
   const navigate = useNavigate();
@@ -31,6 +52,13 @@ export default function Empresa() {
   const [showModal, setShowModal] = useState(false);
   const [isSuccess, setIsSuccess] = useState(true);
 
+    /**
+   *
+   * Valida los campos del formulario, verificando que todos estén completos y que las sucursales sean un número válido.
+   *
+   * @return {boolean} `true` si todos los campos son válidos, `false` si hay errores.
+   *
+   */
   const validarFormulario = () => {
     const nuevosErrores: { [key: string]: string } = {};
 
@@ -51,6 +79,14 @@ export default function Empresa() {
     return Object.keys(nuevosErrores).length === 0;
   };
 
+
+    /**
+   *
+   * Realiza una verificación del token del usuario autenticado y devuelve su `userId`.
+   *
+   * @return {Promise<number | null>} ID del usuario o `null` si ocurre un error.
+   *
+   */
   const getUserId = async (): Promise<number | null> => {
     try {
       const res = await fetch(`${API_URL}auth/check`, getConfig());
@@ -63,6 +99,13 @@ export default function Empresa() {
     }
   };
 
+
+    /**
+   *
+   * Hook que carga los datos de la empresa al montar el componente.
+   * Transforma ciertos valores (como el número de empleados) a opciones del formulario.
+   *
+   */
   useEffect(() => {
     const fetchBusinessData = async () => {
       try {
@@ -92,6 +135,14 @@ export default function Empresa() {
     fetchBusinessData();
   }, []);
 
+
+
+  /**
+   *
+   * Envía los datos del formulario al backend si la validación es exitosa.  
+   * Muestra un modal con el resultado de la operación (éxito o error).
+   *
+   */
   const handleSubmit = async () => {
     if (!validarFormulario()) return;
 

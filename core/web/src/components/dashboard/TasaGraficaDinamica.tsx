@@ -1,5 +1,19 @@
+/**
+ * Componente dinámico de gráfica de líneas que muestra la comparación de tasas seleccionadas
+ * a lo largo del tiempo, con soporte para múltiples series (líneas) e identificación visual 
+ * por color y nombre simplificado.
+ * 
+ * Utiliza `recharts` para renderizar la gráfica y `useMemo` para optimizar cálculos.
+ *
+ * Autor: Sebastian Antonio Almanza
+ * Contribuyentes: Lucio Reyes Castillo (Graph optimization), Andrés Cabrera Alvarado (documentación)
+ */
+
 import React, { useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  Legend, ResponsiveContainer
+} from 'recharts';
 
 interface TasasGraficaDinamicaProps {
   tasasIds: string[];
@@ -7,8 +21,14 @@ interface TasasGraficaDinamicaProps {
 }
 
 const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, datosTasas }) => {
-  
-  // 🔧 FUNCIÓN AUXILIAR: Ordenar fechas correctamente
+
+  /**
+   * Ordena un arreglo de fechas en formato "Mes Año" (ej. "Ene 25") en orden cronológico
+   * usando un mapa de meses personalizados.
+   * 
+   * @param fechas - Arreglo de fechas en formato corto de mes y año (ej. "Feb 25")
+   * @return Arreglo de fechas ordenadas cronológicamente por mes
+   */
   const ordenarFechas = (fechas: string[]): string[] => {
     const ordenMeses: Record<string, number> = {
       'Ene': 1, 'Feb': 2, 'Mar': 3, 'Abr': 4, 'May': 5, 'Jun': 6,
@@ -16,63 +36,58 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
     };
 
     return fechas.sort((a, b) => {
-      // Extraer mes de cada fecha (formato: "Ene 25", "Feb 25", etc.)
       const mesA = a.split(' ')[0];
       const mesB = b.split(' ')[0];
-      
       const ordenA = ordenMeses[mesA] || 999;
       const ordenB = ordenMeses[mesB] || 999;
-      
       return ordenA - ordenB;
     });
   };
 
-  // Procesar datos para la gráfica CON ORDENAMIENTO CORRECTO
+  /**
+   * Procesa los datos de entrada para crear un arreglo de objetos que representan
+   * los puntos en el tiempo para cada tasa, listos para ser consumidos por el gráfico.
+   *
+   * @return Arreglo de objetos, cada uno con fecha y valores de tasa por ID
+   */
   const datosParaGrafica = useMemo(() => {
     if (!tasasIds || tasasIds.length === 0) {
       console.log('⚠️ [TasasGrafica] No hay tasas seleccionadas');
       return [];
     }
 
-    console.log('🔧 [TasasGrafica] Procesando tasas:', tasasIds);
-
-    // 🎯 PASO 1: Obtener todas las fechas únicas
     const todasFechas = new Set<string>();
     tasasIds.forEach(tasaId => {
       const dataTasa = datosTasas[tasaId];
-      if (dataTasa && dataTasa.datos) {
+      if (dataTasa?.datos) {
         dataTasa.datos.forEach((punto: any) => {
           todasFechas.add(punto.fecha);
         });
       }
     });
 
-    // 🔧 PASO 2: ORDENAR FECHAS CORRECTAMENTE
     const fechasOrdenadas = ordenarFechas(Array.from(todasFechas));
     console.log('📅 [TasasGrafica] Fechas ordenadas:', fechasOrdenadas);
 
-    // 🎯 PASO 3: Crear datos combinados con fechas ordenadas
     const datosCombinados = fechasOrdenadas.map((fecha, index) => {
-      const punto: any = { fecha, orden: index }; // Agregar orden para debugging
-      
+      const punto: any = { fecha, orden: index };
       tasasIds.forEach(tasaId => {
         const dataTasa = datosTasas[tasaId];
-        if (dataTasa && dataTasa.datos) {
-          const datoFecha = dataTasa.datos.find((d: any) => d.fecha === fecha);
-          punto[tasaId] = datoFecha ? datoFecha.tasa : 0;
-        } else {
-          punto[tasaId] = 0;
-        }
+        const datoFecha = dataTasa?.datos?.find((d: any) => d.fecha === fecha);
+        punto[tasaId] = datoFecha ? datoFecha.tasa : 0;
       });
-      
       return punto;
     });
 
-    console.log('📊 [TasasGrafica] Datos combinados ordenados:', datosCombinados);
     return datosCombinados;
   }, [tasasIds, datosTasas]);
 
-  // Generar información de las líneas
+  /**
+   * Genera la información visual de cada línea a partir de los datos de tasa,
+   * incluyendo color personalizado y nombre limpio (sin hashtags o emojis redundantes).
+   *
+   * @return Arreglo de objetos con id, nombre y color para cada línea del gráfico
+   */
   const lineasInfo = useMemo(() => {
     return tasasIds.map(tasaId => {
       const dataTasa = datosTasas[tasaId];
@@ -84,10 +99,8 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
         };
       }
 
-      // Simplificar el nombre quitando las etiquetas de hashtags
       let nombreSimplificado = dataTasa.nombre || tasaId;
-      
-      // Quitar referencias específicas a hashtags (todo después del emoji de plataforma)
+
       if (nombreSimplificado.includes('📸')) {
         nombreSimplificado = nombreSimplificado.split('📸')[0].trim() + ' 📸';
       } else if (nombreSimplificado.includes('🔴')) {
@@ -95,11 +108,10 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
       } else if (nombreSimplificado.includes('🐦')) {
         nombreSimplificado = nombreSimplificado.split('🐦')[0].trim() + ' 🐦';
       }
-      
-      // Remover hashtags específicos del nombre
+
       nombreSimplificado = nombreSimplificado
-        .replace(/#\w+\s*/g, '') // Quitar hashtags
-        .replace(/\s+/g, ' ') // Normalizar espacios
+        .replace(/#\w+\s*/g, '')
+        .replace(/\s+/g, ' ')
         .trim();
 
       return {
@@ -110,6 +122,11 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
     });
   }, [tasasIds, datosTasas]);
 
+  /**
+   * Renderiza un mensaje de aviso cuando no hay datos seleccionados para mostrar.
+   * 
+   * @return JSX con mensaje de “no hay datos”
+   */
   if (datosParaGrafica.length === 0) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -124,9 +141,14 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
     );
   }
 
+  /**
+   * Renderiza el componente gráfico de líneas usando Recharts con los datos procesados.
+   * Incluye ejes, leyenda, tooltips y múltiples líneas personalizadas.
+   * 
+   * @return JSX que representa la gráfica con datos y leyenda
+   */
   return (
     <div className="w-full">
-      {/* Header más compacto */}
       <div className="text-center mb-6">
         <div className="text-4xl mb-3">📈</div>
         <h2 className="text-xl font-bold text-gray-800 mb-2">
@@ -139,11 +161,8 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
           </span>
           <div className="w-12 h-1 bg-blue-500 rounded-full"></div>
         </div>
-        
-
       </div>
 
-      {/* Gráfica más grande */}
       <div className="w-full h-[600px] bg-white rounded-xl p-6 shadow-lg border border-gray-100">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart 
@@ -152,7 +171,7 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
           >
             <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" />
             <XAxis 
-              dataKey="fecha" 
+              dataKey="fecha"
               stroke="#64748b"
               fontSize={12}
               angle={-45}
@@ -189,9 +208,7 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
                 return lineaInfo?.nombre || value;
               }}
             />
-            
-            {/* Renderizar líneas dinámicamente */}
-            {lineasInfo.map((linea, index) => (
+            {lineasInfo.map((linea) => (
               <Line
                 key={linea.id}
                 type="linear"
@@ -207,22 +224,6 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
           </LineChart>
         </ResponsiveContainer>
       </div>
-
-      {/* Panel de debugging (solo en desarrollo) 
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-4 bg-gray-100 rounded-lg">
-          <h4 className="text-sm font-bold text-gray-700 mb-2">🔧 Debug Info:</h4>
-          <div className="text-xs text-gray-600 space-y-1">
-            <div><strong>Fechas procesadas:</strong> {datosParaGrafica.map(d => d.fecha).join(' → ')}</div>
-            <div><strong>Tasas seleccionadas:</strong> {tasasIds.length}</div>
-            <div><strong>Puntos de datos:</strong> {datosParaGrafica.length}</div>
-            <div><strong>Orden correcto:</strong> {datosParaGrafica.every((item, index) => 
-              index === 0 || item.orden > datosParaGrafica[index - 1].orden
-            ) ? '✅ Sí' : '❌ No'}</div>
-          </div>
-        </div>
-      )}
-        */}
     </div>
   );
 };

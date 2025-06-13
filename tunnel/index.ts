@@ -15,7 +15,7 @@ async function launchChrome() {
 
   try {
     chromeProcess = spawn({
-      cmd: ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", ...chromeArgs],
+      cmd: ["C:/Program Files/Google/Chrome/Application/chrome.exe", ...chromeArgs],
       stdout: "pipe",
       stderr: "pipe",
     });

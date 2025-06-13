@@ -1,13 +1,24 @@
+/**
+ * Este componente de React muestra visualizaciones analíticas de datos de Instagram
+ * relacionados con distintos hashtags. Calcula métricas como la tasa de interacción
+ * y la tasa de viralidad, y las representa mediante gráficas utilizando la librería Recharts.
+ * 
+ * Autor: Lucio Arturo Reyes Castillo
+ * Contribuyentes: [Nombres de los contribuyentes si aplica]
+ */
+
 import React from 'react';
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid
 } from 'recharts';
 
-// 🔥 NUEVO: Importar datos con múltiples hashtags
-// Para que funcione, necesitas actualizar data-instagram.json con la nueva estructura
+// Importación de los datos de Instagram con estructura para múltiples hashtags
 import instagramDataRaw from '../dataSets/data-instagram.json';
 
-// 🔥 NUEVO: Tipos actualizados para múltiples hashtags
+/**
+ * Tipos que representan la estructura de los datos de cada hashtag
+ * y del conjunto completo de datos de Instagram.
+ */
 interface HashtagData {
   hashtag: string;
   id: string;
@@ -23,10 +34,16 @@ interface InstagramData {
   hashtags: HashtagData[];
 }
 
-// Hacer type assertion para TypeScript
+// Conversión de datos importados para uso con TypeScript
 const instagramData = instagramDataRaw as InstagramData;
 
-// 🔥 FUNCIÓN PARA PROCESAR UN HASHTAG INDIVIDUAL
+/**
+ * Procesa los datos de un solo hashtag, generando los datos necesarios
+ * para calcular tasas de interacción y de viralidad.
+ * 
+ * @param hashtagData Objeto con los datos de un hashtag individual
+ * @return Un objeto con los datos procesados listos para graficar
+ */
 function procesarHashtag(hashtagData: HashtagData) {
   const datos = {
     fechas: hashtagData.fechas,
@@ -37,7 +54,13 @@ function procesarHashtag(hashtagData: HashtagData) {
     compartidos: hashtagData.compartidos,
   };
 
-  // Función que calcula la tasa de interacción
+  /**
+   * Calcula la tasa de interacción a partir de las interacciones (likes, comentarios,
+   * compartidos) y las vistas.
+   * 
+   * @param data Conjunto de datos crudos del hashtag
+   * @return Un arreglo de objetos con fecha y tasa de interacción (%)
+   */
   function generadorTasaInteraccion(data: typeof datos) {
     const { fechas, likes, comentarios, vistas, compartidos } = data;
 
@@ -52,7 +75,13 @@ function procesarHashtag(hashtagData: HashtagData) {
     });
   }
 
-  // Función que calcula la tasa de viralidad
+  /**
+   * Calcula la tasa de viralidad a partir de las interacciones (likes, comentarios,
+   * compartidos) y los seguidores.
+   * 
+   * @param data Conjunto de datos crudos del hashtag
+   * @return Un arreglo de objetos con fecha y tasa de viralidad (%)
+   */
   function generadorTasaViralidad(data: typeof datos) {
     const { fechas, likes, comentarios, seguidores, compartidos } = data;
 
@@ -76,30 +105,46 @@ function procesarHashtag(hashtagData: HashtagData) {
   };
 }
 
-// 🚀 PROCESAMIENTO DINÁMICO DE TODOS LOS HASHTAGS
+/**
+ * Procesa todos los hashtags encontrados en los datos crudos importados.
+ * 
+ * @return Un arreglo con los datos procesados por hashtag
+ */
 const procesarTodosLosHashtags = () => {
   return instagramData.hashtags.map(hashtagData => procesarHashtag(hashtagData));
 };
 
-// 🎯 NUEVO RESULTADO DINÁMICO
+/**
+ * Objeto con los resultados analíticos ya procesados, incluyendo la información
+ * por hashtag, además de compatibilidad con datos anteriores (primer hashtag).
+ */
 export const resultadoInstaCalc = {
   plataforma: "Instagram",
   emoji: "📸",
   color: "#16a34a",
   hashtags: procesarTodosLosHashtags(),
   
-  // 🔥 MANTENER COMPATIBILIDAD CON CÓDIGO ANTERIOR (primer hashtag por defecto)
   datosInteraccion: procesarTodosLosHashtags()[0]?.datosInteraccion || [],
   datosViralidad: procesarTodosLosHashtags()[0]?.datosViralidad || [],
   datosRaw: procesarTodosLosHashtags()[0]?.datosRaw || {},
   hashtag: instagramData.hashtags[0]?.hashtag || "#EcoFriendly"
 };
 
-// 🎉 FUNCIONES HELPER PARA OBTENER DATOS ESPECÍFICOS
+/**
+ * Permite obtener los datos procesados de un hashtag específico mediante su ID.
+ * 
+ * @param hashtagId ID del hashtag deseado
+ * @return Objeto con los datos del hashtag o `undefined` si no se encuentra
+ */
 export const obtenerDatosHashtag = (hashtagId: string) => {
   return resultadoInstaCalc.hashtags.find(h => h.id === hashtagId);
 };
 
+/**
+ * Obtiene una lista de hashtags disponibles con su ID y nombre.
+ * 
+ * @return Un arreglo de objetos con { id, nombre }
+ */
 export const obtenerListaHashtags = () => {
   return resultadoInstaCalc.hashtags.map(h => ({
     id: h.id,
@@ -107,9 +152,13 @@ export const obtenerListaHashtags = () => {
   }));
 };
 
-// Componente React (mantiene el diseño original)
+/**
+ * Componente principal que renderiza las gráficas de tasas de interacción y viralidad
+ * para el primer hashtag disponible. También muestra una lista de hashtags analizados.
+ * 
+ * @return Componente visual de React con gráficas y resumen de hashtags.
+ */
 const InstaCalc: React.FC = () => {
-  // Por defecto muestra el primer hashtag, pero podrías hacer esto dinámico
   const primerHashtag = resultadoInstaCalc.hashtags[0];
   
   if (!primerHashtag) {
@@ -125,7 +174,6 @@ const InstaCalc: React.FC = () => {
         <h1 className="text-2xl font-bold text-purple-700">
           📸 Instagram Analytics - {primerHashtag.nombre}
         </h1>
-        {/* 🔥 NUEVO: Mostrar cantidad de hashtags disponibles */}
         <p className="text-sm text-gray-600 mt-2">
           {resultadoInstaCalc.hashtags.length} hashtags disponibles
         </p>
@@ -159,7 +207,6 @@ const InstaCalc: React.FC = () => {
         </ResponsiveContainer>
       </div>
 
-      {/* 🔥 NUEVO: Lista de hashtags disponibles */}
       <div className="mt-8 p-4 bg-gray-50 rounded-lg">
         <h3 className="text-lg font-semibold mb-2">Hashtags disponibles:</h3>
         <div className="flex flex-wrap gap-2">

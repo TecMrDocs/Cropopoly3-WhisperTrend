@@ -1,13 +1,35 @@
+/**
+ * Componente visual de bienvenida que guía al usuario sobre cómo comenzar
+ * el análisis de tendencias dentro del panel principal.
+ * 
+ * Presenta un mensaje introductorio con diseño atractivo, iconografía ilustrativa,
+ * consejos de uso (TIP), y ejemplos de acciones que puede realizar el usuario.
+ *
+ * Autor: Sebastián Antonio Almanza
+ * Contribuyentes: Andrés Cabrera Alvarado (documentación)
+ */
+
 export default function MensajeInicial() {
+  /**
+   * Renderiza el panel de bienvenida con un fondo degradado, íconos SVG
+   * representativos y mensajes de ayuda interactivos.
+   *
+   * @return JSX que muestra el mensaje inicial con estructura visual atractiva
+   */
   return (
     <div className="w-full h-96 flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 rounded-xl border-2 border-dashed border-blue-300 relative overflow-hidden px-4">
+      
+      {/* Icono de fondo decorativo */}
       <div className="absolute top-4 right-4 opacity-20">
         <svg className="h-20 w-20 text-blue-300" fill="currentColor" viewBox="0 0 24 24">
           <path d="M16 6l2.29 2.29c.39.39.39 1.02 0 1.41L16 12l2.29 2.29c.39.39.39 1.02 0 1.41L16 18l-4-4 4-4 4-4-4-4z"/>
         </svg>
       </div>
       
+      {/* Contenido principal del mensaje */}
       <div className="text-center max-w-md mx-auto relative z-10">
+
+        {/* Icono principal animado */}
         <div className="mb-4">
           <div className="mx-auto h-16 w-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
             <svg 
@@ -26,10 +48,12 @@ export default function MensajeInicial() {
           </div>
         </div>
 
+        {/* Título llamativo */}
         <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3">
           ¡Bienvenido al análisis de tendencias!
         </h3>
 
+        {/* Tip con sugerencia útil para el usuario */}
         <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 mb-3 border border-blue-200 shadow-sm">
           <div className="flex items-center justify-center mb-1">
             <div className="bg-yellow-400 rounded-full p-1 mr-2">
@@ -44,6 +68,7 @@ export default function MensajeInicial() {
           </p>
         </div>
 
+        {/* Lista de funcionalidades destacadas */}
         <div className="space-y-1 text-xs">
           <div className="flex items-center justify-center text-gray-600">
             <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-2 flex-shrink-0"></div>
@@ -59,6 +84,7 @@ export default function MensajeInicial() {
           </div>
         </div>
 
+        {/* Indicador de navegación con animación */}
         <div className="mt-4 flex justify-center">
           <div className="animate-bounce">
             <div className="bg-blue-500 rounded-full p-2 shadow-lg">

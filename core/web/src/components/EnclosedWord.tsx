@@ -1,9 +1,21 @@
 /**
- * Componente: EnclosedWord
- * Authors: Arturo Barrios Mendoza
- * Descripción: Es un componente que muestra una palabra encerrada en un cuadro con un fondo degradado.
+ * Componente reutilizable: EnclosedWord
+ *
+ * Este componente visualiza una palabra encerrada dentro de un contenedor estilizado,
+ * con un borde exterior con fondo degradado y un fondo blanco interior que destaca el texto.
+ * Es ideal para mostrar etiquetas, términos clave o categorías con estilo llamativo.
+ *
+ * Autor: Arturo Barrios Mendoza  
+ * Contribuyentes: Andres Cabrera Alvarado (documentación)
  */
 
+/**
+ * Renderiza una palabra dentro de un cuadro con fondo degradado azul-verde
+ * y un interior blanco con bordes redondeados.
+ * 
+ * @param word - Palabra o texto que se mostrará dentro del recuadro
+ * @return JSX que representa una palabra encerrada en un contenedor decorativo
+ */
 export default function EnclosedWord({ word }: { word: string }) {
   return (
     <div className="flex items-center justify-center">

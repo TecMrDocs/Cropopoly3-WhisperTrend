@@ -1,9 +1,24 @@
-# keysPROtting
-**keysPROtting** is an intelligent system developed as part of the NDS initiative. Its goal is to correlate fluctuations in the stock market with sentiment derived from online news outlets and social media platforms such as X, Instagram, and Reddit.
+# WhisperTrend
+**WhisperTrend** is an intelligent system developed as part of the NDS initiative. Its goal is to correlate fluctuations in the stock market with sentiment derived from online news outlets and social media platforms such as X, Instagram, and Reddit.
 
 The system leverages **web scraping**, **natural language processing (NLP)**, and **machine learning (ML)** techniques to identify relevant patterns, uncover insights, and help anticipate market movements based on real-time media activity. These insights are designed to support financial analysts, researchers, and developers working on automated investment strategies.
 
-Through the integration of multiple data sources and the analysis of public sentiment, keysPROtting provides a modern approach to understanding the influence of digital narratives on financial trends.
+Through the integration of multiple data sources and the analysis of public sentiment, WhisperTrend provides a modern approach to understanding the influence of digital narratives on financial trends.
+
+## Team members 
+
+| Nombre completo                             | Matrícula     |
+|--------------------------------------------|---------------|
+| Arturo Barrios Mendoza                     | A01168331     |
+| Lucio Arturo Reyes Castillo                | A01378985     |
+| Santiago Villazón Ponce de León            | A01746396     |
+| Mariana Balderrábano Aguilar               | A01749581     |
+| Andrés Cabrera Alvarado                    | A01798681     |
+| Renato García Morán                        | A01799387     |
+| Iván Alexander Ramos Ramírez               | A01750817     |
+| Julio Cesar Vivas Medina                   | A01749879     |
+| Carlos Alberto Zamudio Velázquez           | A01799283     |
+| Sebastián Antonio Almanza                  | A01749694     |
 
 ## Development
 
@@ -35,7 +50,7 @@ git clone https://github.com/TecMrDocs/Cropopoly3-WhisperTrend
 
 ```bash
 # Open the project directory in VSCode or use the terminal
-code keysPROtting
+code WhisperTrend
 ```
 
 **4. Open the project in a container**

@@ -1,3 +1,20 @@
+/**
+ * Componente SaveAlert que muestra una alerta modal sencilla indicando
+ * que los datos se guardaron correctamente.
+ * 
+ * Se usa para notificar al usuario el éxito de alguna operación,
+ * mostrando un ícono, título y mensaje.
+ * 
+ * Autor: Sebastián Antonio Almanza 
+ * Contribuyentes: - 
+ */
+
+  /**
+   * Renderiza un modal centrado en pantalla con fondo transparente,
+   * que contiene un cuadro blanco con sombra, ícono de check y mensaje de éxito.
+   * 
+   * @returns JSX.Element - Alerta visual de confirmación de guardado exitoso.
+   */
 export default function SaveAlert() {
   return (
     <div className="fixed inset-0 bg-transparent  flex items-center justify-center z-50">

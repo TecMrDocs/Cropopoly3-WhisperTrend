@@ -1,4 +1,3 @@
-// src/nosql/mod.rs - VERSIÓN CON GUARDADO DE WEB SCRAPING
 use actix_web::{web, HttpResponse, Responder, get, post, Result};
 use serde_json::json;
 use aws_sdk_dynamodb::{Client, types::AttributeValue};
@@ -9,7 +8,6 @@ use tracing::{info, error, warn};
 use serde::{Deserialize, Serialize};
 pub mod controllers;
 
-// 🆕 TIPOS PARA DATOS SCRAPED
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScrapedPost {
     pub comments: i32,

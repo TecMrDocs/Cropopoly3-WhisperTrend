@@ -1,3 +1,21 @@
+/**
+ * Componente principal: CorrelacionVentas
+ *
+ * Este componente analiza la relación entre la actividad de hashtags en redes sociales
+ * (Instagram, Reddit y Twitter) y las ventas de un producto, utilizando el coeficiente
+ * de correlación de Pearson (r) para estimar la fuerza y dirección de dicha relación.
+ *
+ * Muestra interpretaciones académicas visuales, mensajes de confianza del análisis,
+ * tarjetas individuales para cada hashtag, y una gráfica comparativa con barras.
+ * 
+ * El componente opera con datos reales del sistema (`analysisData`) y es transparente
+ * respecto a los criterios de confiabilidad, umbrales mínimos y estimaciones.
+ *
+ * Autor: Andrés Cabrera Alvarado
+ * Contribuyentes: Lucio Reyes (optimización de rendimiento), Julio Vivas (mejoras de UX)
+ */
+
+
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -7,14 +25,13 @@ interface CorrelacionVentasProps {
   analysisData?: any;
 }
 
-// 🆕 TIPO ACTUALIZADO PARA INCLUIR INTERPRETACIÓN DE PEARSON
 interface CorrelacionResult {
-  correlacion: number; // 🎓 Valor real de Pearson (-1 a 1)
+  correlacion: number;
   esReal: boolean;
   esEstimacion: boolean;
   mensaje: string;
   confianza: 'alta' | 'media' | 'baja' | 'insuficiente';
-  interpretacion?: { // 🎓 INTERPRETACIÓN ACADÉMICA
+  interpretacion?: {
     categoria: string;
     descripcion: string;
     color: string;
@@ -27,9 +44,17 @@ interface CorrelacionResult {
   };
 }
 
-// 🧮 FUNCIÓN TRANSPARENTE PARA CALCULAR CORRELACIÓN
+/**
+ * Calcula el coeficiente de correlación de Pearson entre las métricas del hashtag
+ * y los datos de ventas, manejando casos con datos insuficientes o no disponibles.
+ * También incluye una interpretación académica del valor obtenido.
+ * 
+ * @param hashtagMetrics - Métricas sociales del hashtag (interacciones, viralidad)
+ * @param ventasData - Arreglo de objetos con datos de ventas mensuales
+ * @return Objeto con el resultado de la correlación, interpretación y confiabilidad
+ */
 const calcularCorrelacionTransparente = (hashtagMetrics: any, ventasData: any[]): CorrelacionResult => {
-  // 🚨 CASO 1: NO HAY DATOS DE VENTAS
+  //CASO 1: NO HAY DATOS DE VENTAS
   if (!ventasData || ventasData.length === 0) {
     return {
       correlacion: 0,
@@ -45,7 +70,7 @@ const calcularCorrelacionTransparente = (hashtagMetrics: any, ventasData: any[])
     };
   }
 
-  // 🚨 CASO 2: DATOS INSUFICIENTES (menos de 3 puntos)
+  //CASO 2: DATOS INSUFICIENTES (menos de 3 puntos)
   if (ventasData.length < 3) {
     return {
       correlacion: 0,
@@ -61,7 +86,7 @@ const calcularCorrelacionTransparente = (hashtagMetrics: any, ventasData: any[])
     };
   }
 
-  // 🚨 CASO 3: SIN MÉTRICAS DE HASHTAG
+  //CASO 3: SIN MÉTRICAS DE HASHTAG
   if (!hashtagMetrics) {
     return {
       correlacion: 0,
@@ -77,7 +102,7 @@ const calcularCorrelacionTransparente = (hashtagMetrics: any, ventasData: any[])
     };
   }
 
-  // ✅ CASO 4: CALCULAR CORRELACIÓN REAL
+  //CASO 4: CALCULAR CORRELACIÓN REAL
   const ventasOrdenadas = ventasData
     .sort((a, b) => a.year - b.year || a.month - b.month)
     .map(v => v.units_sold);
@@ -104,7 +129,13 @@ const calcularCorrelacionTransparente = (hashtagMetrics: any, ventasData: any[])
   // 🎓 MANTENER CORRELACIÓN DE PEARSON EN RANGO -1 a 1 (como debe ser)
   const correlacionFinal = Math.min(Math.max(correlacion, -1), 1);
 
-  // 🎓 FUNCIÓN PARA INTERPRETAR EL COEFICIENTE DE PEARSON
+  /**
+ * Interpreta el valor del coeficiente de Pearson según umbrales académicos
+ * para categorizar la relación entre variables (muy fuerte, moderada, etc.).
+ *
+ * @param r - Valor del coeficiente de correlación (r)
+ * @return Objeto con categoría, color representativo y emoji asociado
+ */
   const interpretarPearson = (r: number): { 
     categoria: string, 
     descripcion: string, 
@@ -186,12 +217,27 @@ const calcularCorrelacionTransparente = (hashtagMetrics: any, ventasData: any[])
   };
 };
 
+/**
+ * Componente React que calcula, interpreta y visualiza la correlación entre
+ * interacciones sociales de hashtags y las ventas de un producto.
+ *
+ * @param hashtagSeleccionado - Hashtag que se está analizando (opcional)
+ * @param datosDelSistema - Datos de apoyo o configuración del sistema (opcional)
+ * @param analysisData - Datos de ventas y hashtags del análisis principal
+ * @return JSX con análisis visual, tarjetas explicativas y gráfica de barras
+ */
 const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({ 
   hashtagSeleccionado, 
   datosDelSistema,
   analysisData 
 }) => {
 
+  /**
+   * Procesa los datos y calcula correlaciones por hashtag de manera transparente.
+   * Incluye estadísticas generales como promedio y tendencia agregada.
+   * 
+   * @return Objeto con correlaciones individuales, resumen global y estado del análisis
+   */
   const correlaciones = useMemo(() => {
     // 🔍 VERIFICAR QUE TENGAMOS DATOS REALES
     const hashtagsCalculados = analysisData?.calculated_results?.hashtags || [];
@@ -233,7 +279,7 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({
       };
     }
 
-    // 🎯 CALCULAR CORRELACIONES TRANSPARENTES
+    //CALCULAR CORRELACIONES TRANSPARENTES
     const correlacionesCalculadas = hashtagsCalculados.map((hashtag: any, index: number) => {
       
       // Calcular correlación transparente
@@ -284,7 +330,7 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({
     };
   }, [datosDelSistema, analysisData]);
 
-  // 📊 DATOS PARA LA GRÁFICA CON TRANSPARENCIA
+  //DATOS PARA LA GRÁFICA CON TRANSPARENCIA
   const datosComparativos = useMemo(() => {
     return correlaciones.hashtags
       .filter(hashtag => hashtag.resultado.esReal) // Solo mostrar correlaciones reales
@@ -299,7 +345,7 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({
       }));
   }, [correlaciones]);
 
-  // 🎨 DETERMINAR COLORES Y ICONOS BASADO EN ESTADO REAL
+  //DETERMINAR COLORES Y ICONOS BASADO EN ESTADO REAL
   const colorTendencia = correlaciones.tendenciaGeneral === 'positiva' ? '#22c55e' : 
                         correlaciones.tendenciaGeneral === 'neutral' ? '#f59e0b' :
                         correlaciones.tendenciaGeneral === 'negativa' ? '#ef4444' : '#94a3b8';
