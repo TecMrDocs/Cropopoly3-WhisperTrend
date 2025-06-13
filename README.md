@@ -94,16 +94,11 @@ BROWSERLESS_WS=ws://browserless-chrome:3000
 RESEND_API_KEY=re_V8dSqt3d_HXzVRp1wBrGCvtzP7vyuqRex
 EMAIL_FROM="WhisperTrend <noreply@whispertrend.lat>"
 
-<<<<<<< HEAD
-INSTAGRAM_USERNAME=whispertrendscrap@gmail.com
-INSTAGRAM_PASSWORD=Nino172001@
-=======
 INSTAGRAM_USERNAME=jonh@example.com
 INSTAGRAM_PASSWORD=awdrqwer12
 
 RESEND_API_KEY=re_V8dSqt3d_HXzVRp1wBrGCvtzP7vyuqRex
 EMAIL_FROM="WhisperTrend <noreply@whispertrend.lat>"
->>>>>>> 13319ef91110b46b299c7bc7c91baf02e95bfd30
 ```
 
 # Frontend
