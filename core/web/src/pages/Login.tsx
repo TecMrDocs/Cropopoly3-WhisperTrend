@@ -1,3 +1,15 @@
+/**
+ * Página: Login.tsx
+ * 
+ * Descripción:
+ * Vista de inicio de sesión para usuarios. Incluye un formulario con validación de campos,
+ * control de errores de backend y navegación a rutas relacionadas como el registro de usuario,
+ * recuperación de contraseña y aviso de privacidad.
+ * 
+ * Autor: Mariana Balderrábano Aguilar
+ * Contribuyentes: Sebastián Antonio Almanza
+ */
+
 import { useState, FormEvent } from "react";
 import GenericButton from "../components/GenericButton";
 import LogoBackground from "../components/LogoBackground";
@@ -6,9 +18,11 @@ import TextFieldWHolder from "../components/TextFieldWHolder";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
-// Maneja el inicio de sesión del usuario
 export default function Login() {
-  // Define estados para el formulario
+  /**
+   * Estados para manejar entradas del formulario,
+   * errores de validación y errores del backend.
+   */
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({
@@ -16,12 +30,17 @@ export default function Login() {
     password: "",
   });
   const [apiError, setApiError] = useState("");
-  // const [token, setToken] = useState("");
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
   const { signIn } = useAuth();
 
-  // Valida el formulario antes de enviarlo	
+  /**
+   * Función que valida los campos del formulario.
+   * Verifica formato del correo, campos vacíos y longitud mínima de la contraseña.
+   * 
+   * @return {boolean} True si el formulario es válido; False si hay errores.
+   */
   const validateForm = () => {
     let valid = true;
     const newErrors = {
@@ -43,42 +62,48 @@ export default function Login() {
     if (!password) {
       newErrors.password = "La contraseña es requerida";
       valid = false;
-    }
-    else if (password.length < 8) {
+    } else if (password.length < 8) {
       newErrors.password = "La contraseña debe tener mínimo 8 caracteres";
       valid = false;
     }
-
 
     setErrors(newErrors);
     return valid;
   };
 
+  /**
+   * Función que maneja el envío del formulario de inicio de sesión.
+   * Valida campos y llama al método de autenticación `signIn`.
+   * Muestra errores devueltos por el backend si los hay.
+   * 
+   * @param {FormEvent} e - Evento del formulario.
+   */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     setErrors({ email: "", password: "" });
     setApiError("");
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
 
     try {
       await signIn(email, password);
     } catch (error: any) {
-      // const status = error.response?.status;
       const message = typeof error.response?.data === "string"
         ? error.response.data
         : error.response?.data?.message || "Error al iniciar sesión";
       setApiError(message);
     }
+
     setLoading(false);
   };
 
-  // Página de inicio de sesión con formulario y mensajes de error
+  /**
+   * Renderiza el formulario de inicio de sesión y enlaces de navegación adicionales.
+   * Muestra errores de validación o errores generales en caso de autenticación fallida.
+   */
   return (
     <LogoBackground>
       <div className="min-h-screen flex items-center justify-center p-4 md:p-8">
@@ -91,14 +116,17 @@ export default function Login() {
               Inicia sesión
             </h2>
 
+            {/* Muestra error general del backend */}
             {apiError && (
               <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-xl text-sm">
                 {apiError}
               </div>
             )}
             
+            {/* Formulario de inicio de sesión */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <Container>
+                {/* Campo de correo */}
                 <div className="mb-4">
                   <label htmlFor="email-input" className="block mb-2 text-white font-medium">
                     Correo
@@ -116,6 +144,7 @@ export default function Login() {
                   )}
                 </div>
 
+                {/* Campo de contraseña */}
                 <div className="mb-4">
                   <label htmlFor="password-input" className="block mb-2 text-white font-medium">
                     Contraseña
@@ -142,6 +171,7 @@ export default function Login() {
               />
             </form>
 
+            {/* Enlaces adicionales debajo del formulario */}
             <div className="text-center mt-8 space-y-2 text-sm">
               <p className="text-gray-700">
                 ¿No tienes cuenta?{" "}
