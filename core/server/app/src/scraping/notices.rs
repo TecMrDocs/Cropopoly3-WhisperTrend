@@ -6,7 +6,6 @@
  * Incluye extracción de títulos, descripciones, palabras clave y procesamiento de hashtags.
  * 
  * Autor: Carlos Alberto Zamudio Velázquez
- * Contribuyentes: [Lista de contribuyentes]
  */
 
 use futures::future::join_all;
