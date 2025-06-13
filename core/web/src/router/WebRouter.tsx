@@ -1,3 +1,14 @@
+/**
+ * Enrutador Principal de la Aplicación Web
+ * 
+ * Este archivo define la estructura completa de navegación de la aplicación,
+ * organizando las rutas en diferentes categorías: públicas, protegidas y de proceso de lanzamiento.
+ * Implementa un sistema de layouts dinámicos y controles de autenticación para cada sección.
+ * 
+ * @author Todo el equipo de desarrollo de WhisperTrend
+ * @contributors Todo el equipo de desarrollo de WhisperTrend
+ */
+
 import {Routes, Route} from "react-router-dom";
 import LandingLayout from "../layouts/landingLayout";
 import MainLayout from "../layouts/mainLayout";
@@ -36,8 +47,23 @@ import Protected from "../components/Protected";
 import Unprotected from "../components/Unprotected";
 import AuthLayout from "@/layouts/authLayout";
 
-
+/**
+ * Componente principal de enrutamiento de la aplicación
+ * Maneja toda la navegación entre páginas, implementa protección de rutas
+ * y asigna layouts específicos según el contexto de cada sección
+ * 
+ * @return JSX.Element con la estructura completa de rutas de la aplicación
+ */
 export default function WebRouter(){
+  /**
+   * Función utilitaria para combinar layouts con páginas de forma dinámica
+   * Encapsula una página dentro de su layout correspondiente para mantener
+   * consistencia visual y funcional en cada sección de la aplicación
+   * 
+   * @param Layout Componente de layout que provee la estructura visual
+   * @param Page Componente de página que contiene el contenido específico
+   * @return JSX.Element con la página envuelta en su layout
+   */
   const loadLayout = (Layout: any, Page: any) => {
     return(
       <Layout>
@@ -46,9 +72,18 @@ export default function WebRouter(){
     );
   }
 
+  /**
+   * Configuración principal de rutas de la aplicación
+   * Organiza todas las rutas en categorías lógicas con sus respectivos
+   * controles de acceso y layouts para una navegación estructurada
+   */
   return(
     <Routes>
-      {/* Rutas públicas/no protegidas */}
+      {/**
+       * Sección de rutas públicas y no protegidas
+       * Estas rutas son accesibles sin autenticación y están destinadas
+       * a usuarios visitantes, registro inicial y procesos de autenticación
+       */}
       <Route path="/" element={<Unprotected>{loadLayout(LandingLayout, Home)}</Unprotected>} />
       <Route path="/nosotros" element={<Unprotected>{loadLayout(LandingLayout, Us)}</Unprotected>} />
       <Route path="/avisoPrivacidad" element={loadLayout(MainLayout, PrivacyNotice)} />
@@ -64,9 +99,11 @@ export default function WebRouter(){
       <Route path="/registroVentas" element={loadLayout(ProfileLayout, RegistroVentas)} />
       <Route path="/confirmaProducto" element={loadLayout(ProfileLayout, ConfirmaProducto)} />
       
-      {/* Rutas de autenticación */}
-      
-      {/* Rutas protegidas - requieren autenticación */}
+      {/**
+       * Sección de rutas protegidas principales
+       * Requieren autenticación válida para acceso y contienen
+       * las funcionalidades principales de la aplicación para usuarios autenticados
+       */}
       <Route path="/dashboard" element={<Protected>{loadLayout(ProfileLayout, Dashboard)}</Protected>} />
       <Route path="/acercaDe" element={<Protected>{loadLayout(ProfileLayout, AcercaDe)}</Protected>} />
       <Route path="/editarProducto" element={<Protected>{loadLayout(ProfileLayout, EditarProducto)}</Protected>} />
@@ -75,7 +112,11 @@ export default function WebRouter(){
       <Route path="/perfil" element={<Protected>{loadLayout(ProfileLayout, Perfil)}</Protected>} />
       <Route path="/productos" element={<Protected>{loadLayout(ProfileLayout, Productos)}</Protected>} />
       
-      {/* Rutas del proceso de lanzamiento - protegidas */}
+      {/**
+       * Sección de rutas del proceso de lanzamiento
+       * Flujo protegido y secuencial para configuración inicial de productos
+       * y empresas, con layout especializado para guiar al usuario paso a paso
+       */}
       <Route path="/launchConfirmacion" element={<Protected>{loadLayout(LaunchLayout, LaunchConfirmacion)}</Protected>} />
       <Route path="/launchEmpresa" element={<Protected>{loadLayout(LaunchLayout, LaunchEmpresa)}</Protected>} />
       <Route path="/launchPeriodo" element={<Protected>{loadLayout(LaunchLayout, LaunchPeriodo)}</Protected>} />
