@@ -8,7 +8,7 @@
  * Es útil para mejorar la experiencia del usuario y la accesibilidad,
  * ya que indica de manera clara en qué sección de la aplicación se encuentra.
  *
- * Autor: Julio Vivas
+ * Autor: Julio Cesar Vivas Medina
  * Contribuyentes: Sebastián Antonio Almanza (front design), Andrés Cabrera Alvarado (documentación)
  */
 

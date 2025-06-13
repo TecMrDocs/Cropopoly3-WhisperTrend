@@ -8,7 +8,7 @@
  * Incluye control de estado de carga, manejo de errores y visualización condicional.
  *
  * Autor: Lucio Reyes Castillo
- * Contribuyentes: Andrés Cabrera Alvarado (documentación, front design), Julio Vivas (dashobard analisis)
+ * Contribuyentes: Andrés Cabrera Alvarado (documentación, front design), Julio Cesar Vivas Medina (front design, dashboard análisis)
  */
 
 import { useState } from 'react';

@@ -2,6 +2,15 @@ import { useState } from 'react';
 import { usePrompt } from '../contexts/PromptContext';
 import analysisApi from '../utils/api/analysis';
 
+/**
+ * TestPromptContext es un componente React que permite a los usuarios probar el estado actual del PromptContext.
+ * Muestra el estado de los datos del contexto, proporciona un botón para enviar los datos al backend para pruebas,
+ * y muestra la respuesta del servidor o cualquier error encontrado durante el proceso.
+ *
+ * @component
+ * @returns {JSX.Element} El componente renderizado para probar PromptContext.
+ * @author Julio Cesar Vivas Medina
+ */
 export default function TestPromptContext() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);

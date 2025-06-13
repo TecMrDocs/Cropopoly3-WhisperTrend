@@ -5,7 +5,7 @@
  * de tendencias digitales basados en datos de redes sociales, hashtags y ventas.
  * Utiliza modelos de IA para procesar los datos y generar insights empresariales.
  * 
- * @author Lucio Arturo Reyes Castillo
+ * @author Julio Cesar Vivas Medina
  */
 
 use actix_web::{post, get, web, HttpResponse, Responder};
@@ -82,10 +82,8 @@ pub async fn test_prompt_context(body: web::Json<PromptContextData>) -> impl Res
  */
 #[post("")]
 pub async fn handle_analysis(body: web::Json<AnalysisRequest>) -> impl Responder {
-    /**
-     * Construcción del prompt estructurado para el análisis
-     * Define el formato y las secciones que debe incluir el análisis generado
-     */
+    // Construcción del prompt estructurado para el análisis
+    // Define el formato y las secciones que debe incluir el análisis generado
     let mut prompt = String::from(
         "Eres un analista de datos senior especializado en análisis de tendencias digitales y marketing.\n\n\
          # 📊 Análisis de Tendencias Digitales\n\n\
@@ -109,19 +107,15 @@ pub async fn handle_analysis(body: web::Json<AnalysisRequest>) -> impl Responder
          ## 📊 Datos Originales Proporcionados (JSON)\n\n"
     );
 
-    /**
-     * Serialización de los datos de análisis para incluir en el prompt
-     * Convierte los datos JSON en formato legible para el modelo de IA
-     */
+    // Serialización de los datos de análisis para incluir en el prompt
+    // Convierte los datos JSON en formato legible para el modelo de IA
     let analysis_data_str = serde_json::to_string_pretty(&body.analysis_data)
         .unwrap_or_else(|_| "Error al serializar datos".to_string());
     
     prompt.push_str(&analysis_data_str);
 
-    /**
-     * Inicialización del cliente de IA con configuración específica
-     * Configura el agente con el modelo solicitado y el contexto de análisis empresarial
-     */
+    // Inicialización del cliente de IA con configuración específica
+    // Configura el agente con el modelo solicitado y el contexto de análisis empresarial
     let client = providers::groq::Client::from_env();
 
     let agent = client
@@ -129,27 +123,21 @@ pub async fn handle_analysis(body: web::Json<AnalysisRequest>) -> impl Responder
         .preamble("Eres un analista de datos senior: proporciona insights cuantitativos precisos, identifica patrones clave y sugiere estrategias basadas exclusivamente en los datos proporcionados.")
         .build();
 
-    /**
-     * Procesamiento del análisis con manejo de errores
-     * Envía el prompt al modelo de IA y procesa la respuesta
-     * Incluye lógica de respaldo y guardado de archivos
-     */
+    // Procesamiento del análisis con manejo de errores
+    // Envía el prompt al modelo de IA y procesa la respuesta
+    // Incluye lógica de respaldo y guardado de archivos
     match agent.prompt(&prompt).await {
         Ok(resp) => {
             let analysis_content = resp.to_string();
             
-            /**
-             * Sistema de respaldo para análisis anteriores
-             * Crea una copia del análisis actual antes de sobrescribirlo
-             */
+            // Sistema de respaldo para análisis anteriores
+            // Crea una copia del análisis actual antes de sobrescribirlo
             if fs::metadata(NEW_ANALYSIS_PATH).is_ok() {
                 let _ = fs::copy(NEW_ANALYSIS_PATH, OLD_ANALYSIS_PATH);
             }
-            
-            /**
-             * Guardado del nuevo análisis en el sistema de archivos
-             * Maneja errores de escritura de forma silenciosa
-             */
+
+            // Guardado del nuevo análisis en el sistema de archivos
+            // Maneja errores de escritura de forma silenciosa
             let saved = fs::write(NEW_ANALYSIS_PATH, &analysis_content).is_ok();
 
             HttpResponse::Ok().json(AnalysisResponse {
@@ -176,25 +164,20 @@ pub async fn handle_analysis(body: web::Json<AnalysisRequest>) -> impl Responder
  */
 #[get("/dummy")]
 pub async fn handle_dummy_analysis() -> impl Responder {
-    /**
-     * Lectura del archivo de análisis dummy con manejo de errores
-     * Si el archivo no existe, crea uno por defecto automáticamente
-     */
+
+    // Lectura del archivo de análisis dummy con manejo de errores
+    // Si el archivo no existe, crea uno por defecto automáticamente
     match fs::read_to_string(DUMMY_ANALYSIS_PATH) {
         Ok(content) => {
             HttpResponse::Ok().body(content)
         }
         Err(_) => {
-            /**
-             * Contenido por defecto para análisis dummy
-             * Se utiliza cuando el archivo original no está disponible
-             */
+            // Contenido por defecto para análisis dummy
+            // Se utiliza cuando el archivo original no está disponible
             let default_content = "# 📋 Análisis Dummy\n\nEste es un análisis de demostración.\nEl archivo original no se encontró, por lo que se generó este contenido por defecto.";
             
-            /**
-             * Creación automática del archivo dummy con contenido por defecto
-             * Maneja errores de escritura y proporciona respuesta apropiada
-             */
+            // Creación automática del archivo dummy con contenido por defecto
+            // Maneja errores de escritura y proporciona respuesta apropiada
             match fs::write(DUMMY_ANALYSIS_PATH, default_content) {
                 Ok(_) => HttpResponse::Ok().body(default_content),
                 Err(_) => HttpResponse::InternalServerError().body("Error al acceder al análisis dummy")
@@ -211,10 +194,9 @@ pub async fn handle_dummy_analysis() -> impl Responder {
  */
 #[get("/latest")]
 pub async fn handle_latest_analysis() -> impl Responder {
-    /**
-     * Lectura del archivo de análisis más reciente
-     * Maneja casos donde el archivo no existe o no es accesible
-     */
+    
+    // Lectura del archivo de análisis más reciente
+    // Maneja casos donde el archivo no existe o no es accesible
     match fs::read_to_string(NEW_ANALYSIS_PATH) {
         Ok(content) => HttpResponse::Ok().body(content),
         Err(_) => HttpResponse::NotFound().body("No hay análisis reciente disponible")
@@ -230,25 +212,21 @@ pub async fn handle_latest_analysis() -> impl Responder {
  */
 #[get("/previous")]
 pub async fn handle_previous_analysis() -> impl Responder {
-    /**
-     * Lectura del archivo de análisis anterior con fallback
-     * Si no existe análisis anterior, crea un mensaje informativo por defecto
-     */
+    
+    // Lectura del archivo de análisis anterior con fallback
+    // Si no existe análisis anterior, crea un mensaje informativo por defecto
     match fs::read_to_string(OLD_ANALYSIS_PATH) {
         Ok(content) => {
             HttpResponse::Ok().body(content)
         }
         Err(_) => {
-            /**
-             * Contenido por defecto para cuando no hay análisis anterior
-             * Informa al usuario que este es el primer análisis del sistema
-             */
+            // Contenido por defecto para cuando no hay análisis anterior
+            // Informa al usuario que este es el primer análisis del sistema
             let default_content = "# 📋 Análisis Anterior\n\nNo hay análisis anterior disponible.\nEste es el primer análisis generado en el sistema.";
             
-            /**
-             * Creación del archivo de análisis anterior con contenido informativo
-             * Maneja errores de escritura y proporciona respuesta apropiada
-             */
+            
+            // Creación del archivo de análisis anterior con contenido informativo
+            // Maneja errores de escritura y proporciona respuesta apropiada
             match fs::write(OLD_ANALYSIS_PATH, default_content) {
                 Ok(_) => HttpResponse::Ok().body(default_content),
                 Err(_) => HttpResponse::NotFound().body("No hay análisis anterior disponible")

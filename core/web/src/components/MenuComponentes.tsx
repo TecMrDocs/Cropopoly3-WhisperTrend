@@ -11,8 +11,17 @@ import {
   generarColoresNoticias 
 } from './correlacionUtils';
 
+/**
+ * Componente de consolidación dinámica de hashtags que muestra un gráfico interactivo
+ * con las tasas de interacción y viralidad de los hashtags seleccionados.
+ *
+ * @param {Object} param0 - Props del componente
+ * @param {any} param0.datosDelSistema - Datos del sistema
+ * @param {boolean} param0.cargandoDatos - Indicador de carga
+ * @returns {JSX.Element} Componente de consolidación
+ */
 const Consolidacion = ({ datosDelSistema, cargandoDatos }: { datosDelSistema: any, cargandoDatos?: boolean }) => {
-  const [seleccionadas, setSeleccionadas] = useState<string[]>(['insta']); 
+  const [seleccionadas, setSeleccionadas] = useState<string[]>(['insta']);
 
   const hashtagsDinamicos = useMemo(() => {
     if (cargandoDatos || !datosDelSistema) {
@@ -131,6 +140,11 @@ const Consolidacion = ({ datosDelSistema, cargandoDatos }: { datosDelSistema: an
   );
 };
 
+/**
+ * Propiedades del componente MenuComponentes.
+ * 
+ * @typedef {Object} MenuComponentesProps
+ */
 type MenuComponentesProps = {
   modoVisualizacion: 'original' | 'logaritmo' | 'normalizado';
   setModoVisualizacion: React.Dispatch<React.SetStateAction<'original' | 'logaritmo' | 'normalizado'>>;
@@ -144,6 +158,37 @@ type MenuComponentesProps = {
   cargandoDatos?: boolean;   
 };
 
+/**
+ * Componente de menú principal que maneja la visualización y selección de diferentes elementos
+ * del sistema como hashtags, tasas de interacción/viralidad y noticias.
+ * 
+ * @author Lucio Reyes Castillo
+ * @author Julio Cesar Vivas Medina
+ * 
+ * @component
+ * @param {MenuComponentesProps} props - Propiedades del componente
+ * @param {Function} props.setModoVisualizacion - Función para cambiar el modo de visualización
+ * @param {Function} props.setHashtagSeleccionado - Función para establecer el hashtag seleccionado
+ * @param {Function} props.onSeleccionItem - Callback cuando se selecciona un elemento
+ * @param {string} props.hashtagSeleccionado - Hashtag actualmente seleccionado
+ * @param {Function} props.onTasasSeleccionadas - Callback cuando se seleccionan tasas
+ * @param {Function} props.onHashtagsNoticiasSeleccionados - Callback cuando se seleccionan hashtags de noticias
+ * @param {Object} props.datosDelSistema - Datos del sistema con información de plataformas y resultados
+ * @param {boolean} props.cargandoDatos - Indicador de estado de carga
+ * 
+ * @returns {JSX.Element} Componente de menú renderizado
+ * 
+ * @description
+ * Este componente maneja la interfaz principal del menú que permite:
+ * - Visualizar y seleccionar hashtags dinámicos
+ * - Mostrar tasas de interacción y viralidad por plataforma
+ * - Gestionar noticias relacionadas
+ * - Alternar entre diferentes modos de visualización
+ * - Mostrar consolidaciones de datos
+ * 
+ * El componente utiliza varios hooks para manejar el estado local y efectos secundarios,
+ * generando opciones dinámicas basadas en los datos del sistema recibidos.
+ */
 const MenuComponentes: React.FC<MenuComponentesProps> = ({ 
   setModoVisualizacion, 
   setHashtagSeleccionado,

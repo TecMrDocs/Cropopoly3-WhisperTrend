@@ -12,7 +12,7 @@
  * respecto a los criterios de confiabilidad, umbrales mínimos y estimaciones.
  *
  * Autor: Andrés Cabrera Alvarado
- * Contribuyentes: Lucio Reyes (optimización de rendimiento), Julio Vivas (mejoras de UX)
+ * Contribuyentes: Lucio Reyes (optimización de rendimiento), Julio Cesar Vivas Medina (front design, mejoras de UX)
  */
 
 
