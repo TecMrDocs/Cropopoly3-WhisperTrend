@@ -1,15 +1,4 @@
-/**
-* Biblioteca de macros procedurales para generación automática de código Diesel ORM.
-* 
-* Este módulo contiene macros procedurales que automatizan la creación de código
-* boilerplate para operaciones CRUD con Diesel ORM. Incluye el macro diesel_default
-* para aplicar traits comunes automáticamente y el macro database para generar
-* métodos CRUD completos (create, read, update, delete) con sintaxis declarativa
-* flexible que soporta operaciones complejas de filtrado y actualización.
-* 
-* Autor: Carlos Alberto Zamudio Velázquez
-* Contribuyentes: Mariana Balderrábano Aguilar
-*/
+
 
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
