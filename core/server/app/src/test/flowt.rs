@@ -1,3 +1,10 @@
+// Copyright 2025 WhisperTrend
+// Este archivo pertenece al proyecto WhisperTrend
+// Tester: Santiago Villazón Ponce de León
+// Fecha: 12-06-2025
+
+// Este módulo contiene pruebas unitarias para el funcionamiento de las rutas en flow.rs
+
 use actix_web::{http::StatusCode, test, web, App};
 use crate::controllers::flow;
 use dotenv::dotenv;
