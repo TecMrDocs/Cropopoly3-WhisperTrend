@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import {LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid,} from 'recharts';
 
+import SeccionVentas from './SeccionVentas';
+
 const calcularCorrelacion = (datos: any[]): number => {
   if (!datos || datos.length === 0) return 0;
   const tasas = datos.map(d => d.tasa || 0);
@@ -529,28 +531,15 @@ const handleItemClick = (itemId: string, nuevoModo?: 'original' | 'logaritmo' | 
     <div className="w-full h-full mx-auto rounded-3xl overflow-hidden border border-gray-200 bg-white">
       <div className="p-6 bg-white">
 
-        <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50">
-          <h2 className="text-xl font-bold text-navy-900">Ventas</h2>
-          <div className="mt-3 space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div
-                  className={`${getCircleStyle({ id: 'Ventas' })} bg-blue-600`}
-                  onClick={() => handleItemClick('Ventas', 'original')}
-                ></div>
-<span className={`text-gray-800 font-medium ${isActive('Ventas') ? 'font-bold' : ''}`}>
-  Ventas de {datosDelSistema?.resource_name || 'Producto'}
-</span>
-              </div>
-              <button
-                className={getButtonStyle('Ventas')}
-                onClick={() => handleItemClick('Ventas')}
-              >
-                Ver más
-              </button>
-            </div>
-          </div>
-        </div>
+        {/* ✨ AQUÍ SE USA EL NUEVO COMPONENTE SECCIONVENTAS */}
+        <SeccionVentas
+          datosDelSistema={datosDelSistema}
+          hashtagSeleccionado={hashtagSeleccionado}
+          isActive={isActive}
+          getCircleStyle={getCircleStyle}
+          getButtonStyle={getButtonStyle}
+          handleItemClick={handleItemClick}
+        />
 
         {!mostrarDesgloseTasas && !mostrarDesgloseNoticias && !mostrarConsolidacion && (
           <div className="mb-6 p-4 border rounded-xl bg-gradient-to-r from-green-50 to-emerald-50">
