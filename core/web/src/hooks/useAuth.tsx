@@ -3,7 +3,6 @@
  * Permite utilizar las funciones y datos de autenticación desde cualquier parte de la aplicación.
  * 
  * Autor: Sebastian Antonio
- * Contribuyentes: - 
  */
 
 import { useContext } from 'react';

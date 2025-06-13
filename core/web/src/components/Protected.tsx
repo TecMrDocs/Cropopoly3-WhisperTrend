@@ -5,7 +5,7 @@
  * Redirige a la ruta de login o verificación según el caso.
  *
  * Autor: Sebastián Antonio Almanza 
- * Contribuyentes: -
+ * Contribuyentes: Iván Alexander Ramos Ramírez
  */
 
 import React, { useEffect } from "react";

@@ -6,7 +6,6 @@
  * múltiples tasas para graficarlas juntas en una línea temporal.
  * 
  * Autor: Sebastián Antonio Almanza 
- * Contribuyentes:-
  */
 
 import { TrendingUp } from "lucide-react";

@@ -6,7 +6,6 @@
  * mostrando un ícono, título y mensaje.
  * 
  * Autor: Sebastián Antonio Almanza 
- * Contribuyentes: - 
  */
 
   /**
