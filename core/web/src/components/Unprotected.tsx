@@ -5,7 +5,7 @@
  * es redirigido automáticamente a la sección correspondiente.
  *
  * Autor: Sebastián Antonio Almanza 
- * Contribuyentes: -
+ * Contribuyentes: Iván Alexander Ramos Ramírez
  */
 
 import React, { useEffect } from "react";
