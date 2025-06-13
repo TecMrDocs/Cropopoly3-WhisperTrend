@@ -1,3 +1,15 @@
+/**
+* Módulo de middleware de autenticación JWT.
+* 
+* Este módulo proporciona middleware para validación de tokens JWT en requests HTTP.
+* Extrae tokens del header de autorización, verifica su validez y expiración,
+* y agrega el ID de usuario a las extensiones del request para uso en handlers
+* downstream. Maneja respuestas de autorización no válidas de forma segura.
+* 
+* Autor: Carlos Alberto Zamudio Velázquez
+*/
+
+
 use crate::config::{Claims, Config};
 use actix_web::{
     Error, HttpMessage, HttpResponse,

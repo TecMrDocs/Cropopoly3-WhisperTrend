@@ -1,3 +1,16 @@
+/**
+* Módulo de configuración global de la aplicación.
+* 
+* Este módulo maneja la configuración centralizada de la aplicación incluyendo
+* variables de entorno, credenciales de autenticación JWT, configuración de
+* scraping para redes sociales (Instagram, Twitter), configuración de servidor
+* y parámetros de logging. Utiliza lazy_static para inicialización única y
+* derive_builder para construcción flexible de configuraciones.
+* 
+* Autor: Carlos Alberto Zamudio Velázquez
+*/
+
+
 use crate::common::ApplicationConfig;
 use derive_builder::Builder;
 use lazy_static::lazy_static;

@@ -1,3 +1,17 @@
+/**
+* Módulo principal de la aplicación y punto de entrada del servidor.
+* 
+* Este módulo configura e inicializa el servidor web Actix con todos sus
+* componentes: base de datos, caché OTP, CORS, logging, rutas de API,
+* servicio de archivos estáticos y middleware de autenticación. Implementa
+* el trait Application para el manejo del ciclo de vida completo del servidor
+* y gestiona la inicialización de archivos de datos para análisis.
+* 
+* Autor: Carlos Alberto Zamudio Velázquez
+* Contribuyentes: Julio Cesar Medina Vivas
+*/
+
+
 mod cache;
 use crate::cache::OtpCache;
 

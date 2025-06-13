@@ -1,3 +1,14 @@
+/**
+* Módulo de configuración y lifecycle de la aplicación.
+* 
+* Este módulo define los traits fundamentales para la configuración y gestión
+* del ciclo de vida de la aplicación. Incluye configuración de logging con tracing,
+* inicialización de servicios, configuración de servidor y orquestación del
+* startup completo de la aplicación con manejo de variables de entorno.
+* 
+* Autor: Carlos Alberto Zamudio Velázquez
+*/
+
 use crate::config::Config;
 use tracing::Level;
 use tracing_subscriber;

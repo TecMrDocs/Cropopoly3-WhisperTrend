@@ -1,3 +1,15 @@
+/**
+* Módulo de gestión de base de datos y pool de conexiones.
+* 
+* Este módulo proporciona funcionalidades para la inicialización y gestión
+* de conexiones a base de datos PostgreSQL utilizando Diesel ORM y R2D2
+* connection pool. Incluye manejo de migraciones automáticas, singleton
+* thread-safe para el pool de conexiones y wrappers para ejecutar queries
+* de forma asíncrona sin bloquear el runtime de Actix Web.
+* 
+* Autor: Carlos Alberto Zamudio Velázquez
+*/
+
 use actix_web::web;
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager, PooledConnection};

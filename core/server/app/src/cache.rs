@@ -7,7 +7,6 @@
 * basado en timestamps UTC para garantizar la seguridad temporal de los códigos.
 * 
 * Autor: Iván Alexander Ramos Ramírez
-* Contribuyentes: [Lista de contribuyentes]
 */
 
 use dashmap::DashMap;
