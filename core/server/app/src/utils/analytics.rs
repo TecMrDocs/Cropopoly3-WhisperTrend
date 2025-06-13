@@ -1,3 +1,15 @@
+/**
+* Módulo de métricas y cálculos de engagement para redes sociales.
+* 
+* Este módulo proporciona funciones de cálculo para métricas de viralidad
+* e interacción en diferentes plataformas sociales (Twitter/X, Reddit, Instagram).
+* Incluye ratios de engagement, tasas de viralidad y métricas de rendimiento
+* basadas en seguidores, visualizaciones y tiempo transcurrido.
+* 
+* Autor: Renato García Morán
+* Contribuyentes: Lucio Arturo Reyes Castillo
+*/
+
 pub fn x_viral_rate(reposts: u32, likes: u32, comments: u32, followers: u32) -> f64 {
     if followers == 0 {
         return 0.0;
