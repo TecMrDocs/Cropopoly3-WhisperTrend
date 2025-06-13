@@ -1,13 +1,28 @@
+/**
+ * Componente: LaunchRegistroVentas
+ * 
+ * Descripción:
+ * Este componente permite al usuario registrar el número de ventas mensuales
+ * de su producto o servicio en los últimos 12 meses. Se valida que no existan
+ * valores negativos y se envía la información al backend. También maneja errores,
+ * carga, y navegación al siguiente paso o cancelación.
+ * 
+ * Autor: -
+ * Contribuyentes: Arturo Barrios Mendoza
+ *
+ */
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BlueButton from "../components/BlueButton";
-// import ProgressBar from "../components/ProgressBar";
 import WhiteButton from "../components/WhiteButton";
 import { usePrompt } from "../contexts/PromptContext";
 import { API_URL } from "@/utils/constants";
 import { getConfig } from "@/utils/auth";
 
-//Definir tipos de datos
+/**
+ * Tipo que representa un mes con año, número de mes y nombre.
+ */
 type Mes = {
   id: string;
   mes: string;
@@ -15,12 +30,16 @@ type Mes = {
   numeroMes: number;
 };
 
-//Definir tipo de ventas
+/**
+ * Objeto que contiene los valores de ventas por mes, indexados por ID.
+ */
 type Ventas = {
   [key: string]: string | null;
 };
 
-//Definir tipo de la solicitud que se envía al backend
+/**
+ * Estructura que representa una venta individual enviada al backend.
+ */
 type SaleRequest = {
   id: number;
   resource_id: number;
@@ -29,21 +48,24 @@ type SaleRequest = {
   units_sold: number;
 };
 
-//Función que genera 12 meses atrás desde el mes actual para el registro de ventas. 
+/**
+ * Genera los 12 meses anteriores al mes actual para ser usados como filas del registro.
+ *
+ * @returns Lista de objetos tipo `Mes` con nombre, año y número del mes.
+ */
 const generarMesesAtras = (): Mes[] => {
   const meses: Mes[] = [];
   const nombresMeses = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
   ];
 
-  //Define la fecha actual
   const fechaActual = new Date();
   let mesActual = fechaActual.getMonth();
   let añoActual = fechaActual.getFullYear();
 
   for (let i = 0; i < 12; i++) {
     const id = `${añoActual}-${String(mesActual + 1).padStart(2, '0')}`;
-
     meses.unshift({
       id,
       mes: nombresMeses[mesActual],
@@ -62,7 +84,11 @@ const generarMesesAtras = (): Mes[] => {
   return meses;
 };
 
-//Función que obtiene el user_id del usuario autenticado
+/**
+ * Solicita el ID del usuario autenticado al backend.
+ *
+ * @returns El ID del usuario si tiene sesión válida, `null` en caso contrario.
+ */
 const getUserId = async (): Promise<number | null> => {
   try {
     const res = await fetch(`${API_URL}auth/check`, getConfig());
@@ -75,7 +101,9 @@ const getUserId = async (): Promise<number | null> => {
   }
 };
 
-//Componente que maneja el registro de ventas
+/**
+ * Componente funcional que representa el formulario de registro de ventas mensuales.
+ */
 export default function LaunchRegistroVentas() {
   const [meses] = useState<Mes[]>(generarMesesAtras());
   const [ventas, setVentas] = useState<Ventas>(
@@ -86,16 +114,26 @@ export default function LaunchRegistroVentas() {
   const navigate = useNavigate();
   const { productId, setHasSalesData } = usePrompt();
 
+  /**
+   * Actualiza el estado `ventas` con el valor ingresado para un mes específico.
+   *
+   * @param id ID del mes en formato YYYY-MM
+   * @param value Valor numérico ingresado en el campo de ventas
+   */
   const handleChange = (id: string, value: string) => {
     if (value && Number(value) < 0) {
       setError("No se permiten valores negativos en las ventas");
       return;
     }
-
     setVentas(prev => ({ ...prev, [id]: value }));
     setError(null);
   };
 
+  /**
+   * Maneja el evento de guardar ventas y enviarlas al backend.
+   *
+   * @param e Evento de formulario
+   */
   const handleGuardar = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -121,15 +159,13 @@ export default function LaunchRegistroVentas() {
     setError(null);
 
     try {
-      // Filtrar solo los meses con ventas registradas
       const mesesConVentas = meses.filter(mes => ventas[mes.id] && ventas[mes.id] !== "");
 
       if (mesesConVentas.length === 0) {
         setError("Debes registrar al menos un mes de ventas para continuar");
-        return; 
+        return;
       }
 
-      // Enviar cada venta al backend
       const requests = mesesConVentas.map(mes => {
         const saleData: SaleRequest = {
           id: userId,
@@ -153,7 +189,6 @@ export default function LaunchRegistroVentas() {
 
       const responses = await Promise.all(requests);
 
-      // Verificar que todas las respuestas sean exitosas
       for (const response of responses) {
         if (!response.ok) {
           const errorData = await response.json();
@@ -165,7 +200,6 @@ export default function LaunchRegistroVentas() {
       navigate("/ConfirmaProducto");
     } catch (err) {
       console.error("Error al guardar ventas:", err);
-      // setError(err.message || "Ocurrió un error al guardar las ventas. Por favor intenta nuevamente.");
       setError(
         err instanceof Error
           ? err.message
@@ -176,9 +210,12 @@ export default function LaunchRegistroVentas() {
     }
   };
 
+  /**
+   * Redirige al usuario a la pantalla anterior si decide cancelar el registro.
+   */
   const handleCancelar = () => {
     navigate("/PrevioRegistroVentas");
-  }
+  };
 
   return (
     <div>
@@ -233,20 +270,17 @@ export default function LaunchRegistroVentas() {
           </table>
         </div>
 
-
         <div className="flex flex-row justify-center gap-100 p-10">
           <WhiteButton
             text="Cancelar"
             width="200px"
             type="button"
             onClick={handleCancelar}
-
           />
           <BlueButton
             text={isLoading ? "Guardando..." : "Guardar"}
             width="200px"
             type="submit"
-
           />
         </div>
       </form>
