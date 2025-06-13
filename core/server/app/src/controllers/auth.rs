@@ -55,44 +55,16 @@ struct VerifyEmailQuery {
 pub async fn register(user: web::Json<User>) -> Result<impl Responder> {
 
     let mut user = user.into_inner();
-
-    /**
-     * Validación integral de los datos del usuario
-     * Utiliza el trait Validate para verificar formato de email,
-     * longitud de contraseña, caracteres válidos y otros criterios de validación
-     */
     if let Err(errors) = user.validate() {
         return Ok(HttpResponse::BadRequest().json(errors));
     }
-
-    /**
-     * Verificación de unicidad del email en el sistema
-     * Consulta la base de datos para asegurar que el email no esté registrado previamente
-     * Solo procede con el registro si el email está disponible
-     */
     if let Ok(None) = User::get_by_email(user.email.clone()).await {
 
-        /**
-         * Proceso de hasheo criptográfico de la contraseña
-         * Utiliza algoritmos seguros para proteger las contraseñas
-         * antes de almacenarlas en la base de datos
-         */
         if let Ok(hash) = PasswordHasher::hash(&user.password) {
             user.password = hash.to_string();
 
-            /**
-             * Creación del registro de usuario en la base de datos
-             * Almacena los datos validados y la contraseña hasheada
-             * obtiene el ID generado para procesos posteriores
-             */
             let id = User::create(user.clone()).await.to_web()?;
             user.id = Some(id);
-
-            /**
-             * Generación del token de verificación de email
-             * Crea un magic link firmado criptográficamente que permite
-             * al usuario verificar su dirección de correo electrónico
-             */
             let secret_key = std::env::var("JWT_SECRET")
                 .unwrap_or_else(|_| "default-super-secret-key-for-development".to_string());
 
@@ -102,22 +74,11 @@ pub async fn register(user: web::Json<User>) -> Result<impl Responder> {
                 user.email.clone(),
             ) {
 
-                /**
-                 * Construcción de la URL de verificación completa
-                 * Combina la URL base del sistema con el token generado
-                 * para crear el magic link funcional
-                 */
                 let base_url = std::env::var("BASE_URL")
                     .unwrap_or_else(|_| "http://localhost:8080".to_string());
                 let magic_link = format!("{}/api/v1/auth/verify-email?token={}", base_url, token);
 
                 let user_name = format!("{} {}", user.name, user.last_name);
-
-                /**
-                 * Envío del email de verificación al usuario
-                 * Utiliza el servicio Resend para entregar el magic link
-                 * y maneja errores de envío de forma no bloqueante
-                 */
                 if let Err(e) = send_verification_email_with_resend(&user.email, &user_name, &magic_link).await {
                     error!("Failed to send verification email during user creation: {}", e);
                 }
@@ -136,10 +97,6 @@ pub async fn register(user: web::Json<User>) -> Result<impl Responder> {
             return Ok(HttpResponse::InternalServerError().body("Error hashing password"));
         }
     } else {
-        /**
-         * Manejo del caso donde el email ya existe en el sistema
-         * Retorna error para prevenir registro duplicado y enumeración de emails
-         */
         return Ok(HttpResponse::Unauthorized().body("Email already exists"));
     }
 
@@ -160,43 +117,16 @@ pub async fn signin(
     credentials: web::Json<Credentials>,
     otp_cache: web::Data<OtpCache>,
 ) -> impl Responder {
-    /**
-     * Búsqueda y validación del usuario en la base de datos
-     * Localiza al usuario por su dirección de email para iniciar
-     * el proceso de autenticación y verificación de credenciales
-     */
     if let Ok(Some(user)) = User::get_by_email(credentials.email.clone()).await {
-        /**
-         * Verificación criptográfica de la contraseña proporcionada
-         * Compara la contraseña en texto plano con el hash almacenado
-         * utilizando algoritmos de verificación seguros
-         */
         if PasswordHasher::verify(&credentials.password, &user.password).unwrap_or(false) {
             if let Some(id) = user.id {
-                /**
-                 * Verificación del estado de verificación del email
-                 * Requiere que el usuario haya confirmado su dirección de correo
-                 * antes de permitir el acceso completo al sistema
-                 */
                 if User::is_email_verified(id).await.unwrap_or(false) == false {
                     return HttpResponse::Unauthorized().body("Please verify your email before signing in");
                 }
-
-                /**
-                 * Generación del código OTP aleatorio para 2FA
-                 * Crea un código de 6 dígitos único y seguro
-                 * con tiempo de expiración limitado para mayor seguridad
-                 */
                 let mut rng = rng();
                 let otp: u32 = rand::Rng::random_range(&mut rng, 0..1_000_000);
                 let otp_str = format!("{:06}", otp);
                 let expires_at = Utc::now() + Duration::minutes(5);
-
-                /**
-                 * Envío asíncrono del código OTP por email
-                 * Utiliza el servicio Resend para entregar el código de verificación
-                 * de forma no bloqueante para mantener la responsividad del sistema
-                 */
                 let resend = Resend::default();
                 let from = Config::get_email_from();
                 let to = user.email.clone();
@@ -215,19 +145,7 @@ pub async fn signin(
                         eprintln!("Failed to send OTP to {}: {:?}", to, e);
                     }
                 });
-
-                /**
-                 * Almacenamiento temporal del código OTP en cache
-                 * Guarda el código generado con su timestamp de expiración
-                 * para verificación posterior en el endpoint MFA
-                 */
                 otp_cache.insert(id, (otp_str, expires_at));
-
-                /**
-                 * Generación del token MFA intermedio
-                 * Crea un token temporal que autoriza al usuario para el segundo paso
-                 * de autenticación con tiempo de vida limitado
-                 */
                 let exp = (Utc::now() + Duration::minutes(5)).timestamp() as usize;
                 let mfa_claims = MfaClaims { id, exp };
                 if let Ok(mfa_token) =
@@ -238,12 +156,6 @@ pub async fn signin(
             }
         }
     }
-
-    /**
-     * Respuesta genérica para credenciales inválidas
-     * Mantiene el mismo mensaje para cualquier fallo de autenticación
-     * para prevenir enumeración de usuarios y ataques de fuerza bruta
-     */
     HttpResponse::Unauthorized().body("Email or password is incorrect")
 }
 
@@ -257,17 +169,7 @@ pub async fn signin(
  */
 #[get("/check")]
 pub async fn check(req: HttpRequest) -> Result<impl Responder, actix_web::Error> {
-    /**
-     * Extracción del ID de usuario desde el token validado
-     * El middleware de autenticación ya procesó el token JWT
-     * y extrajo el ID que está disponible en las extensiones
-     */
     if let Some(user_id) = req.extensions().get::<i32>() {
-        /**
-         * Consulta de datos actualizados del usuario
-         * Obtiene la información completa del usuario desde la base de datos
-         * utilizando el ID extraído del token autenticado
-         */
         if let Some(user) = User::get_by_id(*user_id).await.to_web()? {
             return Ok(HttpResponse::Ok().json(user));
         } else {
@@ -287,29 +189,13 @@ pub async fn check(req: HttpRequest) -> Result<impl Responder, actix_web::Error>
  */
 #[post("/resend-verification")]
 pub async fn resend_verification_email(data: web::Json<Credentials>) -> impl Responder {
-    /**
-     * Búsqueda del usuario y verificación de su estado actual
-     * Localiza al usuario en la base de datos y verifica si ya completó
-     * el proceso de verificación de email anteriormente
-     */
     if let Ok(Some(user)) = User::get_by_email(data.email.clone()).await {
         if let Some(user_id) = user.id {
-            /**
-             * Verificación del estado actual de verificación del email
-             * Si el email ya está verificado, informa al usuario
-             * evitando envíos innecesarios de emails de verificación
-             */
             if User::is_email_verified(user_id).await.unwrap_or(false) {
                 return HttpResponse::Ok().json(json!({
                     "message": "Email already verified"
                 }));
             }
-
-            /**
-             * Generación de nuevo token de verificación para reenvío
-             * Crea un magic link fresco con nueva fecha de expiración
-             * para reemplazar cualquier token anterior que haya caducado
-             */
             let secret_key = std::env::var("JWT_SECRET")
                 .unwrap_or_else(|_| "default-super-secret-key-for-development".to_string());
 
@@ -318,22 +204,10 @@ pub async fn resend_verification_email(data: web::Json<Credentials>) -> impl Res
                 user_id,
                 user.email.clone(),
             ) {
-                /**
-                 * Construcción de la URL de verificación para el frontend
-                 * Utiliza la URL base del frontend para dirigir al usuario
-                 * a la página correcta de procesamiento de verificación
-                 */
                 let frontend_base_url = std::env::var("FRONTEND_URL")
                     .unwrap_or_else(|_| "http://localhost:8080".to_string());
-
                 let magic_link = format!("{}/launchprocess?token={}", frontend_base_url, token);
                 let user_name = format!("{} {}", user.name, user.last_name);
-
-                /**
-                 * Reenvío del email de verificación con el nuevo magic link
-                 * Utiliza el mismo servicio de email para mantener consistencia
-                 * en el formato y presentación de los mensajes
-                 */
                 if let Err(e) = send_verification_email_with_resend(&user.email, &user_name, &magic_link).await {
                     error!("Failed to resend verification email: {}", e);
                     return HttpResponse::InternalServerError().body("Failed to send email");
@@ -348,11 +222,6 @@ pub async fn resend_verification_email(data: web::Json<Credentials>) -> impl Res
         }
     }
 
-    /**
-     * Respuesta genérica para prevenir enumeración de emails
-     * Retorna el mismo mensaje independientemente de si el email existe
-     * para evitar que atacantes identifiquen emails válidos en el sistema
-     */
     HttpResponse::Ok().json(json!({
         "message": "If this email exists, a verification email was resent"
     }))
@@ -368,27 +237,12 @@ pub async fn resend_verification_email(data: web::Json<Credentials>) -> impl Res
  */
 #[get("/verify-email")]
 pub async fn verify_email_endpoint(query: web::Query<VerifyEmailQuery>) -> impl Responder {
-
-    /**
-     * Obtención de la clave secreta para validación del token
-     * Utiliza la misma clave que se usó para generar el magic link
-     * asegurando la integridad criptográfica del proceso
-     */
     let secret_key = std::env::var("JWT_SECRET")
         .unwrap_or_else(|_| "default-super-secret-key-for-development".to_string());
 
-    /**
-     * Validación criptográfica del magic link recibido
-     * Verifica la firma, expiración y tipo de token para asegurar
-     * que es un token válido de verificación de email
-     */
     match MagicLinkService::verify_magic_link(&secret_key, &query.token, "email_verification") {
         Ok(claims) => {
-            /**
-             * Actualización del estado de verificación en la base de datos
-             * Marca el email del usuario como verificado permitiendo
-             * el acceso completo a las funcionalidades del sistema
-             */
+
             User::update_email_verified_by_id(claims.user_id, true).await.ok();
 
             HttpResponse::Ok().json(json!({
@@ -397,11 +251,6 @@ pub async fn verify_email_endpoint(query: web::Query<VerifyEmailQuery>) -> impl 
             }))
         }
         Err(e) => {
-            /**
-             * Manejo de tokens inválidos o expirados
-             * Registra el error para auditoria y retorna mensaje
-             * informativo al usuario sobre el fallo de verificación
-             */
             error!("Invalid verification token: {}", e);
             HttpResponse::BadRequest().json(json!({
                 "error": "Invalid or expired token"
@@ -418,12 +267,7 @@ pub async fn verify_email_endpoint(query: web::Query<VerifyEmailQuery>) -> impl 
  * @return Scope configurado con todas las rutas del módulo de autenticación
  */
 pub fn routes() -> actix_web::Scope {
-    /**
-     * Estructura jerárquica de rutas de autenticación
-     * - Rutas públicas: registro, login, verificación de email, reenvío
-     * - Rutas protegidas: verificación de estado de usuario autenticado
-     * - Integración con endpoints MFA para autenticación de doble factor
-     */
+
     web::scope("/auth")
         .service(register)      
         .service(signin)       
@@ -456,11 +300,6 @@ pub async fn send_verification_email_with_resend(
     use resend_rs::types::CreateEmailBaseOptions;
     use resend_rs::Resend;
 
-    /**
-     * Configuración del cliente de email y composición del mensaje
-     * Utiliza el servicio Resend con configuración de branding corporativo
-     * y formato HTML profesional para mejor experiencia de usuario
-     */
     let resend = Resend::default();
     let from = "WhisperTrend <noreply@whispertrend.lat>";
     let subject = "Verify your email address";
@@ -471,11 +310,6 @@ pub async fn send_verification_email_with_resend(
         user_name, magic_link
     );
 
-    /**
-     * Envío del email con manejo de errores específicos
-     * Configura el mensaje con destinatario, remitente y contenido HTML
-     * convierte errores del servicio en errores manejables por la aplicación
-     */
     let email = CreateEmailBaseOptions::new(from, vec![to_email], subject).with_html(&html);
 
     resend.emails.send(email).await.map_err(|e| {
