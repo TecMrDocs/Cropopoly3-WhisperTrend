@@ -23,7 +23,6 @@ const SeccionHashtags: React.FC<SeccionHashtagsProps> = ({
   mostrarDesgloseNoticias,
   mostrarConsolidacion
 }) => {
-  // Si algún desglose está activo, no mostrar esta sección
   if (mostrarDesgloseTasas || mostrarDesgloseNoticias || mostrarConsolidacion) {
     return null;
   }
