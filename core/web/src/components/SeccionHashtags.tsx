@@ -1,4 +1,3 @@
-// components/menu/SeccionHashtags.tsx
 import React from 'react';
 
 interface SeccionHashtagsProps {

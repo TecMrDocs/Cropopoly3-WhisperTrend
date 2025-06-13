@@ -1,4 +1,3 @@
-// components/menu/SeccionNoticias.tsx
 import React from 'react';
 
 interface SeccionNoticiasProps {
