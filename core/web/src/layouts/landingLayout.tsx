@@ -1,5 +1,23 @@
+/**
+ * Layout para la página principal de bienvenida o presentación (landing page).
+ * Aplica un fondo animado con ondas y estructura el contenido en una cabecera y una sección principal.
+ * 
+ * Autor: Sebastian Antonio  
+ * Contribuyentes: Andrés Cabrera Alvarado (Front Desgin)
+ */
+
 import './landing.css';
 
+/**
+ *
+ * Componente de layout diseñado para la landing page de la aplicación.  
+ * Incorpora efectos visuales de fondo con ondas animadas utilizando clases definidas en `landing.css`.  
+ * Estructura el contenido en un encabezado con título y una sección principal donde se renderizan los hijos (`children`).
+ *
+ * @param {any} props - Contiene los elementos hijos (`children`) que se colocan dentro del `main`.
+ * @return {JSX.Element} Layout visual con fondo animado y estructura básica de landing page.
+ *
+ */
 export default function LandingLayout(props: any) {
   const { children } = props;
 
