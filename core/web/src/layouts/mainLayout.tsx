@@ -3,7 +3,6 @@
  * Estructura una vista con barra de navegación superior y una zona principal flexible para contenido.
  * 
  * Autor: Sebastian Antonio  
- * Contribuyentes: 
  */
 
 import Navbar from "../components/Navbar";

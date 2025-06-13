@@ -3,7 +3,6 @@
  * Proporciona una estructura base con barra de navegación y un área flexible para contenido.
  * 
  * Autor: Sebastian Antonio  
- * Contribuyentes: 
  */
 
 import Navbar from "../components/Navbar";

@@ -3,7 +3,6 @@
  * Incluye una barra de navegación persistente y un contenedor para renderizar contenido hijo.
  * 
  * Autor: Sebastian Antonio  
- * Contribuyentes: 
  */
 
 import Navbar from "@/components/Navbar";
