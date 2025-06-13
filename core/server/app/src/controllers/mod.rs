@@ -5,7 +5,7 @@
 * especializados para autenticación, análisis, gestión y administración.
 * 
 * Autor: Renato García Morán
-* Contributor: Arturo Barrios Mendoza, Julio César Vivas Medina
+* Contributors: Arturo Barrios Mendoza, Julio César Vivas Medina
 */
 
 /**
