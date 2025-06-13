@@ -1,3 +1,16 @@
+/**
+ * Módulo para análisis de tendencias y métricas de redes sociales.
+ * 
+ * Este módulo orquesta la recolección de métricas de engagement de múltiples
+ * plataformas sociales (Reddit, Instagram, Twitter) basándose en palabras clave
+ * extraídas de noticias y hashtags específicos. Proporciona análisis cruzado
+ * de tendencias y consolidación de datos de diferentes fuentes para generar
+ * informes completos de engagement social.
+ * 
+ * Autor: Carlos Alberto Zamudio Velázquez 
+ * Contribuyentes: Renato García Morán
+ */
+
 use crate::scraping::{
     instagram::{InstagramPost, InstagramScraper},
     notices::{Details, NoticesScraper, Params},
@@ -7,6 +20,13 @@ use crate::scraping::{
 use futures::future::join_all;
 use serde::{Deserialize, Serialize};
 
+/**
+ * Estructuras de datos para métricas de engagement por plataforma.
+ * 
+ * Define los modelos de datos que encapsulan las métricas de cada red social,
+ * organizando los posts por palabra clave para facilitar el análisis comparativo
+ * entre plataformas.
+ */
 #[derive(Deserialize, Serialize, Debug)]
 pub struct RedditMetrics {
     pub keyword: String,
@@ -25,6 +45,12 @@ pub struct TwitterMetrics {
     pub posts: Vec<TweetData>,
 }
 
+/**
+ * Estructura consolidada de datos de todas las plataformas sociales.
+ * 
+ * Agrupa las métricas de Reddit, Instagram y Twitter para proporcionar
+ * una vista unificada del engagement social por plataforma.
+ */
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Data {
     pub reddit: Vec<RedditMetrics>,
@@ -32,12 +58,24 @@ pub struct Data {
     pub twitter: Vec<TwitterMetrics>,
 }
 
+/**
+ * Estructura principal de tendencias con metadatos y datos de engagement.
+ * 
+ * Combina la información de noticias (metadata) con las métricas de redes sociales
+ * para proporcionar un análisis completo de tendencias basado en eventos noticiosos.
+ */
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Trends {
     pub metadata: Details,
     pub data: Data,
 }
 
+/**
+ * Scraper principal para análisis de tendencias en redes sociales.
+ * 
+ * Coordina la extracción de métricas de múltiples plataformas de forma concurrente,
+ * procesando tanto palabras clave de noticias como hashtags específicos.
+ */
 pub struct TrendsScraper;
 
 impl TrendsScraper {
@@ -88,7 +126,6 @@ impl TrendsScraper {
         results.into_iter().collect()
     }
 
-    // Nuevas funciones para hashtags
     pub async fn get_reddit_metrics_from_hashtags(hashtags: &[String]) -> Vec<RedditMetrics> {
         let mut futures = Vec::new();
         for hashtag in hashtags {
@@ -105,7 +142,6 @@ impl TrendsScraper {
         let results = join_all(futures).await;
         results.into_iter().collect()
     }
-
     pub async fn get_instagram_metrics_from_hashtags(hashtags: &[String]) -> Vec<InstagramMetrics> {
         let mut futures = Vec::new();
         for hashtag in hashtags {
@@ -154,7 +190,6 @@ impl TrendsScraper {
         results.into_iter().collect()
     }
 
-
     pub async fn get_twitter_metrics_from_hashtags(hashtags: &[String]) -> Vec<TwitterMetrics> {
         let mut futures = Vec::new();
         for hashtag in hashtags {
@@ -195,8 +230,6 @@ impl TrendsScraper {
             },
         })
     }
-
-    // Nueva función que incluye hashtags
     pub async fn get_trends_with_hashtags(params: Params, hashtags: Option<Vec<String>>) -> anyhow::Result<Trends> {
         let details = NoticesScraper::get_details(params).await?;
         

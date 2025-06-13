@@ -1,3 +1,17 @@
+/**
+ * Módulo para scraping de contenido de Twitter/X.
+ * 
+ * Este módulo proporciona funcionalidades para autenticación automática en X (Twitter)
+ * y extracción de tweets mediante búsquedas por hashtags. Incluye manejo de cookies
+ * persistentes, scraping de datos completos de tweets (likes, retweets, replies),
+ * obtención de información de perfiles de usuarios y conteo de seguidores.
+ * Implementa técnicas avanzadas de scraping con scrolling automático y evaluación
+ * de JavaScript para extraer contenido dinámico.
+ * 
+ * Autor: Renato García Morán
+ * Contribuyentes: [Lista de contribuyentes]
+ */
+
 use crate::{
     config::Config,
     scraping::{SCRAPER, Utils},
@@ -7,6 +21,12 @@ use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
+/**
+ * Constantes de configuración para la autenticación y navegación en Twitter/X.
+ * 
+ * Define user agents, scripts JavaScript embebidos, URLs de endpoints
+ * y selectores CSS para los elementos de la interfaz de Twitter.
+ */
 static USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 static JS_HOVER: &str = include_str!("hover.js");
 static COOKIES: OnceCell<String> = OnceCell::new();
@@ -24,6 +44,13 @@ const TIME_SELECTOR: &str = "a span time";
 
 const FOLLOWERS_SELECTOR: &str = "section a span span";
 
+/**
+ * Estructuras de datos para representar tweets y información de perfiles.
+ * 
+ * Define los modelos de datos para tweets con diferentes niveles de detalle,
+ * incluyendo información básica, temporal y completa con datos de engagement
+ * y seguidores.
+ */
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TwitterPostPrimary {
     pub likes: u32,
@@ -59,9 +86,16 @@ pub struct TweetData {
     pub followers: u32,
 }
 
+/**
+ * Scraper principal para Twitter/X con manejo de autenticación y extracción de datos.
+ * 
+ * Proporciona métodos para login automático, manejo de cookies persistentes
+ * y scraping de tweets con información completa de engagement y perfiles.
+ */
 pub struct TwitterScraper;
 
 impl TwitterScraper {
+
     pub async fn login() -> anyhow::Result<String> {
         SCRAPER
             .execute(move |context| {
@@ -244,7 +278,7 @@ impl TwitterScraper {
             Err(anyhow::anyhow!("No cookies found"))
         }
     }
-    
+
     fn parse_followers_count(s: &str) -> u32 {
         let s = s.trim().to_uppercase();
         if s.ends_with('K') {
@@ -257,5 +291,4 @@ impl TwitterScraper {
             s.replace(",", "").parse::<u32>().unwrap_or(0)
         }
     }
-
 }
