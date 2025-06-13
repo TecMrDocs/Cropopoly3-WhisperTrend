@@ -1,3 +1,16 @@
+/**
+ * Página: HolaDeNuevo.tsx
+ * 
+ * Descripción:
+ * Este componente permite al usuario ingresar un código de verificación enviado por correo 
+ * para completar el proceso de autenticación en dos pasos (MFA).
+ * Ofrece opciones para reenviar el código, verificarlo o cancelar el proceso.
+ * También redirige automáticamente al usuario si ya está autenticado o verificado.
+ * 
+ * Autor: Mariana Balderrábano Aguilar
+ * Contribuyentes: Iván Alexander Ramos Ramírez
+ */
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,15 +20,25 @@ import BlueButton from '@/components/BlueButton';
 import TextFieldWHolder from '@/components/TextFieldWHolder';
 import { API_URL } from '@/utils/constants';
 
+/**
+ * Componente principal para la verificación MFA por código enviado al correo.
+ * Permite validar el código, reenviarlo o cancelar el proceso.
+ */
 export default function HolaDeNuevo() {
   const [verify, setVerify] = useState('');
   const [error, setError] = useState('');
   const [apiError, setApiError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { verifyCode, isAuthenticated, needsVerification, isDefault } = useAuth();
+
+  const { verifyCode, isAuthenticated, needsVerification } = useAuth();
   const navigate = useNavigate();
 
-    const getUserId = async (): Promise<number|null> => {
+  /**
+   * Obtiene el ID del usuario actualmente autenticado mediante `/auth/check`.
+   * 
+   * @return {Promise<number|null>} ID del usuario o null si falla la petición.
+   */
+  const getUserId = async (): Promise<number|null> => {
     try {
       const res = await fetch(`${API_URL}auth/check`, getConfig());
       if (!res.ok) throw new Error();
@@ -26,8 +49,11 @@ export default function HolaDeNuevo() {
     }
   };
 
-  // Redirige si ya no hace falta verificar
- useEffect(() => {
+  /**
+   * Redirige automáticamente al usuario si ya está verificado o autenticado.
+   * Se determina si su perfil es nuevo (con datos de prueba) o si ya tiene información real.
+   */
+  useEffect(() => {
     if (!needsVerification) {
       if (isAuthenticated) {
         (async () => {
@@ -50,7 +76,7 @@ export default function HolaDeNuevo() {
 
             navigate(isDefault ? '/launchProcess' : '/productos', { replace: true });
           } catch {
-            // if profile fetch fails, send to productos by default
+            // Si falla la obtención del perfil, redirige por defecto
             navigate('/productos', { replace: true });
           }
         })();
@@ -60,11 +86,16 @@ export default function HolaDeNuevo() {
     }
   }, [needsVerification, isAuthenticated, navigate]);
 
+  /**
+   * Verifica el código ingresado por el usuario.
+   * En caso de éxito, redirige al dashboard; si falla, muestra un error.
+   */
   const handleContinue = async () => {
     if (!verify.trim()) {
       setError('El código de verificación es requerido');
       return;
     }
+
     setError('');
     setApiError('');
     setIsSubmitting(true);
@@ -79,6 +110,9 @@ export default function HolaDeNuevo() {
     }
   };
 
+  /**
+   * Reenvía el código de verificación al correo del usuario utilizando el token temporal almacenado.
+   */
   const handleResend = async () => {
     try {
       const tempToken = localStorage.getItem('mfa_token') || '';
@@ -92,17 +126,25 @@ export default function HolaDeNuevo() {
     }
   };
 
+  /**
+   * Cancela el proceso de MFA, borra el token y redirige a la página inicial.
+   */
   const handleCancel = () => {
     localStorage.removeItem('mfa_token');
     navigate('/', { replace: true });
   };
 
+  /**
+   * Renderiza el formulario para ingresar el código de verificación,
+   * además de botones para continuar, reenviar o cancelar.
+   */
   return (
     <div className='flex flex-col items-center justify-center w-full px-4'>
       <div className="w-full max-w-md">
         <h1 className="md:text-5xl text-3xl font-bold text-blue-900 text-center">
           ¡Hola de nuevo!
         </h1>
+
         <p className="md:text-3xl text-xl mb-8 pt-8 pb-8 text-center">
           Ingresa el código de verificación que llegó a tu correo
         </p>
@@ -129,6 +171,7 @@ export default function HolaDeNuevo() {
 
         <div className="mt-6 w-full flex flex-col items-center">
           <p className="mt-4 md:text-lg text-md md:p-2 p-4">¿No te llegó el código?</p>
+
           <div className="mt-6 w-full flex flex-col items-center gap-4">
             <BlueButton
               text={isSubmitting ? 'Verificando…' : 'Continuar'}
@@ -136,7 +179,6 @@ export default function HolaDeNuevo() {
               onClick={handleContinue}
               disabled={isSubmitting}
             />
-            <p className="mt-4 md:text-lg text-md md:p-2 p-4">¿No te llegó el código?</p>
 
             <WhiteButton
               text="Enviar un código nuevo"

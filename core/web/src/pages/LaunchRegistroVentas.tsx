@@ -1,3 +1,15 @@
+/**
+ * Página: LaunchRegistroVentas.tsx
+ * 
+ * Descripción:
+ * Este componente permite al usuario registrar ventas mensuales para un producto previamente creado.
+ * Genera automáticamente los últimos 12 meses, permite ingresar las unidades vendidas por mes
+ * y envía la información al backend para su almacenamiento.
+ * 
+ * Autor: -
+ * Contribuyentes: Arturo Barrios Mendoza
+ */
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BlueButton from "../components/BlueButton";
@@ -7,7 +19,10 @@ import { usePrompt } from "../contexts/PromptContext";
 import { API_URL } from "@/utils/constants";
 import { getConfig } from "@/utils/auth";
 
-//Definir tipos de datos
+/**
+ * Tipo que representa un mes con información necesaria
+ * para registrar las ventas correspondientes.
+ */
 type Mes = {
   id: string;
   mes: string;
@@ -15,12 +30,17 @@ type Mes = {
   numeroMes: number;
 };
 
-//Definir tipo de ventas
+/**
+ * Tipo que representa el estado de ventas por mes.
+ * Las claves corresponden al ID del mes, y el valor es la cantidad vendida.
+ */
 type Ventas = {
   [key: string]: string | null;
 };
 
-//Definir tipo de la solicitud que se envía al backend
+/**
+ * Tipo de objeto enviado al backend para registrar una venta mensual.
+ */
 type SaleRequest = {
   id: number;
   resource_id: number;
@@ -29,14 +49,19 @@ type SaleRequest = {
   units_sold: number;
 };
 
-//Función que genera 12 meses atrás desde el mes actual para el registro de ventas. 
+/**
+ * Genera un arreglo con los últimos 12 meses (incluyendo el actual)
+ * con estructura detallada para usar en la tabla de ventas.
+ * 
+ * @return {Mes[]} Lista de los últimos 12 meses
+ */
 const generarMesesAtras = (): Mes[] => {
   const meses: Mes[] = [];
   const nombresMeses = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
   ];
 
-  //Define la fecha actual
   const fechaActual = new Date();
   let mesActual = fechaActual.getMonth();
   let añoActual = fechaActual.getFullYear();
@@ -62,7 +87,11 @@ const generarMesesAtras = (): Mes[] => {
   return meses;
 };
 
-//Función que obtiene el user_id del usuario autenticado
+/**
+ * Obtiene el ID del usuario autenticado a través del endpoint `/auth/check`.
+ * 
+ * @return {Promise<number | null>} ID del usuario o null si hay error
+ */
 const getUserId = async (): Promise<number | null> => {
   try {
     const res = await fetch(`${API_URL}auth/check`, getConfig());
@@ -75,7 +104,11 @@ const getUserId = async (): Promise<number | null> => {
   }
 };
 
-//Componente que maneja el registro de ventas
+/**
+ * Componente que permite al usuario registrar las ventas mensuales
+ * de un producto. Se valida que no haya valores negativos y se guarda
+ * la información a través de peticiones POST al backend.
+ */
 export default function LaunchRegistroVentas() {
   const [meses] = useState<Mes[]>(generarMesesAtras());
   const [ventas, setVentas] = useState<Ventas>(
@@ -86,6 +119,13 @@ export default function LaunchRegistroVentas() {
   const navigate = useNavigate();
   const { productId, setHasSalesData } = usePrompt();
 
+  /**
+   * Maneja el cambio de valor de las celdas de ventas. 
+   * No permite ingresar valores negativos.
+   * 
+   * @param {string} id - ID del mes afectado
+   * @param {string} value - Valor ingresado
+   */
   const handleChange = (id: string, value: string) => {
     if (value && Number(value) < 0) {
       setError("No se permiten valores negativos en las ventas");
@@ -96,6 +136,12 @@ export default function LaunchRegistroVentas() {
     setError(null);
   };
 
+  /**
+   * Envía los datos de ventas al backend. Se filtran las entradas vacías,
+   * se validan errores y se envía una petición por cada mes con datos registrados.
+   * 
+   * @param {React.FormEvent} e - Evento del formulario
+   */
   const handleGuardar = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -121,7 +167,10 @@ export default function LaunchRegistroVentas() {
     setError(null);
 
     try {
-      // Filtrar solo los meses con ventas registradas
+      /**
+       * Se filtran los meses que tienen datos registrados
+       * y se construyen las solicitudes para enviarlas al backend.
+       */
       const mesesConVentas = meses.filter(mes => ventas[mes.id] && ventas[mes.id] !== "");
 
       if (mesesConVentas.length === 0) {
@@ -129,7 +178,6 @@ export default function LaunchRegistroVentas() {
         return; 
       }
 
-      // Enviar cada venta al backend
       const requests = mesesConVentas.map(mes => {
         const saleData: SaleRequest = {
           id: userId,
@@ -153,7 +201,10 @@ export default function LaunchRegistroVentas() {
 
       const responses = await Promise.all(requests);
 
-      // Verificar que todas las respuestas sean exitosas
+      /**
+       * Se verifica que todas las respuestas hayan sido exitosas.
+       * Si alguna falla, se lanza un error para mostrarlo al usuario.
+       */
       for (const response of responses) {
         if (!response.ok) {
           const errorData = await response.json();
@@ -165,7 +216,6 @@ export default function LaunchRegistroVentas() {
       navigate("/launchConfirmacion");
     } catch (err) {
       console.error("Error al guardar ventas:", err);
-      // setError(err.message || "Ocurrió un error al guardar las ventas. Por favor intenta nuevamente.");
       setError(
         err instanceof Error
           ? err.message
@@ -176,10 +226,17 @@ export default function LaunchRegistroVentas() {
     }
   };
 
+  /**
+   * Maneja la cancelación del registro de ventas y redirige al paso anterior.
+   */
   const handleCancelar = () => {
     navigate("/launchVentas");
-  }
+  };
 
+  /**
+   * Renderiza el formulario con la tabla de los últimos 12 meses,
+   * permitiendo ingresar ventas por mes. También muestra errores y botones de acción.
+   */
   return (
     <div>
       <ProgressBar activeStep={2} />
@@ -233,20 +290,17 @@ export default function LaunchRegistroVentas() {
           </table>
         </div>
 
-
         <div className="flex flex-row justify-center gap-100 p-10">
           <WhiteButton
             text="Cancelar"
             width="200px"
             type="button"
             onClick={handleCancelar}
-
           />
           <BlueButton
             text={isLoading ? "Guardando..." : "Guardar"}
             width="200px"
             type="submit"
-
           />
         </div>
       </form>
