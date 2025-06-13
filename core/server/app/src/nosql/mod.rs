@@ -31,8 +31,8 @@ pub struct ScrapedPost {
     pub vote: Option<i32>,
 }
 
-/// Contenedor para datos de hashtag scraped con metadatos
-/// Incluye información temporal y estadísticas del scraping
+// Contenedor para datos de hashtag scraped con metadatos
+// Incluye información temporal y estadísticas del scraping
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScrapedHashtagData {
     pub hashtag: String,
@@ -42,8 +42,8 @@ pub struct ScrapedHashtagData {
     pub total_posts: usize,
 }
 
-/// Crea y configura un cliente de DynamoDB usando las credenciales AWS del entorno
-/// Cliente de DynamoDB configurado con la región por defecto
+// Crea y configura un cliente de DynamoDB usando las credenciales AWS del entorno
+// Cliente de DynamoDB configurado con la región por defecto
 async fn get_dynamo_client() -> Client {
     let config = aws_config::defaults(BehaviorVersion::latest())
         .load()
@@ -52,7 +52,7 @@ async fn get_dynamo_client() -> Client {
     Client::new(&config)
 }
 
-/// Genera el nombre de la tabla DynamoDB usando el prefijo del entorno
+// Genera el nombre de la tabla DynamoDB usando el prefijo del entorno
 fn get_table_name() -> String {
     let prefix = env::var("DYNAMODB_TABLE_PREFIX").unwrap_or_else(|_| "trendhash_".to_string());
     format!("{}hashtag_cache", prefix)
@@ -196,19 +196,7 @@ pub async fn get_scraping_stats() -> Result<serde_json::Value, Box<dyn std::erro
     }))
 }
 
-/// Verifica si la tabla DynamoDB existe y la crea si es necesario
-/// 
-/// # Arguments
-/// * `client` - Cliente de DynamoDB configurado
-/// * `table_name` - Nombre de la tabla a verificar/crear
-/// 
-/// # Returns
-/// * `Ok(())` - Si la tabla existe o se creó exitosamente
-/// * `Err` - Si ocurrió un error en el proceso
-/// 
-/// # Notes
-/// - Usa claves compuestas: pk (Hash) y sk (Range)
-/// - Configurada con facturación on-demand (PayPerRequest)
+// Verifica si la tabla DynamoDB existe y la crea si es necesario
 async fn ensure_table_exists(client: &Client, table_name: &str) -> Result<(), Box<dyn std::error::Error>> {
     match client.describe_table().table_name(table_name).send().await {
         Ok(_) => Ok(()),
@@ -248,10 +236,7 @@ async fn ensure_table_exists(client: &Client, table_name: &str) -> Result<(), Bo
     }
 }
 
-/// Endpoint de prueba para verificar conectividad con DynamoDB
-/// 
-/// # Returns
-/// JSON con estado de la conexión, configuración AWS y lista de tablas
+// Endpoint de prueba para verificar conectividad con DynamoDB
 #[get("/test")]
 async fn test_connection() -> Result<impl Responder> {
     let client = get_dynamo_client().await;
@@ -299,13 +284,7 @@ async fn test_connection() -> Result<impl Responder> {
     }
 }
 
-/// Guarda datos de hashtag en caché con metadatos del usuario y recurso
-/// 
-/// # Request Body
-/// JSON con campos: user_id, hashtag, resource_id, correlacion, plataforma
-/// 
-/// # Returns
-/// JSON confirmando el guardado exitoso con detalles del registro
+// Guarda datos de hashtag en caché con metadatos del usuario y recurso
 #[post("/cache/hashtag")]
 async fn save_hashtag_cache(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
     let client = get_dynamo_client().await;
@@ -382,14 +361,7 @@ async fn save_hashtag_cache(body: web::Json<serde_json::Value>) -> Result<impl R
     }
 }
 
-/// Endpoint de prueba para guardar datos scraped con posts de ejemplo
-/// 
-/// # Request Body
-/// JSON con campos opcionales: hashtag, platform
-/// 
-/// # Returns
-/// JSON confirmando el guardado de datos de prueba
-#[post("/test/save-scraped")]
+// Endpoint de prueba para guardar datos scraped con posts de ejemplo
 async fn test_save_scraped(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
     let data = body.into_inner();
     let hashtag = data.get("hashtag").and_then(|v| v.as_str()).unwrap_or("TestHashtag");
@@ -444,10 +416,7 @@ async fn test_save_scraped(body: web::Json<serde_json::Value>) -> Result<impl Re
     }
 }
 
-/// Obtiene estadísticas agregadas de todos los datos de scraping
-/// 
-/// # Returns
-/// JSON con estadísticas detalladas de scraping por plataforma
+// Obtiene estadísticas agregadas de todos los datos de scraping
 #[get("/stats/scraping")]
 async fn get_scraping_statistics() -> Result<impl Responder> {
     match get_scraping_stats().await {
@@ -469,14 +438,7 @@ async fn get_scraping_statistics() -> Result<impl Responder> {
     }
 }
 
-/// Recupera el caché del dashboard para un usuario y recurso específicos
-/// 
-/// # Path Parameters
-/// * `user_id` - ID del usuario
-/// * `resource_id` - ID del recurso
-/// 
-/// # Returns
-/// JSON con los hashtags guardados y metadatos del dashboard
+// Recupera el caché del dashboard para un usuario y recurso específicos
 #[get("/cache/dashboard/{user_id}/{resource_id}")]
 async fn get_dashboard_cache(path: web::Path<(i32, i32)>) -> Result<impl Responder> {
     let (user_id, resource_id) = path.into_inner();
@@ -556,10 +518,7 @@ async fn get_dashboard_cache(path: web::Path<(i32, i32)>) -> Result<impl Respond
     }
 }
 
-/// Lista todos los hashtags almacenados en la base de datos
-/// 
-/// # Returns
-/// JSON con todos los hashtags encontrados (limitado a 50 resultados)
+// Lista todos los hashtags almacenados en la base de datos
 #[get("/cache/list")]
 async fn list_all_hashtags() -> Result<impl Responder> {
     let client = get_dynamo_client().await;
@@ -622,13 +581,7 @@ async fn list_all_hashtags() -> Result<impl Responder> {
     }
 }
 
-/// Inicia un proceso de análisis simulado con identificador único
-/// 
-/// # Request Body
-/// JSON con datos de entrada para el análisis
-/// 
-/// # Returns
-/// JSON con ID de análisis y estado inicial
+// Inicia un proceso de análisis simulado con identificador único
 #[post("/analytics/start")]
 async fn start_analysis(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
     let analysis_id = format!("analysis_{}", chrono::Utc::now().timestamp());
@@ -648,13 +601,7 @@ async fn start_analysis(body: web::Json<serde_json::Value>) -> Result<impl Respo
     })))
 }
 
-/// Obtiene el estado de un análisis por su ID
-/// 
-/// # Path Parameters
-/// * `analysis_id` - Identificador del análisis
-/// 
-/// # Returns
-/// JSON con estado completo del análisis y resultados simulados
+// Obtiene el estado de un análisis por su ID
 #[get("/analytics/status/{analysis_id}")]
 async fn get_analysis_status(path: web::Path<String>) -> Result<impl Responder> {
     let analysis_id = path.into_inner();
@@ -673,10 +620,10 @@ async fn get_analysis_status(path: web::Path<String>) -> Result<impl Responder> 
                 "✅ Datos almacenados en DynamoDB real"
             ],
             "recommendations": [
-                "📅 Programar posts de Instagram entre 9-11 AM",
-                "🎯 Usar Reddit para contenido weekend",
-                "🌱 Enfocar estrategia en #EcoFriendly",
-                "💾 Continuar usando DynamoDB para almacenamiento"
+                "Programar posts de Instagram entre 9-11 AM",
+                "Usar Reddit para contenido weekend",
+                "Enfocar estrategia en #EcoFriendly",
+                "Continuar usando DynamoDB para almacenamiento"
             ],
             "metrics": {
                 "total_hashtags_analyzed": 3,
@@ -694,11 +641,7 @@ async fn get_analysis_status(path: web::Path<String>) -> Result<impl Responder> 
     })))
 }
 
-/// Puebla la base de datos con hashtags hardcodeados para testing
-/// Crea datos de ejemplo para guitarras eléctricas y música rock
-/// 
-/// # Returns
-/// JSON confirmando la creación de datos de prueba en todas las plataformas
+// Puebla la base de datos con hashtags hardcodeados para testing
 #[post("/populate/hashtags")]
 async fn populate_hashtags() -> Result<impl Responder> {
     let client = get_dynamo_client().await;
@@ -710,7 +653,7 @@ async fn populate_hashtags() -> Result<impl Responder> {
     
     // Datos hardcodeados para testing con métricas realistas
     let hashtag_categories = vec![
-        // GUITARRAS ELÉCTRICAS 🎸
+        // GUITARRAS ELÉCTRICAS 
         ("ElectricGuitar", "guitars", vec![
             ("instagram", json!([
                 {"date": "01/01/25 - 31/01/25", "likes": 1250, "comments": 89, "views": 15600, "followers": 45000, "shares": 67},
@@ -819,13 +762,7 @@ async fn populate_hashtags() -> Result<impl Responder> {
     })))
 }
 
-/// Busca hashtags por categoría específica
-/// 
-/// # Path Parameters
-/// * `category` - Nombre de la categoría a buscar (ej: "guitars", "music")
-/// 
-/// # Returns
-/// JSON con todos los hashtags de la categoría especificada
+// Busca hashtags por categoría específica
 #[get("/hashtags/category/{category}")]
 async fn get_hashtags_by_category(path: web::Path<String>) -> Result<impl Responder> {
     let category = path.into_inner();

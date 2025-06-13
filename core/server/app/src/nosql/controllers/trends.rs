@@ -41,12 +41,6 @@ pub struct TrendsRequest {
 pub async fn get_hashtag_history(path: web::Path<String>) -> Result<impl Responder> {
     let hashtag = path.into_inner();
     info!("Getting history for hashtag: {}", hashtag);
-
-    /**
-     * Recuperación de historial con período estándar de 30 días
-     * Utiliza configuración por defecto para balancear información útil
-     * con rendimiento de consulta en la mayoría de casos de uso
-     */
     match get_trends_history(&hashtag, 30).await {
         Ok(history) => {
             Ok(HttpResponse::Ok().json(history))
@@ -72,12 +66,6 @@ pub async fn get_hashtag_history(path: web::Path<String>) -> Result<impl Respond
 pub async fn get_hashtag_history_days(path: web::Path<(String, i32)>) -> Result<impl Responder> {
     let (hashtag, days) = path.into_inner();
     info!("Getting {} days history for hashtag: {}", days, hashtag);
-
-    /**
-     * Consulta de historial con período personalizado
-     * Permite análisis de tendencias a corto, mediano y largo plazo
-     * según las necesidades específicas del usuario o aplicación
-     */
     match get_trends_history(&hashtag, days).await {
         Ok(history) => {
             Ok(HttpResponse::Ok().json(history))
@@ -102,12 +90,6 @@ pub async fn get_hashtag_history_days(path: web::Path<(String, i32)>) -> Result<
 #[post("/save")]
 pub async fn save_trends_data(req: web::Json<TrendsRequest>) -> Result<impl Responder> {
     info!("Saving trends data for hashtag: {}", req.hashtag);
-
-    /**
-     * Validación y parsing de formato de fecha
-     * Asegura que las fechas estén en formato ISO estándar (YYYY-MM-DD)
-     * para mantener consistencia en el almacenamiento temporal
-     */
     let date = match NaiveDate::parse_from_str(&req.date, "%Y-%m-%d") {
         Ok(date) => date,
         Err(_) => {
@@ -117,11 +99,6 @@ pub async fn save_trends_data(req: web::Json<TrendsRequest>) -> Result<impl Resp
         }
     };
 
-    /**
-     * Construcción del objeto de historial con métricas y metadatos
-     * Utiliza builder pattern para configurar todos los campos necesarios
-     * incluyendo scores de engagement y viralidad con valores por defecto
-     */
     let trends = TrendsHistory::new(req.hashtag.clone(), date)
         .with_metrics(
             req.metrics.clone(),
@@ -130,11 +107,6 @@ pub async fn save_trends_data(req: web::Json<TrendsRequest>) -> Result<impl Resp
             0.0  
         );
 
-    /**
-     * Persistencia de datos históricos con validación de resultados
-     * Maneja tanto casos exitosos como fallos de almacenamiento
-     * proporcionando feedback apropiado sobre el estado de la operación
-     */
     match save_trends_history(&trends).await {
         Ok(_) => {
             Ok(HttpResponse::Ok().json(serde_json::json!({
@@ -160,27 +132,10 @@ pub async fn save_trends_data(req: web::Json<TrendsRequest>) -> Result<impl Resp
  * @return Vector de registros históricos ordenados cronológicamente
  */
 async fn get_trends_history(hashtag: &str, days: i32) -> anyhow::Result<Vec<TrendsHistory>> {
-    /**
-     * Configuración de cliente DynamoDB y tabla de destino
-     * Utiliza tabla específica para datos históricos con esquema
-     * optimizado para consultas temporales eficientes
-     */
     let client = get_client().await;
     let table_name = client.get_table_name("trends_history");
-    
-    /**
-     * Cálculo de rango de fechas para la consulta
-     * Determina el período de tiempo basado en la fecha actual
-     * y el número de días solicitados hacia atrás
-     */
     let end_date = chrono::Utc::now().date_naive();
     let start_date = end_date - chrono::Duration::days(days as i64);
-
-    /**
-     * Ejecución de consulta DynamoDB con condiciones de rango
-     * Utiliza partition key para hashtag y sort key para fechas
-     * permitiendo recuperación eficiente de datos temporales ordenados
-     */
     let result = client.client
         .query()
         .table_name(table_name)
@@ -190,12 +145,6 @@ async fn get_trends_history(hashtag: &str, days: i32) -> anyhow::Result<Vec<Tren
         .expression_attribute_values(":end_date", AttributeValue::S(format!("DATE#{}", end_date.format("%Y-%m-%d"))))
         .send()
         .await?;
-    
-    /**
-     * Procesamiento de resultados de consulta
-     * Implementación pendiente de deserialización de items DynamoDB
-     * a estructuras TrendsHistory para retorno al cliente
-     */
     Ok(vec![])
 }
 
@@ -208,19 +157,8 @@ async fn get_trends_history(hashtag: &str, days: i32) -> anyhow::Result<Vec<Tren
  * @return Resultado de la operación de persistencia
  */
 async fn save_trends_history(trends: &TrendsHistory) -> anyhow::Result<()> {
-    /**
-     * Inicialización de cliente y configuración de tabla
-     * Utiliza tabla específica para historial manteniendo separación
-     * lógica de datos temporales vs datos de cache en tiempo real
-     */
     let client = get_client().await;
     let table_name = client.get_table_name("trends_history");
-
-    /**
-     * Construcción completa del item DynamoDB con todos los atributos
-     * Mapea cada campo de la estructura Rust a su AttributeValue correspondiente
-     * manteniendo tipos de datos apropiados para consultas y análisis
-     */
     let mut item = HashMap::new();
     item.insert("pk".to_string(), AttributeValue::S(trends.pk.clone()));
     item.insert("sk".to_string(), AttributeValue::S(trends.sk.clone()));
@@ -231,12 +169,6 @@ async fn save_trends_history(trends: &TrendsHistory) -> anyhow::Result<()> {
     item.insert("engagement_score".to_string(), AttributeValue::N(trends.engagement_score.to_string()));
     item.insert("virality_score".to_string(), AttributeValue::N(trends.virality_score.to_string()));
     item.insert("created_at".to_string(), AttributeValue::S(trends.created_at.to_rfc3339()));
-
-    /**
-     * Ejecución of escritura en DynamoDB con item completo
-     * Utiliza put_item para inserción o actualización total
-     * del registro histórico con todos los metadatos y métricas
-     */
     client.client
         .put_item()
         .table_name(table_name)

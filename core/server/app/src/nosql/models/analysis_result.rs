@@ -32,31 +32,21 @@ pub struct AnalysisResult {
     pub completed_at: Option<DateTime<Utc>>,
 }
 
+/*
+ * Constructor para crear un nuevo resultado de análisis
+ * Inicializa la estructura con identificadores únicos, timestamps
+ * y estado inicial de procesamiento para seguimiento del progreso
+ * 
+ * @param user_id Identificador del usuario propietario del análisis
+ * @param resource_id Identificador del recurso analizado
+ * @param hashtags Vector de hashtags incluidos en el análisis
+ * @return Nueva instancia de AnalysisResult con datos inicializados
+ */
 impl AnalysisResult {
-    /**
-     * Constructor para crear un nuevo resultado de análisis
-     * Inicializa la estructura con identificadores únicos, timestamps
-     * y estado inicial de procesamiento para seguimiento del progreso
-     * 
-     * @param user_id Identificador del usuario propietario del análisis
-     * @param resource_id Identificador del recurso analizado
-     * @param hashtags Vector de hashtags incluidos en el análisis
-     * @return Nueva instancia de AnalysisResult con datos inicializados
-     */
+
     pub fn new(user_id: i32, resource_id: i32, hashtags: Vec<String>) -> Self {
-        /**
-         * Generación de identificador único para el análisis
-         * Utiliza UUID v4 para garantizar unicidad global
-         * y evitar conflictos en sistemas distribuidos
-         */
         let analysis_id = uuid::Uuid::new_v4().to_string();
         let now = Utc::now();
-
-        /**
-         * Construcción de la estructura completa con valores por defecto
-         * Configura claves de DynamoDB, estado inicial y timestamps
-         * preparando el objeto para almacenamiento y seguimiento
-         */
         Self {
             pk: format!("ANALYSIS#{}", analysis_id),
             sk: format!("RESULT#{}", now.timestamp()),
