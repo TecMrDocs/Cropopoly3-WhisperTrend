@@ -19,7 +19,7 @@ use crate::middlewares;
 
 use actix_web::{
     error, get, middleware::from_fn, post, web, HttpMessage, HttpRequest, HttpResponse, Responder,
-    Result,
+    Result, delete,
 };
 use auth::{PasswordHasher, TokenService};
 use chrono::{Duration, Utc};
@@ -30,18 +30,8 @@ use serde_json::json;
 use validator::Validate;
 use tracing::error;
 use auth::MagicLinkService;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use once_cell::sync::Lazy;
+use super::auth_link::send_verification_email_with_resend;
 
-/**
- * Estructura para recibir parámetros de verificación de email desde URL
- * Encapsula el token de verificación enviado como query parameter
- */
-#[derive(serde::Deserialize)]
-struct VerifyEmailQuery {
-    token: String,
-}
 
 /**
  * Endpoint para el registro de nuevos usuarios en el sistema
@@ -179,84 +169,25 @@ pub async fn check(req: HttpRequest) -> Result<impl Responder, actix_web::Error>
     Err(error::ErrorUnauthorized("No id found in request"))
 }
 
-/**
- * Endpoint para reenviar emails de verificación a usuarios no verificados
- * Permite a los usuarios solicitar un nuevo magic link si el anterior expiró
- * o no fue recibido correctamente en su bandeja de entrada
- * 
- * @param data Credenciales que incluyen el email para reenvío
- * @return Respuesta HTTP confirmando el reenvío o estado de verificación
- */
-#[post("/resend-verification")]
-pub async fn resend_verification_email(data: web::Json<Credentials>) -> impl Responder {
-    if let Ok(Some(user)) = User::get_by_email(data.email.clone()).await {
-        if let Some(user_id) = user.id {
-            if User::is_email_verified(user_id).await.unwrap_or(false) {
-                return HttpResponse::Ok().json(json!({
-                    "message": "Email already verified"
-                }));
-            }
-            let secret_key = std::env::var("JWT_SECRET")
-                .unwrap_or_else(|_| "default-super-secret-key-for-development".to_string());
 
-            if let Ok(token) = MagicLinkService::create_email_verification_token(
-                &secret_key,
-                user_id,
-                user.email.clone(),
-            ) {
-                let frontend_base_url = std::env::var("FRONTEND_URL")
-                    .unwrap_or_else(|_| "http://localhost:8080".to_string());
-                let magic_link = format!("{}/launchprocess?token={}", frontend_base_url, token);
-                let user_name = format!("{} {}", user.name, user.last_name);
-                if let Err(e) = send_verification_email_with_resend(&user.email, &user_name, &magic_link).await {
-                    error!("Failed to resend verification email: {}", e);
-                    return HttpResponse::InternalServerError().body("Failed to send email");
-                }
+#[delete("/delete/{user_id}")]
+pub async fn delete_user(path: web::Path<i32>) -> Result<impl Responder, actix_web::Error> {
+    let user_id_to_delete = path.into_inner();
 
-                println!("🔗 Resent verification magic link: {}", magic_link);
-
-                return HttpResponse::Ok().json(json!({
-                    "message": "Verification email resent"
-                }));
-            }
-        }
+    // Verificar si el usuario existe
+    if User::get_by_id(user_id_to_delete).await.to_web()?.is_none() {
+        return Ok(HttpResponse::NotFound().json(json!({
+            "error": "User not found"
+        })));
     }
 
-    HttpResponse::Ok().json(json!({
-        "message": "If this email exists, a verification email was resent"
-    }))
-}
+    // Intentar eliminar el usuario
+    User::delete_by_id(user_id_to_delete).await.to_web()?;
 
-/**
- * Endpoint para procesar la verificación de email mediante magic links
- * Recibe el token de verificación, lo valida criptográficamente
- * y actualiza el estado del usuario como email verificado
- * 
- * @param query Parámetros de URL que contienen el token de verificación
- * @return Respuesta HTTP indicando éxito o fallo de la verificación
- */
-#[get("/verify-email")]
-pub async fn verify_email_endpoint(query: web::Query<VerifyEmailQuery>) -> impl Responder {
-    let secret_key = std::env::var("JWT_SECRET")
-        .unwrap_or_else(|_| "default-super-secret-key-for-development".to_string());
-
-    match MagicLinkService::verify_magic_link(&secret_key, &query.token, "email_verification") {
-        Ok(claims) => {
-
-            User::update_email_verified_by_id(claims.user_id, true).await.ok();
-
-            HttpResponse::Ok().json(json!({
-                "message": "Email verified successfully (memory store)",
-                "verified": true
-            }))
-        }
-        Err(e) => {
-            error!("Invalid verification token: {}", e);
-            HttpResponse::BadRequest().json(json!({
-                "error": "Invalid or expired token"
-            }))
-        }
-    }
+    Ok(HttpResponse::Ok().json(json!({
+        "message": "User deleted successfully",
+        "deleted_user_id": user_id_to_delete
+    })))
 }
 
 /**
@@ -272,49 +203,13 @@ pub fn routes() -> actix_web::Scope {
         .service(register)      
         .service(signin)       
         .service(verify_mfa)   
-        .service(verify_email_endpoint) 
-        .service(resend_verification_email) 
+        .service(super::auth_link::verify_email_endpoint) 
+        .service(super::auth_link::resend_verification_email) 
+        .service(delete_user)
 
         .service(
             web::scope("")  
                 .wrap(from_fn(crate::middlewares::auth))
                 .service(check),
         )
-}
-
-/**
- * Función utilitaria para envío de emails de verificación
- * Integra con el servicio Resend para entregar magic links de verificación
- * con formato HTML profesional y manejo robusto de errores
- * 
- * @param to_email Dirección de correo del destinatario
- * @param user_name Nombre completo del usuario para personalización
- * @param magic_link URL completa de verificación con token embebido
- * @return Resultado de la operación de envío de email
- */
-pub async fn send_verification_email_with_resend(
-    to_email: &str,
-    user_name: &str,
-    magic_link: &str,
-) -> anyhow::Result<()> {
-    use resend_rs::types::CreateEmailBaseOptions;
-    use resend_rs::Resend;
-
-    let resend = Resend::default();
-    let from = "WhisperTrend <noreply@whispertrend.lat>";
-    let subject = "Verify your email address";
-    let html = format!(
-        "<p>Hi {},</p>\
-         <p>Verifique su dirección de email dando clic al siguiente link:</p>\
-         <p><a href=\"{}\">Verify Email</a></p>",
-        user_name, magic_link
-    );
-
-    let email = CreateEmailBaseOptions::new(from, vec![to_email], subject).with_html(&html);
-
-    resend.emails.send(email).await.map_err(|e| {
-        anyhow::anyhow!("Failed to send email with Resend: {:?}", e)
-    })?;
-
-    Ok(())
 }

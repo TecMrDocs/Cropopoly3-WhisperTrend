@@ -5,7 +5,7 @@
 * especializados para autenticación, análisis, gestión y administración.
 * 
 * Autor: Renato García Morán
-* Contributors: Arturo Barrios Mendoza, Julio César Vivas Medina
+* Contributors: Arturo Barrios Mendoza, Julio César Vivas Medina, Mariana Balderrábano Aguilar
 */
 
 /**
@@ -62,3 +62,9 @@ pub mod auth_mfa;
 * Análisis de datos y métricas
 */
 pub mod analysis;
+
+/**
+* Link mágico para verificación de email
+*/
+pub mod auth_link;
+
