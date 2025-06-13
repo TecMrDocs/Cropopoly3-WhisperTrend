@@ -362,6 +362,7 @@ async fn save_hashtag_cache(body: web::Json<serde_json::Value>) -> Result<impl R
 }
 
 // Endpoint de prueba para guardar datos scraped con posts de ejemplo
+#[post("/test/save-scraped")] 
 async fn test_save_scraped(body: web::Json<serde_json::Value>) -> Result<impl Responder> {
     let data = body.into_inner();
     let hashtag = data.get("hashtag").and_then(|v| v.as_str()).unwrap_or("TestHashtag");
@@ -845,8 +846,8 @@ pub fn routes() -> actix_web::Scope {
         .service(start_analysis)
         .service(get_analysis_status)
         .service(populate_hashtags)  
-        .service(get_hashtags_by_category)
-        .service(test_save_scraped)        
-        .service(get_scraping_statistics)  
+        .service(get_hashtags_by_category)       
+        .service(get_scraping_statistics)
+        .service(test_save_scraped)   
         .service(controllers::analytics::routes())
 }
