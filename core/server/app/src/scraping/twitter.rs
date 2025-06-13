@@ -9,7 +9,6 @@
  * de JavaScript para extraer contenido dinámico.
  * 
  * Autor: Renato García Morán
- * Contribuyentes: [Lista de contribuyentes]
  */
 
 use crate::{
