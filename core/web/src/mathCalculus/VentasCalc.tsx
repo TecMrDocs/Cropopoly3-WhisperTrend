@@ -25,7 +25,6 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
   // 🆕 PROCESAR DATOS DINÁMICOS
   const datosGrafica = useMemo(() => {
     if (!datosVentas || datosVentas.length === 0) {
-      console.log('⚠️ [VentasCalc] No hay datos, usando fallback');
       
       // Datos de fallback más interesantes
       return [

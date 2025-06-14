@@ -58,15 +58,8 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({
     const ventasData = analysisData?.sales || [];
     const nombreProducto = analysisData?.resource_name || 'Producto';
 
-    console.log('📊 [CorrelacionVentas] Calculando correlaciones TRANSPARENTES:', {
-      hashtags: hashtagsCalculados.length,
-      ventas: ventasData.length,
-      producto: nombreProducto
-    });
-
     // Si no hay datos reales, usar fallback TRANSPARENTE
     if (hashtagsCalculados.length === 0) {
-      console.warn('[CorrelacionVentas] No hay hashtags calculados');
       return {
         hashtags: [
           { 

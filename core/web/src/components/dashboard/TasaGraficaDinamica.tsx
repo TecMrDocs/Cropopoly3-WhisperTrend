@@ -52,7 +52,6 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
    */
   const datosParaGrafica = useMemo(() => {
     if (!tasasIds || tasasIds.length === 0) {
-      console.log('⚠️ [TasasGrafica] No hay tasas seleccionadas');
       return [];
     }
 
@@ -67,7 +66,6 @@ const TasasGraficaDinamica: React.FC<TasasGraficaDinamicaProps> = ({ tasasIds, d
     });
 
     const fechasOrdenadas = ordenarFechas(Array.from(todasFechas));
-    console.log('📅 [TasasGrafica] Fechas ordenadas:', fechasOrdenadas);
 
     const datosCombinados = fechasOrdenadas.map((fecha, index) => {
       const punto: any = { fecha, orden: index };

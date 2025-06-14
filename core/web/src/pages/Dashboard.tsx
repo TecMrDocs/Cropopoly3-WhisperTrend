@@ -13,6 +13,11 @@ import { procesarParaDashboard } from '../calculus/ConsolidacionDatos';
 import { usePrompt } from "../contexts/PromptContext";
 import TestPromptContext from '../components/TestPromptContext';
 
+// 🆕 IMPORTAR LOS COMPONENTES NUEVOS
+import { LoadingSpinner } from '../components/LoadingSpinner';
+import { BotonVolver } from '../components/BotonVolver';
+import { CardHeader, IconoGraficas, IconoPanel, IconoInterpretacion } from '../components/CardHeader';
+
 // Objeto de mapeo que convierte nombres legibles de contenido a identificadores únicos del sistema
 const mapeoTipos = {
   // Ventas
@@ -27,10 +32,8 @@ const mapeoTipos = {
   'Noticia3': 'noticia3'
 };
 
-
 const generarDatosTasasDinamico = (datosDelSistema: any) => {
   if (!datosDelSistema) {
-    console.log('⚠️ No hay datos del sistema, retornando datos vacíos');
     return {};
   }
 
@@ -42,11 +45,9 @@ const generarDatosTasasDinamico = (datosDelSistema: any) => {
 
   const datosTasas: any = {};
 
-  // Iterar sobre cada calculadora y sus hashtags para generar las tasas
   calculadoras.forEach(calc => {
     if (calc.resultado.hashtags && Array.isArray(calc.resultado.hashtags)) {
       calc.resultado.hashtags.forEach((hashtag: any) => {
-        // ✅ USAR LOS IDs REALES DEL SISTEMA
         datosTasas[`int_${calc.id}_${hashtag.id}`] = {
           nombre: `Tasa de interacción ${calc.resultado.emoji || ''} ${hashtag.nombre}`,
           datos: hashtag.datosInteraccion,
@@ -60,7 +61,6 @@ const generarDatosTasasDinamico = (datosDelSistema: any) => {
         };
       });
     } else {
-      // Datos por defecto para compatibilidad (si es necesario)
       datosTasas[`int_${calc.id}`] = {
         nombre: `Tasa de interacción ${calc.resultado.emoji || ''}`,
         datos: calc.resultado.datosInteraccion || [],
@@ -80,7 +80,6 @@ const generarDatosTasasDinamico = (datosDelSistema: any) => {
 
 // 🆕 COMPONENTE: Visualización de Noticias
 const VisualizacionNoticia = ({ noticiaId, datosDelSistema }: { noticiaId: string, datosDelSistema: any }) => {
-  // Extraer el índice de la noticia del ID
   const indiceNoticia = parseInt(noticiaId.replace('noticia_', ''));
   const noticia = datosDelSistema?.noticias?.[indiceNoticia];
 
@@ -95,30 +94,25 @@ const VisualizacionNoticia = ({ noticiaId, datosDelSistema }: { noticiaId: strin
     );
   }
 
-  // Calcular correlación simulada
   const correlacion = 60 + (indiceNoticia * 8);
   const colorCorrelacion = correlacion >= 75 ? 'text-green-600' : correlacion >= 65 ? 'text-yellow-600' : 'text-red-600';
   const iconoCorrelacion = correlacion >= 75 ? '📈' : correlacion >= 65 ? '📊' : '📉';
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-white to-purple-50 rounded-2xl p-6">
-      {/* Header con ícono de noticia */}
       <div className="text-center mb-6">
         <div className="text-6xl mb-4">📰</div>
         <h2 className="text-2xl font-bold text-gray-800 mb-2">Análisis de Noticia</h2>
         <div className="w-16 h-1 bg-purple-500 mx-auto rounded-full"></div>
       </div>
 
-      {/* Contenido principal */}
       <div className="flex-1 space-y-6">
-        {/* Título de la noticia */}
         <div className="bg-white rounded-xl p-6 shadow-lg border border-purple-100">
           <h3 className="text-xl font-bold text-gray-800 leading-tight">
             {noticia.title}
           </h3>
         </div>
 
-        {/* Descripción */}
         <div className="bg-white rounded-xl p-6 shadow-lg border border-purple-100">
           <h4 className="text-sm font-semibold text-purple-600 mb-3 uppercase tracking-wide">
             Descripción
@@ -128,7 +122,6 @@ const VisualizacionNoticia = ({ noticiaId, datosDelSistema }: { noticiaId: strin
           </p>
         </div>
 
-        {/* Keywords */}
         <div className="bg-white rounded-xl p-6 shadow-lg border border-purple-100">
           <h4 className="text-sm font-semibold text-purple-600 mb-3 uppercase tracking-wide">
             Palabras Clave
@@ -145,7 +138,6 @@ const VisualizacionNoticia = ({ noticiaId, datosDelSistema }: { noticiaId: strin
           </div>
         </div>
 
-        {/* Métricas de análisis */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white rounded-xl p-4 shadow-lg border border-purple-100 text-center">
             <div className="text-2xl mb-2">{iconoCorrelacion}</div>
@@ -171,7 +163,6 @@ const VisualizacionNoticia = ({ noticiaId, datosDelSistema }: { noticiaId: strin
           </div>
         </div>
 
-        {/* Gráfica simulada de impacto */}
         <div className="bg-white rounded-xl p-6 shadow-lg border border-purple-100">
           <h4 className="text-sm font-semibold text-purple-600 mb-4 uppercase tracking-wide">
             Impacto Estimado en Redes Sociales
@@ -200,7 +191,6 @@ const VisualizacionNoticia = ({ noticiaId, datosDelSistema }: { noticiaId: strin
           </div>
         </div>
 
-        {/* Footer con timestamp */}
         <div className="text-center">
           <div className="text-xs text-gray-500">
             Análisis generado: {new Date().toLocaleDateString('es-ES', {
@@ -244,39 +234,25 @@ export default function Dashboard() {
   const [datosDelSistema, setDatosDelSistema] = useState<any>(null);
   const [cargandoDatos, setCargandoDatos] = useState(true);
 
-  // 🚀 OBTENER DATOS DEL TU PROMPTCONTEXT
   const { analysisData } = usePrompt();
   const nombreProducto = analysisData?.resource_name || "Bolso Mariana :D";
 
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        console.log('🔍 [Dashboard] analysisData recibido:', analysisData);
-        console.log('🔍 [Dashboard] analysisData.resource_name:', analysisData?.resource_name);
-
         let descargaDatos;
         if (analysisData) {
-          console.log('✅ [Dashboard] Usando datos del PromptContext');
           descargaDatos = crearConDatosContext(analysisData);
         } else {
-          console.log('⚠️ [Dashboard] No hay datos del context, usando datos de prueba');
           descargaDatos = crearConDatosPrueba();
         }
-
         const resultado = await descargaDatos.obtenerResultadosCalculados();
-        console.log('🔍 [Dashboard] Resultado de DescargaDatos:', resultado);
-        console.log('🔍 [Dashboard] resultado.resource_name:', resultado.resource_name);
-
         const consolidado = procesarParaDashboard(resultado);
-        console.log('🔍 [Dashboard] Resultado consolidado:', consolidado);
-        console.log('🔍 [Dashboard] consolidado.resource_name:', consolidado.resource_name);
 
         setDatosDelSistema(consolidado);
 
       } catch (error) {
-        console.error('❌ [Dashboard] Error en el flujo:', error);
 
-        // Fallback de emergencia
         const descargaDatos = crearConDatosPrueba();
         const resultado = await descargaDatos.obtenerResultadosCalculados();
         const consolidado = procesarParaDashboard(resultado);
@@ -296,26 +272,14 @@ export default function Dashboard() {
     return generarDatosTasasDinamico(datosDelSistema);
   }, [datosDelSistema, cargandoDatos]);
 
-  // ✅ Obtener hashtags dinámicos del sistema
   const hashtagsDinamicos = useMemo(() => {
     if (!datosDelSistema) return [];
     return datosDelSistema.metadatos?.hashtagsOriginales || [];
   }, [datosDelSistema]);
 
-  // Debug para ver los IDs disponibles
-  console.log('🔍 DEBUG: Todos los IDs de tasas disponibles:', Object.keys(datosTasas));
-  console.log('🔍 DEBUG: Hashtags dinámicos disponibles:', hashtagsDinamicos);
-
+  // 🆕 USAR EL COMPONENTE LOADING SPINNER
   if (cargandoDatos) {
-    return (
-      <div className="p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">⏳</div>
-          <h2 className="text-2xl font-bold text-blue-900 mb-2">Cargando análisis...</h2>
-          <p className="text-gray-600">Procesando datos de la API</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   const fuenteDatos = datosDelSistema?.metadatos?.fuente || 'desconocida';
@@ -328,7 +292,6 @@ export default function Dashboard() {
   };
 
   const handleSeleccionItem = (itemId: string) => {
-    console.log('🔍 Dashboard recibió selección:', itemId);
 
     if (itemId === '') {
       setMostrarTendenciaUniforme(false);
@@ -338,7 +301,6 @@ export default function Dashboard() {
       setHashtagSeleccionado(itemId);
 
       if (itemId.startsWith('noticia_')) {
-        console.log('📰 Es una noticia, no mostrar tendencias');
         setMostrarTendenciaUniforme(false);
         setMostrandoDesgloseTasas(false);
       } else {
@@ -350,9 +312,7 @@ export default function Dashboard() {
   };
 
   const handleTasasSeleccionadas = (tasasIds: string[]) => {
-    console.log("🔍 Dashboard recibiendo nuevas tasas:", tasasIds);
     setTasasSeleccionadas(tasasIds);
-    console.log("🔍 Dashboard tasas actualizadas a:", tasasIds);
   };
 
   const handleHashtagsNoticiasSeleccionados = (hashtagsIds: string[]) => {
@@ -379,22 +339,17 @@ export default function Dashboard() {
       return <MensajeInicial />;
     }
 
-if (hashtagSeleccionado === 'Ventas') {
-  // 🚀 USAR DATOS DIRECTOS DEL ANALYSISDATA
-  const datosVentas = analysisData?.sales || [];
-  const resourceName = analysisData?.resource_name || 'Voice en Honewwheel';
-  
-  console.log('📊 [Dashboard] Pasando datos de ventas REALES:', datosVentas);
-  
-  return <VentasCalc datosVentas={datosVentas} resourceName={resourceName} />;
-}
+    if (hashtagSeleccionado === 'Ventas') {
+      const datosVentas = analysisData?.sales || [];
+      const resourceName = analysisData?.resource_name || 'Voice en Honewwheel';      
+      return <VentasCalc datosVentas={datosVentas} resourceName={resourceName} />;
+    }
 
     if (hashtagSeleccionado.startsWith('noticia_')) {
       return <VisualizacionNoticia noticiaId={hashtagSeleccionado} datosDelSistema={datosDelSistema} />;
     }
 
     if (mostrandoDesgloseTasas && tasasSeleccionadas.length > 0) {
-      console.log("🔍 Pasando a TasasGraficaDinamica:", tasasSeleccionadas);
       return <TasasGraficaDinamica tasasIds={tasasSeleccionadas} datosTasas={datosTasas} />;
     }
 
@@ -405,15 +360,36 @@ if (hashtagSeleccionado === 'Ventas') {
     if (mostrarTendenciaUniforme) {
       return (
         <div>
-          <button onClick={resetVisualizacion} className="mb-4 px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 transition">
-            Volver a Gráfica de Líneas
-          </button>
+          {/* 🆕 USAR EL COMPONENTE BOTON VOLVER */}
+          <BotonVolver onClick={resetVisualizacion} />
           <UniformTrendPlot tipo={getTipoVisualizacion()} />
         </div>
       );
     }
 
     return <PlotTrend modoVisualizacion={modoVisualizacion} />;
+  };
+
+  const obtenerTituloGraficaPrincipal = () => {
+    if (!hashtagSeleccionado || hashtagSeleccionado === '') {
+      return "📊 Visualización de Tendencias";
+    }
+    if (hashtagSeleccionado === 'Ventas') {
+      return "💰 Análisis de Ventas";
+    }
+    if (hashtagSeleccionado.startsWith('noticia_')) {
+      return "📰 Análisis de Noticia";
+    }
+    if (mostrandoDesgloseTasas && tasasSeleccionadas.length > 0) {
+      return "📈 Comparativa de Tasas Seleccionadas";
+    }
+    if (hashtagsNoticiasSeleccionados.length > 0 && hashtagSeleccionado === 'Noticia1') {
+      return "📰 Análisis de Hashtags - Noticias";
+    }
+    if (mostrarTendenciaUniforme) {
+      return `📋 Análisis: ${hashtagSeleccionado}`;
+    }
+    return '📉 Gráfica de Líneas';
   };
 
   return (
@@ -428,40 +404,14 @@ if (hashtagSeleccionado === 'Ventas') {
 
             <div className="relative z-10">
               <div className="mb-6 pb-4 border-b border-gray-200/50">
-                <div className="flex items-center mb-3">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-600 to-blue-700 rounded-2xl blur-md opacity-75"></div>
-                    <div className="relative bg-gradient-to-br from-gray-500 to-blue-600 rounded-2xl p-3 shadow-lg">
-                      <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-700 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                      {!hashtagSeleccionado || hashtagSeleccionado === ''
-                        ? "📊 Visualización de Tendencias"
-                        : hashtagSeleccionado === 'Ventas'
-                          ? "💰 Análisis de Ventas"
-                          : hashtagSeleccionado.startsWith('noticia_')
-                            ? "📰 Análisis de Noticia"
-                            : mostrandoDesgloseTasas && tasasSeleccionadas.length > 0
-                              ? "📈 Comparativa de Tasas Seleccionadas"
-                              : hashtagsNoticiasSeleccionados.length > 0 && hashtagSeleccionado === 'Noticia1'
-                                ? "📰 Análisis de Hashtags - Noticias"
-                                : mostrarTendenciaUniforme
-                                  ? `📋 Análisis: ${hashtagSeleccionado}`
-                                  : '📉 Gráfica de Líneas'
-                      }
-                    </h3>
-                    <div className="flex items-center mt-1">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
-                      <p className="text-gray-600 text-sm font-medium">
-                        {tieneCalculosBackend ? 'Datos calculados en tiempo real' : 'Datos de demostración'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                {/* 🆕 USAR EL COMPONENTE CARD HEADER */}
+                <CardHeader 
+                  icono={<IconoGraficas />}
+                  titulo={obtenerTituloGraficaPrincipal()}
+                  tieneCalculosBackend={tieneCalculosBackend}
+                  gradientFrom="from-gray-600"
+                  gradientTo="to-blue-700"
+                />
 
                 <div className="bg-gradient-to-r from-gray-100/80 to-blue-100/80 backdrop-blur-sm rounded-xl p-3 border border-gray-200/50">
                   <div className="flex items-center">
@@ -487,32 +437,21 @@ if (hashtagSeleccionado === 'Ventas') {
           </div>
         </div>
 
-
         <div className="relative bg-gradient-to-br from-white via-blue-50/40 to-indigo-100/60 shadow-2xl rounded-3xl p-8 border-2 border-blue-200/30 backdrop-blur-lg overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-500/20 rounded-full blur-3xl -translate-y-16 translate-x-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-400/20 to-pink-400/20 rounded-full blur-2xl translate-y-12 -translate-x-12"></div>
 
           <div className="relative z-10">
             <div className="mb-6 pb-4 border-b border-blue-200/50">
-              <div className="flex items-center mb-3">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl blur-md opacity-75"></div>
-                  <div className="relative bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-3 shadow-lg">
-                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    🎯 Panel de Control
-                  </h3>
-                  <div className="flex items-center mt-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                    <p className="text-gray-600 text-sm font-medium">Sistema activo</p>
-                  </div>
-                </div>
-              </div>
+              {/* 🆕 USAR EL COMPONENTE CARD HEADER */}
+              <CardHeader 
+                icono={<IconoPanel />}
+                titulo="🎯 Panel de Control"
+                tieneCalculosBackend={true}
+                gradientFrom="from-blue-600"
+                gradientTo="to-indigo-700"
+                descripcionActivo="Sistema activo"
+              />
 
               <div className="bg-gradient-to-r from-blue-100/80 to-indigo-100/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/50">
                 <div className="flex items-center">
@@ -547,27 +486,16 @@ if (hashtagSeleccionado === 'Ventas') {
 
           <div className="relative z-10">
             <div className="mb-6 pb-4 border-b border-green-200/50">
-              <div className="flex items-center mb-3">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-600 to-emerald-700 rounded-2xl blur-md opacity-75"></div>
-                  <div className="relative bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-3 shadow-lg">
-                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-green-700 via-emerald-600 to-teal-600 bg-clip-text text-transparent">
-                    🧠 Interpretación del Análisis
-                  </h3>
-                  <div className="flex items-center mt-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                    <p className="text-gray-600 text-sm font-medium">
-                      {tieneCalculosBackend ? 'Insights con datos reales' : 'Insights de demostración'}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              {/* 🆕 USAR EL COMPONENTE CARD HEADER */}
+              <CardHeader 
+                icono={<IconoInterpretacion />}
+                titulo="🧠 Interpretación del Análisis"
+                tieneCalculosBackend={tieneCalculosBackend}
+                gradientFrom="from-green-600"
+                gradientTo="to-emerald-700"
+                descripcionActivo="Insights con datos reales"
+                descripcionDemo="Insights de demostración"
+              />
 
               <div className="bg-gradient-to-r from-green-100/80 to-emerald-100/80 backdrop-blur-sm rounded-xl p-3 border border-green-200/50">
                 <div className="flex items-center">
@@ -584,12 +512,6 @@ if (hashtagSeleccionado === 'Ventas') {
             <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-6 border border-white/40 shadow-inner">
               <InterpretacionDashboard analysisData={analysisData} />
             </div>
-
-            {/* {process.env.NODE_ENV === 'development' && (
-              <div className="container mx-auto px-4 py-4">
-                <TestPromptContext />
-              </div>
-            )} */}
           </div>
         </div>
 

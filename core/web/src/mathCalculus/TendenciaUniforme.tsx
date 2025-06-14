@@ -8,7 +8,7 @@
 * interpretación de correlaciones y patrones de comportamiento.
 * 
 * Autor: Lucio Arturo Reyes Castillo
-* Contribuyentes: [Lista de contribuyentes]
+* Contribuyentes: Julio César Vivas Medina
 */
 
 import React from 'react';
