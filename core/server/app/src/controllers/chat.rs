@@ -1,3 +1,16 @@
+
+/**
+ * Chat Handler - Sistema de Procesamiento de Conversaciones con IA
+ * 
+ * Este módulo proporciona una API REST para manejar conversaciones con modelos
+ * de inteligencia artificial a través del proveedor Groq. Implementa un endpoint
+ * HTTP que recibe mensajes del usuario y los procesa usando agentes especializados
+ * configurados como expertos investigadores.
+ *
+ * @author Carlos Alberto Zamudio Velázquez 
+ * Contribuyentes: Equipo Backend
+ */
+
 use actix_web::{HttpResponse, Responder, post, web};
 use rig::{
     completion::Prompt,
