@@ -163,7 +163,6 @@ export default class CalculosX {
        
        // Si no hay datos, generar valor realista
        if (tasa === 0 || !isFinite(tasa)) {
-         // 🎯 VALORES PROGRESIVOS REALISTAS PARA VIRALIDAD X
          const valoresBase = [2.8, 3.2, 3.5, 3.3, 3.7, 4.1]; // Enero a Junio
          tasa = valoresBase[i] || (Math.random() * 2 + 2); // 2-4% para viralidad X
        }
@@ -177,7 +176,6 @@ export default class CalculosX {
        };
      });
      
-     // 🔧 VERIFICAR QUE LOS DATOS ESTÉN ORDENADOS CORRECTAMENTE
      const datosInteraccionOrdenados = ordenarDatosPorFecha(datosInteraccion, fechasOrdenadas);
      const datosViralidadOrdenados = ordenarDatosPorFecha(datosViralidad, fechasOrdenadas);
      
