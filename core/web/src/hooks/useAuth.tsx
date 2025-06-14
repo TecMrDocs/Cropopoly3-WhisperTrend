@@ -1,7 +1,6 @@
 /**
  * Hook personalizado para acceder fácilmente al contexto de autenticación (`AuthContext`) dentro de los componentes de React.
  * Permite utilizar las funciones y datos de autenticación desde cualquier parte de la aplicación.
- * 
  * Autor: Sebastian Antonio
  */
 
