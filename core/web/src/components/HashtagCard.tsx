@@ -5,24 +5,29 @@
  * Incluye el coeficiente de Pearson, interpretación visual, barra de progreso,
  * y badges de confianza del análisis.
  * 
- * Extraído del componente CorrelacionVentas para mejorar la reutilización
- * y facilitar el mantenimiento.
+ * Autor: Lucio Arturo Reyes Castillo
  */
 
 import React from 'react';
 import { CorrelacionResult } from './correlationCalculator';
 
+/**
+ * Props del componente HashtagCard
+ */
 interface HashtagCardProps {
-  hashtag: string;           // "#example"
-  resultado: CorrelacionResult;
-  color: string;             // Color hex para el indicador
-  puntuaciones: {
+  hashtag: string;           // Nombre del hashtag con formato "#ejemplo"
+  resultado: CorrelacionResult;  // Datos completos de correlación y confianza
+  color: string;             // Color hex para el indicador visual y tema
+  puntuaciones: {            // Métricas de rendimiento por plataforma social
     instagram: number;
     reddit: number;
     twitter: number;
   };
 }
 
+/**
+ * Componente de tarjeta individual para hashtag con análisis de correlación
+ */
 const HashtagCard: React.FC<HashtagCardProps> = ({
   hashtag,
   resultado,
@@ -30,7 +35,10 @@ const HashtagCard: React.FC<HashtagCardProps> = ({
   puntuaciones
 }) => {
   return (
+    // Contenedor principal con efectos glassmorphism y hover
     <div className={`bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 ${!resultado.esReal ? 'opacity-75' : ''}`}>
+      
+      {/* Header: Indicador de color + nombre + coeficiente de Pearson */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <div 
@@ -41,6 +49,7 @@ const HashtagCard: React.FC<HashtagCardProps> = ({
         </div>
         <div className="text-right">
           {resultado.esReal ? (
+            // Mostrar coeficiente de Pearson con formato académico
             <>
               <div className="text-2xl font-bold" style={{ color: resultado.interpretacion?.color }}>
                 {resultado.correlacion.toFixed(3)}
@@ -50,18 +59,20 @@ const HashtagCard: React.FC<HashtagCardProps> = ({
               </div>
             </>
           ) : (
+            // Estado sin datos válidos
             <>
-              <div className="text-lg font-bold text-gray-400">
-                N/A
-              </div>
+              <div className="text-lg font-bold text-gray-400">N/A</div>
               <div className="text-xs text-red-500">sin datos</div>
             </>
           )}
         </div>
       </div>
       
+      {/* Contenido condicional basado en disponibilidad de datos */}
       {resultado.esReal && resultado.interpretacion ? (
+        // CASO A: Datos válidos - Mostrar análisis completo
         <>
+          {/* Panel de interpretación con color temático */}
           <div className="mb-3 p-2 rounded-lg" style={{ backgroundColor: `${resultado.interpretacion.color}20` }}>
             <div className="text-sm font-medium" style={{ color: resultado.interpretacion.color }}>
               {resultado.interpretacion.emoji} {resultado.interpretacion.categoria}
@@ -71,6 +82,7 @@ const HashtagCard: React.FC<HashtagCardProps> = ({
             </div>
           </div>
           
+          {/* Barra de progreso animada para fuerza de correlación */}
           <div className="mb-4">
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm text-gray-600">Fuerza de correlación</span>
@@ -89,6 +101,7 @@ const HashtagCard: React.FC<HashtagCardProps> = ({
             </div>
           </div>
           
+          {/* Footer: Badge de confianza + dirección de correlación */}
           <div className="flex justify-between items-center">
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
               resultado.confianza === 'alta' ? 'bg-green-100 text-green-700' :
@@ -104,6 +117,7 @@ const HashtagCard: React.FC<HashtagCardProps> = ({
           </div>
         </>
       ) : (
+        // CASO B: Datos insuficientes - Mostrar mensaje explicativo
         <div className="bg-gray-50 rounded-lg p-3">
           <div className="text-sm text-gray-600 mb-2">
             {resultado.mensaje}
