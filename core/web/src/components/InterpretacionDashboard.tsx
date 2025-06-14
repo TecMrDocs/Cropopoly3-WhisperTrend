@@ -26,6 +26,7 @@ interface InterpretacionDashboardProps {
  * @param analysisData - Objeto con los datos de análisis (ventas, redes sociales, hashtags)
  * @return JSX que muestra los controles, estados y resultados del análisis en Markdown
  */
+
 const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analysisData }) => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState('');
@@ -56,7 +57,7 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
         console.warn('⚠️ El análisis no se pudo guardar');
       }
     } catch (err) {
-      console.error('❌ Error al generar análisis:', err);
+      console.error('Error al generar análisis:', err);
       setResult('Error al generar el análisis. Por favor, inténtalo de nuevo más tarde.');
     } finally {
       setLoading(false);
@@ -124,7 +125,6 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
     );
   }
 
-  // RENDER: Resultado de análisis
   if (result) {
     return (
       <div className="space-y-4">
@@ -185,7 +185,6 @@ const InterpretacionDashboard: React.FC<InterpretacionDashboardProps> = ({ analy
         y recomendaciones estratégicas personalizadas para tu producto o servicio.
       </p>
 
-      {/* Botones de acción */}
       <div className="space-y-3">
         <div className="flex flex-wrap gap-3">
           <button
