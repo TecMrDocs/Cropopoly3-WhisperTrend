@@ -7,10 +7,8 @@
 * consistentes para visualizaciones de datos en gráficos y componentes.
 * 
 * Autor: Lucio Arturo Reyes Castillo
-* Contribuyentes: [Lista de contribuyentes]
 */
 
-// utils/correlacionUtils.ts
 
 /**
 * Calcula correlación ponderada basada en tendencia y promedio de tasas.
@@ -18,6 +16,7 @@
 * @param datos - Array de objetos con propiedad tasa
 * @return number - Valor de correlación entre 45 y 95
 */
+
 export const calcularCorrelacion = (datos: any[]): number => {
  if (!datos || datos.length === 0) return 0;
  
@@ -61,7 +60,7 @@ export const getIconoHashtag = (nombre: string): string => {
    return '🌿';
  }
  
- return '📈'; // Ícono por defecto
+ return '📈'; 
 };
 
 /**
@@ -101,6 +100,6 @@ export const generarColoresPorIndice = (index: number): string => {
 * @return string - Color hexadecimal de la paleta de noticias
 */
 export const generarColoresNoticias = (index: number): string => {
- const coloresNoticias = ['#9333ea', '#f59e0b', '#059669']; // Púrpura, ámbar, verde
+ const coloresNoticias = ['#9333ea', '#f59e0b', '#059669']; 
  return coloresNoticias[index % coloresNoticias.length];
 };

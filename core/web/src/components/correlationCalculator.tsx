@@ -5,7 +5,9 @@
  * para mejorar la reutilización y facilitar el testing.
  * 
  * Autor: Lucio Arturo Reyes Castillo
+ *  Contribuyentes: Andres Cabrera Alvarado, Julio César Vivas Medina
  */
+
 
 export interface CorrelacionResult {
   correlacion: number;
