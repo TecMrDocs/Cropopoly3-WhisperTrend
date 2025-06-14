@@ -6,8 +6,8 @@
  * elegir si desea ingresar la información de ventas de su producto en ese momento.
  * Forma parte del flujo posterior al registro de un producto o servicio.
  * 
- * Autor: -
- * Contribuyentes: Arturo Barrios Mendoza
+ * Autor: Arturo Barrios Mendoza
+ * Contribuyentes: Andrés Cabrera, Mariana Balderrábano Aguilar, Sebastian Antonio Almanza
  */
 
 import WhiteButton from "../components/WhiteButton";

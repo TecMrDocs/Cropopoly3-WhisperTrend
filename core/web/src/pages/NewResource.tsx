@@ -6,8 +6,8 @@
  * Recoge información como el tipo, nombre, descripción y palabras clave relacionadas.
  * Valida los datos antes de enviarlos al backend, y luego redirige al flujo de registro de ventas.
  *
- * Autor: -
- * Contribuyentes: Arturo Barrios Mendoza
+ * Autor: Arturo Barrios Mendoza
+ * Contribuyentes: Sebastian Antonio Almanza
  */
 
 import { useState } from "react";

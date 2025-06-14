@@ -6,7 +6,7 @@
  * Presenta un mensaje de confirmación con la información capturada de la empresa y el producto,
  * y ofrece botones para continuar hacia los resultados o volver a editar.
  * 
- * Autor: -
+ * Autor: Mariana Balderrábano Aguilar
  * Contribuyentes: Sebastián Antonio Almanza, Arturo Barrios Mendoza
  *
  */
