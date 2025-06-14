@@ -82,29 +82,14 @@ export default function ProgressBar({ activeStep }: ProgressBarProps) {
     <div className="p-8 flex justify-center">
       {/* Contenedor de alineación centrada de la barra */}
       <div className="relative inline-flex flex-col items-center">
-
-        /**
-         * Sección superior de la barra que contiene los círculos con íconos y líneas de conexión.
-         * Incluye una línea horizontal que conecta todos los pasos y los íconos dentro de círculos.
-         */
         <div className="relative flex gap-20 mb-5">
           <div className="absolute top-1/2 left-0 right-0 h-3 bg-gray-300 z-0 transform -translate-y-1/2" />
 
           {steps.map((step, index) => (
             <div key={index} className="relative group w-24 flex justify-center z-10">
-              
-              /**
-               * Tooltip que aparece al pasar el cursor sobre el paso.
-               * Se colorea dependiendo de si el paso ya fue alcanzado o no.
-               */
               <div className={`absolute bottom-full mb-2 px-3 py-2 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition whitespace-normal w-64 text-left z-20 shadow-lg ${index <= activeStep ? step.color : "bg-gray-500"}`}>
                 {step.tooltip}
               </div>
-
-              /**
-               * Círculo del paso con el ícono centrado.
-               * El color depende de si el paso está activo o no.
-               */
               <div
                 className={`w-20 h-20 rounded-full ${
                   index <= activeStep ? step.color : "bg-gray-500"
@@ -115,11 +100,6 @@ export default function ProgressBar({ activeStep }: ProgressBarProps) {
             </div>
           ))}
         </div>
-
-        /**
-         * Sección inferior de la barra con el texto de cada paso.
-         * Los textos están alineados con su respectivo ícono.
-         */
         <div className="flex justify-center gap-20">
           {steps.map((step, index) => (
             <div key={index} className="w-24 text-center text-sm leading-tight">
