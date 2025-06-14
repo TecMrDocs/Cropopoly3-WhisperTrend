@@ -4,8 +4,7 @@
 * Define la estructura y operaciones CRUD para administradores del sistema
 * con validaciones de datos y credenciales de autenticación segura.
 * 
-* Autor: Sebastian Antonio Almanza
-* Contributor: Equipo de desarrollo backend y seguridad
+* Autor: Sebastián Antonio Almanza
 */
 
 use crate::{database::Database, schema};

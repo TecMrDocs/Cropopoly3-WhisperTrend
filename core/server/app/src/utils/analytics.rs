@@ -7,7 +7,7 @@
 * basadas en seguidores, visualizaciones y tiempo transcurrido.
 * 
 * Autor: Renato García Morán
-* Contribuyentes: Lucio Arturo Reyes Castillo
+* Contribuyentes: Lucio Arturo Reyes Castillo 
 */
 
 pub fn x_viral_rate(reposts: u32, likes: u32, comments: u32, followers: u32) -> f64 {

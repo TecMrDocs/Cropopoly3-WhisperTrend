@@ -6,8 +6,7 @@
  * Incluye soporte para diferentes tipos de botón, estados deshabilitados y personalización de ancho.
  * 
  * @author Arturo Barrios Mendoza
- * @contributors Equipo de desarrollo
- * @version 1.0.0
+ * @contributors Sebastián Antonio Almanza  
  */
 
 /**

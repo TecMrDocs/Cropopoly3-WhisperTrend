@@ -5,7 +5,6 @@
  * de datos con su respectiva descripción y color.
  * 
  * Autor: Sebastián Antonio Almanza
- * Contribuyentes: -
  */
 
 import React from 'react';

@@ -33,51 +33,21 @@ use validator::Validate;
  */
 #[post("/register")]
 pub async fn register(mut admin: web::Json<Admin>) -> Result<impl Responder> {
-  /**
-   * Validación de los datos de entrada del administrador
-   * Utiliza el trait Validate para verificar formato de email,
-   * longitud de contraseña y otros criterios de validación
-   */
   if let Err(_) = admin.validate() {
       return Ok(HttpResponse::Unauthorized().body("Invalid data"));
   }
 
-  /**
-   * Verificación de unicidad del email en el sistema
-   * Consulta la base de datos para asegurar que el email no esté registrado
-   * Solo procede con el registro si el email está disponible
-   */
   if let Ok(None) = Admin::get_by_email(admin.email.clone()).await {
-      /**
-       * Proceso de hasheo seguro de la contraseña
-       * Utiliza algoritmos criptográficos seguros para proteger
-       * las contraseñas antes de almacenarlas en la base de datos
-       */
       if let Ok(hash) = PasswordHasher::hash(&admin.password) {
           admin.password = hash.to_string();
-
-          /**
-           * Creación del registro de administrador en la base de datos
-           * Almacena los datos validados y la contraseña hasheada
-           * Asigna el ID generado al objeto administrador
-           */
           let id = Admin::create(admin.clone()).await.to_web()?;
           admin.id = Some(id);
 
           return Ok(HttpResponse::Ok().finish());
       }
   } else {
-      /**
-       * Manejo del caso donde el email ya existe en el sistema
-       * Retorna error de no autorizado para prevenir enumeración de emails
-       */
       return Ok(HttpResponse::Unauthorized().body("Email already exists"));
   }
-
-  /**
-   * Manejo de errores generales en el proceso de registro
-   * Cubre casos no contemplados específicamente en las validaciones anteriores
-   */
   Err(error::ErrorBadRequest("Failed"))
 }
 
@@ -91,24 +61,9 @@ pub async fn register(mut admin: web::Json<Admin>) -> Result<impl Responder> {
  */
 #[post("/signin")]
 pub async fn signin(profile: web::Json<AdminCredentials>) -> impl Responder {
-  /**
-   * Proceso de autenticación completo del administrador
-   * Incluye búsqueda por email, verificación de contraseña
-   * y generación de token JWT para sesiones autenticadas
-   */
   if let Ok(Some(admin)) = Admin::get_by_email(profile.email.clone()).await {
-      /**
-       * Verificación criptográfica de la contraseña
-       * Compara la contraseña proporcionada con el hash almacenado
-       * utilizando algoritmos de verificación seguros
-       */
       if let Ok(true) = PasswordHasher::verify(&profile.password, &admin.password) {
           if let Some(id) = admin.id {
-              /**
-               * Generación del token JWT para la sesión autenticada
-               * Crea un token firmado con la clave secreta del sistema
-               * que incluye los claims necesarios para identificar al usuario
-               */
               if let Ok(token) =
                   TokenService::<Claims>::create(&Config::get_secret_key(), Claims::new(id))
               {
@@ -117,12 +72,6 @@ pub async fn signin(profile: web::Json<AdminCredentials>) -> impl Responder {
           }
       }
   }
-
-  /**
-   * Respuesta de error para credenciales inválidas
-   * Mensaje genérico para prevenir enumeración de usuarios
-   * y ataques de fuerza bruta basados en respuestas específicas
-   */
   HttpResponse::Unauthorized().body("Email or password is incorrect")
 }
 
@@ -136,35 +85,14 @@ pub async fn signin(profile: web::Json<AdminCredentials>) -> impl Responder {
  */
 #[get("")]
 pub async fn check(req: HttpRequest) -> Result<impl Responder> {
-  /**
-   * Extracción y validación del ID de administrador desde el token
-   * El middleware de autenticación ya validó el token y extrajo el ID
-   * que se encuentra disponible en las extensiones de la solicitud
-   */
   if let Some(id) = req.extensions().get::<i32>() {
-      /**
-       * Consulta de los datos completos del administrador
-       * Utiliza el ID extraído del token para obtener
-       * la información actualizada desde la base de datos
-       */
       let admin = Admin::get_by_id(*id).await.to_web()?;
-
-      /**
-       * Procesamiento de la respuesta basada en el resultado de la consulta
-       * Retorna los datos del administrador si existe,
-       * o un error 404 si no se encuentra en la base de datos
-       */
       return match admin {
           Some(admin) => Ok(HttpResponse::Ok().json(admin)),
           None => Ok(HttpResponse::NotFound().finish()),
       };
   }
 
-  /**
-   * Manejo de error crítico cuando no se encuentra ID en la solicitud
-   * Esto indica un problema en el middleware de autenticación
-   * o manipulación indebida de la solicitud
-   */
   error!("No id found in request");
   Ok(HttpResponse::Unauthorized().finish())
 }
@@ -177,11 +105,6 @@ pub async fn check(req: HttpRequest) -> Result<impl Responder> {
  * @return Scope configurado con todas las rutas del módulo y middlewares aplicados
  */
 pub fn routes() -> actix_web::Scope {
-  /**
-   * Estructura de rutas con diferentes niveles de protección
-   * - Rutas públicas: registro y signin disponibles sin autenticación
-   * - Rutas protegidas: check requiere middleware de autenticación válido
-   */
   web::scope("/admin")
       .service(register)
       .service(signin)
