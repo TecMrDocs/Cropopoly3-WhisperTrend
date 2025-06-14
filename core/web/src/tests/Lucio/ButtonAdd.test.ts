@@ -1,5 +1,6 @@
 /**
  * Pruebas unitarias para ButtonAdd - Statement Coverage Simple
+ * Statement Coverage: Cada línea de código ejecutada al menos una vez
  */
 
 import { describe, it, expect, vi } from 'vitest';
