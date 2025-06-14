@@ -6,18 +6,8 @@
  * clave, interpretación de resultados y recomendaciones para mejorar la calidad 
  * del análisis estadístico.
  * 
- * El componente maneja dos estados principales:
- * 1. Con correlaciones reales: Muestra estadísticas, promedio de Pearson y escala de interpretación
- * 2. Datos insuficientes: Muestra advertencias y recomendaciones para obtener más datos
- * 
- * Funcionalidades principales:
- * - Visualización de estadísticas globales del análisis
- * - Interpretación académica de coeficientes de correlación de Pearson
- * - Recomendaciones contextuales para mejorar la calidad del análisis
- * - Diseño responsivo con gradientes y estilos consistentes
- * 
  * Autor: Lucio Arturo Reyes Castillo
- * Extraído del componente CorrelacionVentas para mejorar la modularidad y reutilización
+ * Contribuyentes: Andres Cabrera Alvarado y Julio César Vivas Medina
  */
 
 import React from 'react';
