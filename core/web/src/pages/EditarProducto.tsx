@@ -1,3 +1,15 @@
+/**
+ * Página: EditarProducto.tsx
+ * 
+ * Descripción:
+ * Componente que permite al usuario editar la información de un producto o servicio previamente registrado,
+ * incluyendo tipo, nombre, descripción y palabras clave relacionadas. Almacena los cambios en el backend mediante una solicitud PATCH.
+ * También permite alternar entre la edición de información y la edición de datos de ventas.
+ * 
+ * Autor: Santiago Villazón Ponce de León  
+ * Contribuyentes: Iván Alexander Ramos Ramírez, Arturo Barrios Mendoza
+ */
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API_URL } from "@/utils/constants";
@@ -11,6 +23,9 @@ import { Plus, Trash2 } from "lucide-react";
 import { usePrompt } from "../contexts/PromptContext";
 import user from "@/utils/api/user";
 
+/**
+ * Componente para editar la información general de un producto o servicio existente.
+ */
 export default function EditarProducto() {
   const [palabra, setPalabra] = useState("");
   const [palabras, setPalabras] = useState<string[]>([]);
@@ -25,8 +40,10 @@ export default function EditarProducto() {
   const location = useLocation();
 
   const { producto, productId, userId, setUserId } = usePrompt();
-  const token = localStorage.getItem("token");
 
+  /**
+   * Carga los datos del producto desde el contexto al montar el componente.
+   */
   useEffect(() => {
     if (producto) {
       setNombre(producto.name || "");
@@ -40,6 +57,9 @@ export default function EditarProducto() {
     }
   }, [producto]);
 
+  /**
+   * Carga el userId del backend si no está definido en el contexto.
+   */
   useEffect(() => {
     const cargarUserId = async () => {
       if (!userId) {
@@ -56,6 +76,11 @@ export default function EditarProducto() {
     cargarUserId();
   }, []);
 
+  /**
+   * Verifica que los campos requeridos estén llenos antes de enviar el formulario.
+   * 
+   * @return {boolean} true si los campos son válidos, false en caso contrario.
+   */
   const validar = () => {
     if (!tipo.trim() || !nombre.trim() || !descripcion.trim()) {
       alert("Todos los campos son obligatorios.");
@@ -64,6 +89,10 @@ export default function EditarProducto() {
     return true;
   };
 
+  /**
+   * Agrega una palabra clave al arreglo de palabras si es válida, no está repetida
+   * y no supera el límite de 10 palabras.
+   */
   const handleAgregar = () => {
     const nueva = palabra.trim();
     if (nueva && !palabras.includes(nueva) && palabras.length < 10) {
@@ -72,10 +101,19 @@ export default function EditarProducto() {
     }
   };
 
+  /**
+   * Elimina una palabra clave específica del arreglo.
+   * 
+   * @param {string} palabraAEliminar - Palabra que se desea eliminar
+   */
   const eliminarPalabra = (palabraAEliminar: string) => {
     setPalabras(palabras.filter((p) => p !== palabraAEliminar));
   };
 
+  /**
+   * Envía los cambios al backend utilizando una solicitud PATCH.
+   * Si la operación es exitosa, se muestra un modal de confirmación.
+   */
   const handleSubmit = async () => {
     if (!validar()) return;
     if (!productId || !userId) {
@@ -93,14 +131,14 @@ export default function EditarProducto() {
 
     try {
       const response = await fetch(`${API_URL}resource/${productId}`, {
-                method: "PATCH",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Accept": "*/*",
-                  ...getConfig().headers,
-                },
-                body: JSON.stringify(payload),
-              });
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "*/*",
+          ...getConfig().headers,
+        },
+        body: JSON.stringify(payload),
+      });
 
       if (!response.ok) {
         const msg = await response.text();
@@ -109,22 +147,22 @@ export default function EditarProducto() {
         return;
       }
 
-      //const actualizado = await response.json();
-      //console.log("Recurso actualizado:", actualizado);
-      //navigate("/productos");
       setIsSuccess(true);
       setShowModal(true);
     } catch (err) {
       console.error("Error de red:", err);
-      //alert("Error de red o del servidor.");
       setIsSuccess(false);
       setShowModal(true);
     }
   };
 
+  /**
+   * Renderiza la interfaz para editar un producto o servicio,
+   * permitiendo modificar tipo, nombre, descripción y palabras clave.
+   */
   return (
     <div className="p-8">
-      {/* Tabs */}
+      {/* Tabs de navegación para editar información o datos de ventas */}
       <div className="flex justify-center mb-6">
         <div className="flex border rounded-md overflow-hidden">
           <button
@@ -154,6 +192,7 @@ export default function EditarProducto() {
         <h1 className="text-2xl font-w700">Edita tu producto o servicio</h1>
       </div>
 
+      {/* Formulario de edición */}
       <div className="flex flex-col items-center gap-6">
         <SelectField
           label="Producto o servicio"
@@ -181,6 +220,7 @@ export default function EditarProducto() {
           onChange={(e) => setDescripcion(e.target.value)}
         />
 
+        {/* Campo de palabras asociadas */}
         <div className="flex flex-col gap-2" style={{ width: "700px" }}>
           <label className="text-base font-medium" htmlFor="Palabras asociadas">
             Palabras asociadas
@@ -223,11 +263,13 @@ export default function EditarProducto() {
         </div>
       </div>
 
+      {/* Botones de acción */}
       <div className="flex flex-row justify-center gap-10 mt-10">
         <WhiteButton text="Cancelar" width="300px" onClick={() => navigate("/productos")} />
         <BlueButton text="Guardar" width="300px" onClick={handleSubmit} />
       </div>
       
+      {/* Modal de confirmación */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-xl p-8 text-center space-y-6 w-[90%] max-w-md shadow-lg">

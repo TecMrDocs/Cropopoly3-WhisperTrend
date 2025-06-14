@@ -1,3 +1,15 @@
+/**
+ * Página: EditarDatos.tsx
+ * 
+ * Descripción:
+ * Este componente permite al usuario editar los datos históricos de ventas mensuales de un producto o servicio.
+ * Carga automáticamente los últimos 12 meses y muestra una tabla editable. Los datos se pueden guardar nuevamente
+ * en el backend. También permite navegar entre la edición de información general y ventas.
+ * 
+ * Autor: Santiago Villazón Ponce de León
+ * Contribuyentes: Arturo Barrios Mendoza
+ */
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { usePrompt } from "../contexts/PromptContext";
@@ -6,7 +18,9 @@ import { getConfig } from "@/utils/auth";
 import BlueButton from "../components/BlueButton";
 import WhiteButton from "../components/WhiteButton";
 
-// Tipos
+/**
+ * Representa un mes y su posición en el tiempo (número y año).
+ */
 type Mes = {
   id: string;
   mes: string;
@@ -14,10 +28,16 @@ type Mes = {
   numeroMes: number;
 };
 
+/**
+ * Estructura para almacenar las ventas por mes, mapeadas por su ID.
+ */
 type Ventas = {
   [key: string]: string | null;
 };
 
+/**
+ * Objeto enviado al backend con los datos de una venta mensual.
+ */
 type SaleRequest = {
   id: number;
   resource_id: number;
@@ -26,7 +46,11 @@ type SaleRequest = {
   units_sold: number;
 };
 
-// Generar meses dinámicos (últimos 12)
+/**
+ * Genera una lista de los últimos 12 meses desde la fecha actual.
+ * 
+ * @return {Mes[]} Lista ordenada cronológicamente de meses anteriores.
+ */
 const generarMesesAtras = (): Mes[] => {
   const meses: Mes[] = [];
   const nombresMeses = [
@@ -58,6 +82,11 @@ const generarMesesAtras = (): Mes[] => {
   return meses;
 };
 
+/**
+ * Obtiene el ID del usuario autenticado consultando el endpoint `/auth/check`.
+ * 
+ * @return {Promise<number | null>} El ID del usuario o null si falla.
+ */
 const getUserId = async (): Promise<number | null> => {
   try {
     const res = await fetch(`${API_URL}auth/check`, getConfig());
@@ -70,22 +99,31 @@ const getUserId = async (): Promise<number | null> => {
   }
 };
 
+/**
+ * Componente principal que permite editar las ventas mensuales de un producto ya creado.
+ */
 export default function EditarDatos() {
   const navigate = useNavigate();
   const location = useLocation();
+
   const [meses] = useState<Mes[]>(generarMesesAtras());
   const [ventas, setVentas] = useState<Ventas>(
     meses.reduce((acc, mes) => ({ ...acc, [mes.id]: "" }), {})
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { productId, setHasSalesData } = usePrompt();
-
   const [showModal, setShowModal] = useState(false);
   const [isSuccess, setIsSuccess] = useState(true);
 
+  const { productId, setHasSalesData } = usePrompt();
 
-
+  /**
+   * Actualiza el valor de ventas para un mes específico. 
+   * Evita números negativos.
+   * 
+   * @param {string} id - ID del mes (formato AAAA-MM).
+   * @param {string} value - Valor numérico ingresado.
+   */
   const handleChange = (id: string, value: string) => {
     if (value && Number(value) < 0) {
       setError("No se permiten valores negativos en las ventas");
@@ -95,6 +133,10 @@ export default function EditarDatos() {
     setError(null);
   };
 
+  /**
+   * Guarda los datos de ventas ingresados para el producto.
+   * Envía una petición por cada mes registrado.
+   */
   const handleGuardar = async () => {
     const hasData = meses.some(mes => ventas[mes.id] && ventas[mes.id] !== "");
     setHasSalesData(hasData);
@@ -148,8 +190,6 @@ export default function EditarDatos() {
         }
       }
 
-      console.log("Ventas guardadas exitosamente");
-      //navigate("/launchConfirmacion");
       setIsSuccess(true);
       setShowModal(true);
     } catch (err) {
@@ -163,29 +203,31 @@ export default function EditarDatos() {
     }
   };
 
+  /**
+   * Al montar el componente, carga las ventas existentes del producto si hay un `productId`.
+   * Los valores se agrupan y se insertan en la tabla editable.
+   */
   useEffect(() => {
     const cargarVentas = async () => {
       if (!productId) return;
-  
+
       try {
         const res = await fetch(`${API_URL}sale/resource/${productId}`, getConfig());
-  
+
         if (!res.ok) throw new Error("No se pudieron obtener las ventas");
-  
+
         const data: {
           month: number;
           year: number;
           units_sold: number;
         }[] = await res.json();
-  
-        // Agrupar por año-mes y sumar las ventas
+
         const ventasAgrupadas: { [key: string]: number } = {};
         for (const venta of data) {
           const id = `${venta.year}-${String(venta.month).padStart(2, "0")}`;
           ventasAgrupadas[id] = venta.units_sold;
         }
-  
-        // Actualiza el estado `ventas` con los datos obtenidos
+
         setVentas((prev) =>
           meses.reduce((acc, mes) => {
             const id = mes.id;
@@ -197,13 +239,16 @@ export default function EditarDatos() {
         console.error("Error cargando ventas existentes:", error);
       }
     };
-  
-    cargarVentas();
-  }, [productId]);  
 
+    cargarVentas();
+  }, [productId]);
+
+  /**
+   * Renderiza el formulario de edición de ventas con una tabla y acciones de guardar/cancelar.
+   */
   return (
     <div className="p-8">
-      {/* Tabs */}
+      {/* Tabs para navegación entre edición de producto y ventas */}
       <div className="flex justify-center mb-6">
         <div className="flex border rounded-md overflow-hidden">
           <button
@@ -229,6 +274,7 @@ export default function EditarDatos() {
         </div>
       </div>
 
+      {/* Mensaje de error */}
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative w-[80%] mx-auto mb-4">
           {error}
@@ -269,6 +315,7 @@ export default function EditarDatos() {
         </table>
       </div>
 
+      {/* Botones */}
       <div className="flex flex-row justify-center gap-10 mt-8">
         <WhiteButton
           text="Cancelar"
@@ -282,6 +329,7 @@ export default function EditarDatos() {
         />
       </div>
 
+      {/* Modal de resultado */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-xl p-8 text-center space-y-6 w-[90%] max-w-md shadow-lg">
@@ -302,7 +350,6 @@ export default function EditarDatos() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
