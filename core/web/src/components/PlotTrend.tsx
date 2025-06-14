@@ -4,7 +4,6 @@
  * Utiliza la librería recharts para renderizar líneas y un diseño basado en tarjetas.
  * 
  * Autor: Sebastián Antonio Almanza
- * Contribuyentes: -
  */
 
 import React from 'react';

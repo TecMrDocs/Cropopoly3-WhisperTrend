@@ -6,7 +6,6 @@
  * a través de las distintas etapas del registro de su empresa en el proceso de lanzamiento.
  * 
  * Authors: Arturo Barrios Mendoza
- * Contribuyentes: -
  * 
 
  */

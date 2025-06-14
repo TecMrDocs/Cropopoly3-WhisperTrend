@@ -4,7 +4,6 @@
  * y el nombre de la aplicación. Se muestra en todas las páginas principales del sitio.
  *
  * Autor: Sebastián Antonio Almanza
- * Contribuyentes : -
  */
 
 import logo from '../assets/logo_whispertrend.png';
