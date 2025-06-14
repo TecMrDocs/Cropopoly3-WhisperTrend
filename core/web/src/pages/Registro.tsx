@@ -255,7 +255,6 @@ export default function Registro() {
             </label>
             <TextFieldWHolder
               id="name-field"
-
               width="100%"
               name="name"
               value={formData.name}
@@ -268,12 +267,11 @@ export default function Registro() {
             )}
           </div>
           <div className="w-full">
-            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+            <label htmlFor="last-name-field" className="block text-md text-gray-700 font-bold mb-1">
               Apellido(s):
             </label>
             <TextFieldWHolder
               id="last-name-field"
-
               width="100%"
               name="last_name"
               value={formData.last_name}
@@ -291,12 +289,11 @@ export default function Registro() {
 
         <div className="flex flex-col gap-5 items-center justify-center max-w-3xl mx-auto w-full">
           <div className="w-full">
-            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+            <label htmlFor="email-field" className="block text-md text-gray-700 font-bold mb-1">
               Correo electrónico:
             </label>
             <TextFieldWHolder
               id="email-field"
-
               width="100%"
               name="email"
               value={formData.email}
@@ -310,12 +307,11 @@ export default function Registro() {
           </div>
 
           <div className="w-full">
-            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+            <label htmlFor="phone-field" className="block text-md text-gray-700 font-bold mb-1">
               Número telefónico:
             </label>
             <TextFieldWHolder
               id="phone-field"
-
               width="100%"
               name="phone"
               value={formData.phone}
@@ -329,12 +325,11 @@ export default function Registro() {
           </div>
 
           <div className="w-full">
-            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+            <label htmlFor="position-field" className="block text-md text-gray-700 font-bold mb-1">
               Puesto o cargo en la empresa:
             </label>
             <TextFieldWHolder
               id="position-field"
-
               width="100%"
               name="position"
               value={formData.position}
@@ -348,12 +343,11 @@ export default function Registro() {
           </div>
 
           <div className="w-full">
-            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+            <label htmlFor="password-field" className="block text-md text-gray-700 font-bold mb-1">
               Contraseña:
             </label>
             <TextFieldWHolder
               id="password-field"
-
               width="100%"
               type="password"
               name="password"
@@ -376,12 +370,11 @@ export default function Registro() {
           </div>
 
           <div className="w-full">
-            <label htmlFor="name-field" className="block text-md text-gray-700 font-bold mb-1">
+            <label htmlFor="confirm-password-field" className="block text-md text-gray-700 font-bold mb-1">
               Confirma tu contraseña:
             </label>
             <TextFieldWHolder
               id="confirm-password-field"
-
               width="100%"
               type="password"
               name="confirmPassword"

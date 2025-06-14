@@ -28,7 +28,7 @@ export default function PrivacyNotice() {
           Utilizamos cookies para analizar el uso del sitio. La información puede compartirse con proveedores de servicios
           o cuando sea legalmente requerido.
           Usted tiene derecho a acceder, rectificar y eliminar sus datos personales.
-          Para más información contacte a: <span className="font-bold break-words">[contacto@empresa.com]</span>
+          Para más información contacte a: <span className="font-bold break-words">[whisperTrend@mail.com]</span>
         </p>
         <p className="break-words">
           Última actualización: <span className="font-bold">16/05/2025</span>
