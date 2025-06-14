@@ -1,21 +1,46 @@
 /**
- * Componente: TextAreaField
- * Authors: Arturo Barrios Mendoza
- * Descripción: Componente de campo de texto personalizado con soporte para longitud máxima y placeholder.
+ * Campo de área de texto estilizado con borde degradado.
+ *
+ * Este componente permite capturar texto multilinea con una longitud máxima definida.
+ * Acepta un valor externo controlado mediante `props.value` o usa un estado interno si no se proporciona.
+ * Visualmente, presenta un borde degradado en azul y turquesa, y muestra los caracteres restantes.
+ *
+ * Autor: Arturo Barrios Mendoza  
+ * Contribuyentes: —
  */
 
 import React, { useState } from 'react';
 
+/**
+ * Propiedades aceptadas por el componente `TextAreaField`.
+ *
+ * @param {string} label - Etiqueta opcional que se muestra sobre el campo.
+ * @param {string} width - Ancho del campo (por defecto '400px').
+ * @param {number} maxLength - Longitud máxima permitida (por defecto 500 caracteres).
+ * @param {string} placeholder - Texto de ayuda dentro del campo (por defecto 'Escribe tu mensaje...').
+ * @param {string} value - Valor del campo (si se controla desde fuera).
+ * @param {(e: React.ChangeEvent<HTMLTextAreaElement>) => void} onChange - Función que se ejecuta al modificar el texto.
+ * @param {string} id - Identificador único para el campo de texto.
+ */
 type TextAreaFieldProps = {
-  label?: string; // Etiqueta del campo de texto
-  width?: string; // Ancho del campo de texto, por defecto es '400px'
-  maxLength?: number; // Longitud máxima del campo de texto, por defecto es 500
-  placeholder?: string; // Texto del placeholder, por defecto es 'Escribe tu mensaje...'
-  value?: string; // Valor del campo de texto, si no se proporciona se usa el estado interno
-  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; // Función a ejecutar al cambiar el valor del campo de texto
-  id?: string; // Id del campo de texto
+  label?: string;
+  width?: string;
+  maxLength?: number;
+  placeholder?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  id?: string;
 };
 
+/**
+ * Componente funcional `TextAreaField`.
+ *
+ * Renderiza un campo de texto multilinea estilizado, que puede ser controlado internamente
+ * o externamente mediante props. Muestra cuántos caracteres quedan antes de alcanzar el límite.
+ *
+ * @param {TextAreaFieldProps} props - Propiedades del componente
+ * @return {JSX.Element}
+ */
 export default function TextAreaField({
   label,
   width = '400px',
@@ -25,13 +50,22 @@ export default function TextAreaField({
   onChange,
   id,
 }: TextAreaFieldProps) {
-  // Estado interno para manejar el valor del campo de texto si no se proporciona un valor externo
+  /**
+   * Estado interno para manejar el texto ingresado si no se proporciona un valor externo.
+   */
   const [internalValue, setInternalValue] = useState('');
 
-  // Si se proporciona un valor, se usa ese; de lo contrario, se usa el estado interno
+  /**
+   * Determina el valor actual a mostrar: externo si se proporciona, interno si no.
+   */
   const currentValue = value ?? internalValue;
 
-  // Maneja el cambio en el campo de texto, asegurándose de no exceder la longitud máxima
+  /**
+   * Maneja los cambios en el campo de texto.
+   * Si el texto no excede el `maxLength`, se actualiza el valor actual o se llama al `onChange`.
+   *
+   * @param {React.ChangeEvent<HTMLTextAreaElement>} e - Evento del textarea
+   */
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (e.target.value.length <= maxLength) {
       if (onChange) {
@@ -42,6 +76,12 @@ export default function TextAreaField({
     }
   };
 
+  /**
+   * Renderiza el campo de área de texto, junto con su etiqueta (si se proporciona)
+   * y un contador de caracteres restantes.
+   *
+   * @return {JSX.Element}
+   */
   return (
     <div className="flex flex-col gap-1" style={{ width }}>
       {label && (
@@ -68,4 +108,3 @@ export default function TextAreaField({
     </div>
   );
 }
-

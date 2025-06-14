@@ -1,18 +1,43 @@
 /**
- * Componente: SelectField
- * Authors: Arturo Barrios Mendoza
- * Descripción: Componente de campo de selección personalizado.
+ * Campo de selección estilizado con borde degradado.
+ *
+ * Este componente permite al usuario seleccionar una opción de una lista desplegable.
+ * Visualmente presenta un borde con gradiente y un diseño limpio.
+ * Soporta etiquetas, valor controlado, placeholder y ancho personalizado.
+ *
+ * Autor: Arturo Barrios Mendoza  
+ * Contribuyentes: —
  */
 
+/**
+ * Propiedades aceptadas por el componente `SelectField`.
+ *
+ * @param {string} label - Etiqueta opcional que se muestra sobre el campo.
+ * @param {string[]} options - Arreglo de opciones que se mostrarán en el menú desplegable.
+ * @param {string} width - Ancho del componente (por defecto `'200px'`).
+ * @param {string} placeholder - Texto visible cuando no se ha seleccionado ninguna opción (por defecto `'Selecciona una opción'`).
+ * @param {string} value - Valor seleccionado actualmente.
+ * @param {(e: React.ChangeEvent<HTMLSelectElement>) => void} onChange - Función que se ejecuta al cambiar el valor seleccionado.
+ */
 type SelectFieldProps = {
-  label?: string; // Etiqueta del campo de selección
-  options: string[]; // Opciones del campo de selección
-  width?: string; // Ancho del campo de selección, por defecto es '200px'
-  placeholder?: string; // Texto del placeholder, por defecto es 'Selecciona una opción'
-  value?: string; // Valor seleccionado del campo de selección
-  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void; // Función a ejecutar al cambiar el valor del campo de selección
+  label?: string;
+  options: string[];
+  width?: string;
+  placeholder?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 };
 
+/**
+ * Componente funcional `SelectField`.
+ *
+ * Renderiza un menú desplegable con un conjunto de opciones. Si se proporciona un `value`,
+ * se usa como valor controlado. Se aplica un estilo degradado en el contenedor y se incluye un
+ * `placeholder` cuando no hay una opción seleccionada.
+ *
+ * @param {SelectFieldProps} props - Propiedades del componente
+ * @return {JSX.Element}
+ */
 export default function SelectField({
   label,
   options,

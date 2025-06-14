@@ -1,14 +1,43 @@
+/**
+ * Campo de entrada para etiquetas dinámicas (tags).
+ *
+ * Este componente permite al usuario escribir texto y presionar Enter o el botón "+" para agregarlo como una etiqueta.
+ * Las etiquetas se pueden eliminar individualmente mediante un botón con ícono de basura.
+ * Es ideal para recolectar listas abiertas como palabras clave, tecnologías, intereses, etc.
+ *
+ * Autor: Iván Alexander Ramos Ramírez  
+ * Contribuyentes: —
+ */
+
 import React, { FC, useState, KeyboardEvent } from 'react'
 import { TrashIcon } from '@heroicons/react/24/outline'
 
+/**
+ * Propiedades aceptadas por el componente `TagInput`.
+ *
+ * @param {string} label - Etiqueta visible que describe el propósito del input.
+ * @param {string[]} tags - Lista de etiquetas actuales.
+ * @param {React.Dispatch<React.SetStateAction<string[]>>} setTags - Función para actualizar la lista de etiquetas.
+ * @param {string} placeholder - Texto opcional que aparece dentro del input cuando está vacío.
+ * @param {string} width - Ancho máximo del componente (por defecto "100%").
+ */
 interface TagInputProps {
-  label: string
-  tags: string[]
-  setTags: React.Dispatch<React.SetStateAction<string[]>>
-  placeholder?: string
-  width?: string
+  label: string;
+  tags: string[];
+  setTags: React.Dispatch<React.SetStateAction<string[]>>;
+  placeholder?: string;
+  width?: string;
 }
 
+/**
+ * Componente funcional `TagInput`.
+ *
+ * Permite al usuario agregar y eliminar etiquetas dinámicamente.
+ * Internamente controla el valor del campo de texto y responde a la tecla Enter o al clic en el botón "+".
+ *
+ * @param {TagInputProps} props - Propiedades del componente
+ * @return {JSX.Element}
+ */
 const TagInput: FC<TagInputProps> = ({
   label,
   tags,
@@ -16,8 +45,16 @@ const TagInput: FC<TagInputProps> = ({
   placeholder = '',
   width = '100%'
 }) => {
+  /**
+   * Estado local que guarda el valor actual del input de texto.
+   */
   const [inputValue, setInputValue] = useState('')
 
+  /**
+   * Agrega una nueva etiqueta a la lista si no está vacía y no se repite.
+   *
+   * @return {void}
+   */
   const addTag = () => {
     const tag = inputValue.trim()
     if (tag && !tags.includes(tag)) {
@@ -26,10 +63,22 @@ const TagInput: FC<TagInputProps> = ({
     setInputValue('')
   }
 
+  /**
+   * Elimina una etiqueta específica de la lista.
+   *
+   * @param {string} tagToRemove - Etiqueta a eliminar
+   * @return {void}
+   */
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(t => t !== tagToRemove))
   }
 
+  /**
+   * Detecta si el usuario presiona Enter dentro del input y ejecuta la acción de agregar etiqueta.
+   *
+   * @param {KeyboardEvent<HTMLInputElement>} e - Evento del teclado
+   * @return {void}
+   */
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault()
@@ -37,6 +86,14 @@ const TagInput: FC<TagInputProps> = ({
     }
   }
 
+  /**
+   * Renderiza el componente completo, incluyendo:
+   * - Input de texto
+   * - Botón para agregar etiquetas
+   * - Etiquetas ya agregadas con botón para eliminarlas
+   *
+   * @return {JSX.Element}
+   */
   return (
     <div className="flex flex-col w-full" style={{ maxWidth: width }}>
       <label className="self-start text-md text-gray-700 font-bold mb-1">
