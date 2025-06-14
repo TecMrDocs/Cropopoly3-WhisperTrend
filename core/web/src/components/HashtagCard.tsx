@@ -38,7 +38,7 @@ const HashtagCard: React.FC<HashtagCardProps> = ({
     // Contenedor principal con efectos glassmorphism y hover
     <div className={`bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 ${!resultado.esReal ? 'opacity-75' : ''}`}>
       
-      {/* Header: Indicador de color + nombre + coeficiente de Pearson */}
+
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <div 
@@ -68,7 +68,7 @@ const HashtagCard: React.FC<HashtagCardProps> = ({
         </div>
       </div>
       
-      {/* Contenido condicional basado en disponibilidad de datos */}
+
       {resultado.esReal && resultado.interpretacion ? (
         // CASO A: Datos válidos - Mostrar análisis completo
         <>
@@ -82,7 +82,7 @@ const HashtagCard: React.FC<HashtagCardProps> = ({
             </div>
           </div>
           
-          {/* Barra de progreso animada para fuerza de correlación */}
+
           <div className="mb-4">
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm text-gray-600">Fuerza de correlación</span>
@@ -101,7 +101,7 @@ const HashtagCard: React.FC<HashtagCardProps> = ({
             </div>
           </div>
           
-          {/* Footer: Badge de confianza + dirección de correlación */}
+
           <div className="flex justify-between items-center">
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
               resultado.confianza === 'alta' ? 'bg-green-100 text-green-700' :
