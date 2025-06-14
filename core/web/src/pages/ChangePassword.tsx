@@ -1,3 +1,15 @@
+/**
+ * Página de cambio de contraseña del usuario.
+ *
+ * Este componente proporciona una interfaz para que el usuario pueda ingresar 
+ * una nueva contraseña y confirmar el cambio. Incluye validaciones básicas de 
+ * formulario, manejo de errores, estados de carga y navegación al login tras 
+ * una operación exitosa.
+ *
+ * Autor: Mariana Balderrábano Aguilar
+ * Contribuyentes: —
+ */
+
 import GenericButton from "../components/GenericButton";
 import LogoBackground from "../components/LogoBackground";
 import Container from "../components/Container";
@@ -5,22 +17,41 @@ import TextFieldWHolder from "../components/TextFieldWHolder";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-// Función que maneja el cambio de contraseña del usuario.
+/**
+ * Componente principal de la página de cambio de contraseña.
+ * Administra los estados del formulario, validaciones y redirección.
+ */
 export default function ChangePassword() {
   const navigate = useNavigate();
+
+  /**
+   * Estados para controlar los campos del formulario, errores y estado de carga.
+   */
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  //Redirección al usuario a la página de inicio de sesión
+  /**
+   * Redirige al usuario a la página de inicio de sesión.
+   *
+   * @return {void}
+   */
   const handleLoginClick = () => {
     navigate("/Login");
   };
 
-  // Administra el envío del formulario de cambio de contraseña
+  /**
+   * Maneja el envío del formulario para cambiar la contraseña del usuario.
+   * Valida que los campos no estén vacíos, que la contraseña tenga al menos 
+   * 8 caracteres y que ambas contraseñas coincidan.
+   *
+   * @param {React.FormEvent} e - Evento del formulario
+   * @return {Promise<void>}
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!newPassword || !confirmPassword) {
       setError("Por favor, complete todos los campos");
       return;
@@ -38,7 +69,10 @@ export default function ChangePassword() {
 
     setLoading(true);
     try {
-      // Aquí iría la lógica de cambio de contraseña
+      /**
+       * Lógica para enviar la nueva contraseña al backend.
+       * Actualmente, se simula con una alerta de éxito.
+       */
       setError("");
       alert("Contraseña cambiada exitosamente");
       navigate("/Login");
@@ -49,7 +83,13 @@ export default function ChangePassword() {
     }
   };
 
-  // Renderiza la página de cambio de contraseña
+  /**
+   * Renderiza el formulario de cambio de contraseña dentro de un fondo estilizado.
+   * Incluye campos de entrada, manejo visual de errores, botón de envío y 
+   * redirección a login.
+   *
+   * @return {JSX.Element}
+   */
   return (
     <LogoBackground>
       <div className="min-h-screen flex items-center justify-center p-4 md:p-8">
