@@ -248,7 +248,6 @@ export default function Dashboard() {
   const { analysisData } = usePrompt();
   const nombreProducto = analysisData?.resource_name || "Bolso Mariana :D";
 
-  // ✅ CARGAR DATOS SIGUIENDO TU FLUJO EXACTO
   useEffect(() => {
     const cargarDatos = async () => {
       try {
@@ -290,7 +289,6 @@ export default function Dashboard() {
     cargarDatos();
   }, [analysisData]);
 
-  // ✅ Generar datosTasas dinámicamente cuando tengamos datos del sistema
   const datosTasas = useMemo(() => {
     if (!datosDelSistema || cargandoDatos) {
       return {};
@@ -391,7 +389,6 @@ if (hashtagSeleccionado === 'Ventas') {
   return <VentasCalc datosVentas={datosVentas} resourceName={resourceName} />;
 }
 
-    // 🆕 NUEVO: Mostrar visualización de noticias
     if (hashtagSeleccionado.startsWith('noticia_')) {
       return <VisualizacionNoticia noticiaId={hashtagSeleccionado} datosDelSistema={datosDelSistema} />;
     }
