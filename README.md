@@ -112,6 +112,9 @@ EMAIL_FROM="WhisperTrend <noreply@whispertrend.lat>"
 INSTAGRAM_USERNAME=jonh@example.com
 INSTAGRAM_PASSWORD=awdrqwer12
 
+TWITTER_USERNAME=jonh@example.com
+TWITTER_PASSWORD=awdrqwer12
+
 RESEND_API_KEY=re_V8dSqt3d_HXzVRp1wBrGCvtzP7vyuqRex
 EMAIL_FROM="WhisperTrend <noreply@whispertrend.lat>"
 ```
