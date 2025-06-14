@@ -5,8 +5,7 @@
  * Puede recibir una etiqueta opcional (`label`) y un ancho configurable.
  * Se utiliza para entradas básicas en formularios con estilo visual atractivo.
  *
- * Autor: -
- * Contribuyentes: —
+ * Autor: Sebastian Antonio Almanza
  */
 
 /**

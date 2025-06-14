@@ -5,8 +5,7 @@
  * elija uno de los planes disponibles (Tracker, Caster o Glider).
  * El plan seleccionado se resalta visualmente.
  *
- * Autor: -
- * Contribuyentes: —
+ * Autor: Iván Alexander Ramos Ramírez 
  */
 
 import { useState } from "react";
