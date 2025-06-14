@@ -15,207 +15,21 @@
  * Contribuyentes: Lucio Reyes (optimización de rendimiento), Julio Cesar Vivas Medina (front design, mejoras de UX)
  */
 
-
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { calcularCorrelacionTransparente, CorrelacionResult } from './correlationCalculator';
+import HashtagCard from './HashtagCard';
+import CorrelationChart from './CorrelationChart';
+import CorrelationInsights from './CorrelationInsights';
+
+
+
 
 interface CorrelacionVentasProps {
   hashtagSeleccionado?: string;
   datosDelSistema?: any;
   analysisData?: any;
 }
-
-interface CorrelacionResult {
-  correlacion: number;
-  esReal: boolean;
-  esEstimacion: boolean;
-  mensaje: string;
-  confianza: 'alta' | 'media' | 'baja' | 'insuficiente';
-  interpretacion?: {
-    categoria: string;
-    descripcion: string;
-    color: string;
-    emoji: string;
-  };
-  datosUsados: {
-    ventasDisponibles: number;
-    metricsDisponibles: boolean;
-    periodoAnalizado: string;
-  };
-}
-
-/**
- * Calcula el coeficiente de correlación de Pearson entre las métricas del hashtag
- * y los datos de ventas, manejando casos con datos insuficientes o no disponibles.
- * También incluye una interpretación académica del valor obtenido.
- * 
- * @param hashtagMetrics - Métricas sociales del hashtag (interacciones, viralidad)
- * @param ventasData - Arreglo de objetos con datos de ventas mensuales
- * @return Objeto con el resultado de la correlación, interpretación y confiabilidad
- */
-const calcularCorrelacionTransparente = (hashtagMetrics: any, ventasData: any[]): CorrelacionResult => {
-  //CASO 1: NO HAY DATOS DE VENTAS
-  if (!ventasData || ventasData.length === 0) {
-    return {
-      correlacion: 0,
-      esReal: false,
-      esEstimacion: false,
-      mensaje: "Sin datos de ventas disponibles para calcular correlación real",
-      confianza: 'insuficiente',
-      datosUsados: {
-        ventasDisponibles: 0,
-        metricsDisponibles: !!hashtagMetrics,
-        periodoAnalizado: 'N/A'
-      }
-    };
-  }
-
-  //CASO 2: DATOS INSUFICIENTES (menos de 3 puntos)
-  if (ventasData.length < 3) {
-    return {
-      correlacion: 0,
-      esReal: false,
-      esEstimacion: true,
-      mensaje: `Solo ${ventasData.length} registro(s) de ventas. Se necesitan al menos 3 para correlación confiable`,
-      confianza: 'insuficiente',
-      datosUsados: {
-        ventasDisponibles: ventasData.length,
-        metricsDisponibles: !!hashtagMetrics,
-        periodoAnalizado: `${ventasData.length} mes(es)`
-      }
-    };
-  }
-
-  //CASO 3: SIN MÉTRICAS DE HASHTAG
-  if (!hashtagMetrics) {
-    return {
-      correlacion: 0,
-      esReal: false,
-      esEstimacion: false,
-      mensaje: "Sin métricas de hashtag disponibles",
-      confianza: 'insuficiente',
-      datosUsados: {
-        ventasDisponibles: ventasData.length,
-        metricsDisponibles: false,
-        periodoAnalizado: `${ventasData.length} mes(es)`
-      }
-    };
-  }
-
-  //CASO 4: CALCULAR CORRELACIÓN REAL
-  const ventasOrdenadas = ventasData
-    .sort((a, b) => a.year - b.year || a.month - b.month)
-    .map(v => v.units_sold);
-
-  // Crear serie temporal de métricas del hashtag (simulada porque no tenemos datos históricos)
-  const metricas = new Array(ventasOrdenadas.length).fill(0).map((_, i) => {
-    const base = (hashtagMetrics.instagram_interaction + hashtagMetrics.reddit_interaction + hashtagMetrics.twitter_interaction) / 3;
-    // Añadir variación temporal realista
-    const variacion = Math.sin(i * 0.5) * 10 + Math.random() * 5;
-    return Math.max(0, base + variacion);
-  });
-
-  // Calcular correlación de Pearson real
-  const n = metricas.length;
-  const sumX = metricas.reduce((a, b) => a + b, 0);
-  const sumY = ventasOrdenadas.reduce((a, b) => a + b, 0);
-  const sumXY = metricas.reduce((sum, x, i) => sum + x * ventasOrdenadas[i], 0);
-  const sumX2 = metricas.reduce((sum, x) => sum + x * x, 0);
-  const sumY2 = ventasOrdenadas.reduce((sum, y) => sum + y * y, 0);
-
-  const correlacion = (n * sumXY - sumX * sumY) / 
-    Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
-
-  // 🎓 MANTENER CORRELACIÓN DE PEARSON EN RANGO -1 a 1 (como debe ser)
-  const correlacionFinal = Math.min(Math.max(correlacion, -1), 1);
-
-  /**
- * Interpreta el valor del coeficiente de Pearson según umbrales académicos
- * para categorizar la relación entre variables (muy fuerte, moderada, etc.).
- *
- * @param r - Valor del coeficiente de correlación (r)
- * @return Objeto con categoría, color representativo y emoji asociado
- */
-  const interpretarPearson = (r: number): { 
-    categoria: string, 
-    descripcion: string, 
-    color: string,
-    emoji: string 
-  } => {
-    const absR = Math.abs(r);
-    const direccion = r >= 0 ? 'positiva' : 'negativa';
-    
-    if (absR >= 0.9) {
-      return {
-        categoria: `Muy fuerte ${direccion}`,
-        descripcion: 'Relación muy fuerte entre hashtag y ventas',
-        color: r >= 0 ? '#16a34a' : '#dc2626',
-        emoji: r >= 0 ? '💚' : '💔'
-      };
-    } else if (absR >= 0.7) {
-      return {
-        categoria: `Fuerte ${direccion}`,
-        descripcion: 'Relación fuerte entre hashtag y ventas',
-        color: r >= 0 ? '#22c55e' : '#e11d48',
-        emoji: r >= 0 ? '💪' : '⚠️'
-      };
-    } else if (absR >= 0.5) {
-      return {
-        categoria: `Moderada ${direccion}`,
-        descripcion: 'Relación moderada entre hashtag y ventas',
-        color: r >= 0 ? '#eab308' : '#f97316',
-        emoji: r >= 0 ? '📈' : '📉'
-      };
-    } else if (absR >= 0.3) {
-      return {
-        categoria: `Débil ${direccion}`,
-        descripcion: 'Relación débil entre hashtag y ventas',
-        color: r >= 0 ? '#a3a3a3' : '#737373',
-        emoji: r >= 0 ? '📊' : '📊'
-      };
-    } else {
-      return {
-        categoria: 'Muy débil/Nula',
-        descripcion: 'Relación muy débil o inexistente',
-        color: '#6b7280',
-        emoji: '🤷'
-      };
-    }
-  };
-  const interpretacion = interpretarPearson(correlacionFinal);
-  
-  // Determinar confianza basada en cantidad de datos
-  let confianza: 'alta' | 'media' | 'baja' | 'insuficiente';
-  let mensaje: string;
-  
-  if (n >= 12) {
-    confianza = 'alta';
-    mensaje = `Correlación de Pearson: ${correlacionFinal.toFixed(3)} con ${n} meses de datos`;
-  } else if (n >= 6) {
-    confianza = 'media';
-    mensaje = `Correlación de Pearson: ${correlacionFinal.toFixed(3)} con ${n} meses - moderadamente confiable`;
-  } else if (n >= 3) {
-    confianza = 'baja';
-    mensaje = `Correlación de Pearson: ${correlacionFinal.toFixed(3)} con solo ${n} meses - baja confiabilidad`;
-  } else {
-    confianza = 'insuficiente';
-    mensaje = `Datos insuficientes para correlación confiable`;
-  }
-
-  return {
-    correlacion: correlacionFinal, // 🎓 MANTENER VALOR ORIGINAL DE PEARSON (-1 a 1)
-    esReal: true,
-    esEstimacion: false,
-    mensaje,
-    confianza,
-    interpretacion, // 🆕 AÑADIR INTERPRETACIÓN ACADÉMICA
-    datosUsados: {
-      ventasDisponibles: n,
-      metricsDisponibles: true,
-      periodoAnalizado: `${n} mes(es)`
-    }
-  };
-};
 
 /**
  * Componente React que calcula, interpreta y visualiza la correlación entre
@@ -252,7 +66,7 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({
 
     // Si no hay datos reales, usar fallback TRANSPARENTE
     if (hashtagsCalculados.length === 0) {
-      console.warn('⚠️ [CorrelacionVentas] No hay hashtags calculados');
+      console.warn('[CorrelacionVentas] No hay hashtags calculados');
       return {
         hashtags: [
           { 
@@ -279,10 +93,10 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({
       };
     }
 
-    //CALCULAR CORRELACIONES TRANSPARENTES
+    // CALCULAR CORRELACIONES TRANSPARENTES usando las funciones importadas
     const correlacionesCalculadas = hashtagsCalculados.map((hashtag: any, index: number) => {
       
-      // Calcular correlación transparente
+      // Calcular correlación transparente usando la función importada
       const resultado = calcularCorrelacionTransparente(hashtag, ventasData);
       
       const colores = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -315,8 +129,6 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({
       tendenciaGeneral = 'negativa';
     }
 
-    console.log('✅ [CorrelacionVentas] Correlaciones transparentes calculadas:', correlacionesCalculadas);
-
     return {
       hashtags: correlacionesCalculadas,
       promedioGeneral,
@@ -330,10 +142,9 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({
     };
   }, [datosDelSistema, analysisData]);
 
-  //DATOS PARA LA GRÁFICA CON TRANSPARENCIA
   const datosComparativos = useMemo(() => {
     return correlaciones.hashtags
-      .filter(hashtag => hashtag.resultado.esReal) // Solo mostrar correlaciones reales
+      .filter(hashtag => hashtag.resultado.esReal) 
       .map(hashtag => ({
         hashtag: hashtag.nombre.replace('#', ''),
         correlacion: hashtag.resultado.correlacion,
@@ -345,7 +156,6 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({
       }));
   }, [correlaciones]);
 
-  //DETERMINAR COLORES Y ICONOS BASADO EN ESTADO REAL
   const colorTendencia = correlaciones.tendenciaGeneral === 'positiva' ? '#22c55e' : 
                         correlaciones.tendenciaGeneral === 'neutral' ? '#f59e0b' :
                         correlaciones.tendenciaGeneral === 'negativa' ? '#ef4444' : '#94a3b8';
@@ -407,98 +217,22 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({
         </div>
       </div>
 
-      {/* Cards de Hashtags Individuales - CON TRANSPARENCIA */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {correlaciones.hashtags.slice(0, 3).map((hashtag, index) => (
-          <div key={index} className={`bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 ${!hashtag.resultado.esReal ? 'opacity-75' : ''}`}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <div 
-                  className="w-4 h-4 rounded-full mr-3"
-                  style={{ backgroundColor: hashtag.color }}
-                ></div>
-                <span className="font-bold text-gray-800">{hashtag.nombre}</span>
-              </div>
-              <div className="text-right">
-                {hashtag.resultado.esReal ? (
-                  <>
-                    <div className="text-2xl font-bold" style={{ color: hashtag.resultado.interpretacion?.color }}>
-                      {hashtag.resultado.correlacion.toFixed(3)}
-                    </div>
-                    <div className="text-xs" style={{ color: hashtag.resultado.interpretacion?.color }}>
-                      r de Pearson
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-lg font-bold text-gray-400">
-                      N/A
-                    </div>
-                    <div className="text-xs text-red-500">sin datos</div>
-                  </>
-                )}
-              </div>
-            </div>
-            
-              {hashtag.resultado.esReal && hashtag.resultado.interpretacion ? (
-                <>
-                  <div className="mb-3 p-2 rounded-lg" style={{ backgroundColor: `${hashtag.resultado.interpretacion.color}20` }}>
-                    <div className="text-sm font-medium" style={{ color: hashtag.resultado.interpretacion.color }}>
-                      {hashtag.resultado.interpretacion.emoji} {hashtag.resultado.interpretacion.categoria}
-                    </div>
-                    <div className="text-xs text-gray-600 mt-1">
-                      {hashtag.resultado.interpretacion.descripcion}
-                    </div>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-600">Fuerza de correlación</span>
-                      <span className="text-sm font-medium" style={{ color: hashtag.resultado.interpretacion.color }}>
-                        {Math.abs(hashtag.resultado.correlacion).toFixed(3)}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="h-2 rounded-full transition-all duration-1000 ease-out"
-                        style={{ 
-                          backgroundColor: hashtag.resultado.interpretacion.color,
-                          width: `${Math.abs(hashtag.resultado.correlacion) * 100}%` 
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      hashtag.resultado.confianza === 'alta' ? 'bg-green-100 text-green-700' :
-                      hashtag.resultado.confianza === 'media' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-orange-100 text-orange-700'
-                    }`}>
-                      {hashtag.resultado.confianza === 'alta' ? '🎯 ' : hashtag.resultado.confianza === 'media' ? '⚡ ' : '📊 '}
-                      {hashtag.resultado.datosUsados.ventasDisponibles} meses
-                    </span>
-                    <span className="text-xs" style={{ color: hashtag.resultado.interpretacion.color }}>
-                      {hashtag.resultado.correlacion >= 0 ? '📈 Positiva' : '📉 Negativa'}
-                    </span>
-                  </div>
-                </>
-              ) : (
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="text-sm text-gray-600 mb-2">
-                  {hashtag.resultado.mensaje}
-                </div>
-                <div className="text-xs text-gray-400">
-                  Ventas: {hashtag.resultado.datosUsados.ventasDisponibles} • 
-                  Métricas: {hashtag.resultado.datosUsados.metricsDisponibles ? '✅' : '❌'}
-                </div>
-              </div>
-            )}
-          </div>
+          <HashtagCard 
+            key={index}
+            hashtag={hashtag.nombre}
+            resultado={hashtag.resultado}
+            color={hashtag.color}
+            puntuaciones={{
+              instagram: hashtag.puntuacionInstagram,
+              reddit: hashtag.puntuacionReddit,
+              twitter: hashtag.puntuacionTwitter
+            }}
+          />
         ))}
       </div>
 
-      {/* Mensaje de estado global */}
       {!correlaciones.estadoGlobal.tieneCorrelacionesReales && (
         <div className="bg-gradient-to-r from-yellow-100/80 to-orange-100/80 rounded-xl p-4 mb-6 border border-yellow-200">
           <div className="flex items-center">
@@ -514,139 +248,14 @@ const CorrelacionVentas: React.FC<CorrelacionVentasProps> = ({
         </div>
       )}
 
-      {/* Gráfica Comparativa - SOLO DATOS REALES */}
-      {datosComparativos.length > 0 ? (
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/50">
-          <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-            📊 Comparativa de correlaciones reales ({datosComparativos.length} hashtag(s))
-          </h4>
-          
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={datosComparativos} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis 
-                  dataKey="hashtag" 
-                  stroke="#64748b"
-                  fontSize={12}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis 
-                  stroke="#64748b"
-                  fontSize={12}
-                  domain={[-1, 1]}
-                  tickFormatter={(value) => value.toFixed(2)}
-                />
-                <Tooltip 
-                  formatter={(value: any, name: string) => {
-                    const plataforma = name === 'correlacion' ? 'Coeficiente de Pearson' :
-                                     name === 'instagram' ? 'Instagram' :
-                                     name === 'reddit' ? 'Reddit' : 'Twitter';
-                    const displayValue = name === 'correlacion' ? value.toFixed(3) : `${value}%`;
-                    return [displayValue, plataforma];
-                  }}
-                  labelFormatter={(label, payload) => {
-                    const item = payload?.[0]?.payload;
-                    return (
-                      <div>
-                        <div>Hashtag: #{label}</div>
-                        {item && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Pearson: {item.correlacion?.toFixed(3)} • {item.categoria} • Confianza: {item.confianza}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }}
-                  contentStyle={{
-                    backgroundColor: '#f8fafc',
-                    border: '2px solid #8b5cf6',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
-                  }}
-                />
-                <Legend 
-                  wrapperStyle={{ paddingTop: '20px' }}
-                  formatter={(value, entry) => {
-                    const nombres: Record<string, string> = {
-                      correlacion: 'Coeficiente de Pearson',
-                      instagram: '📸 Instagram',
-                      reddit: '🔴 Reddit',
-                      twitter: '🐦 Twitter'
-                    };
-                    return nombres[value] || value;
-                  }}
-                />
-                <Bar 
-                  dataKey="correlacion" 
-                  fill="#8b5cf6" 
-                  name="correlacion"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar 
-                  dataKey="instagram" 
-                  fill="#e91e63" 
-                  name="instagram"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar 
-                  dataKey="reddit" 
-                  fill="#ff5722" 
-                  name="reddit"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar 
-                  dataKey="twitter" 
-                  fill="#2196f3" 
-                  name="twitter"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/50 text-center">
-          <div className="text-6xl mb-4">📊</div>
-          <h4 className="text-xl font-bold text-gray-600 mb-2">Sin gráfica disponible</h4>
-          <p className="text-gray-500">
-            No hay suficientes datos para mostrar correlaciones reales.
-            <br />
-            Agrega más histórico de ventas para ver el análisis.
-          </p>
-        </div>
-      )}
+      <CorrelationChart datosComparativos={datosComparativos} />
+      <CorrelationInsights 
+        estadoGlobal={correlaciones.estadoGlobal}
+        promedioGeneral={correlaciones.promedioGeneral}
+        totalVentas={analysisData?.sales?.length || 0}
+      />
 
-      {/* Footer con insights TRANSPARENTES */}
-      <div className="mt-6 bg-gradient-to-r from-purple-100/80 to-pink-100/80 rounded-xl p-4 border border-purple-200">
-        <div className="text-sm text-purple-800">
-          <strong>💡 Estado del análisis:</strong>
-          <div className="mt-2 space-y-1">
-            {correlaciones.estadoGlobal.tieneCorrelacionesReales ? (
-              <>
-                <div>• <strong>{correlaciones.estadoGlobal.hashtagsConDatos}</strong> de {correlaciones.estadoGlobal.totalHashtags} hashtags tienen datos suficientes</div>
-                <div>• Coeficiente de Pearson promedio: <strong>{correlaciones.promedioGeneral.toFixed(3)}</strong></div>
-                <div>• Análisis basado en <strong>{analysisData?.sales?.length || 0}</strong> registros de ventas reales</div>
-                <div>• ✅ <strong>Correlaciones calculadas con fórmula matemática de Pearson (-1 a 1)</strong></div>
-                <div className="mt-2 p-2 bg-white/50 rounded text-xs">
-                  <strong>📚 Escala de interpretación:</strong><br/>
-                  • |r| ≥ 0.9: Muy fuerte • |r| ≥ 0.7: Fuerte • |r| ≥ 0.5: Moderada • |r| ≥ 0.3: Débil • |r| &lt; 0.3: Muy débil
-                </div>
-              </>
-            ) : (
-              <>
-                <div>• ❌ <strong>No hay correlaciones reales disponibles</strong></div>
-                <div>• Registros de ventas: <strong>{analysisData?.sales?.length || 0}</strong> (se necesitan ≥3)</div>
-                <div>• Hashtags disponibles: <strong>{correlaciones.estadoGlobal.totalHashtags}</strong></div>
-                <div>• 💡 <strong>Agrega más historial de ventas para obtener correlaciones reales</strong></div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
+
     </div>
   );
 };

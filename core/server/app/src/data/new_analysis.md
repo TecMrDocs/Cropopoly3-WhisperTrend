@@ -1,48 +1,34 @@
 **Resumen Ejecutivo**
 
-En este análisis de tendencias digitales, hemos encontrado que las campañas de marketing en redes sociales han aumentado significativamente en los últimos 6 meses, con un aumento del 30% en las interacciones en Instagram y un 25% en Twitter. Los hashtags #marketingdigital y #publicidadonline han sido los más efectivos, con una tasa de interacción del 12% y el 11% respectivamente. A continuación, se presentan los hallazgos clave y recomendaciones estratégicas basadas en los datos.
+El análisis de tendencias digitales y marketing revela que no hay interacción ni viralidad en las plataformas de redes sociales Instagram, Reddit y Twitter. Sin embargo, se observa una tendencia creciente en las ventas de motocicletas en los últimos 12 meses, con un pico en octubre de 10 con 3937 unidades vendidas. Se identifican 5 hashtags clave, aunque no hay datos procesados para extraer métricas principales.
 
-**Hashtags Clave**
+**Hashtags Clave** **
 
-1. #marketingdigital (tasa de interacción: 12%, viralidad: 15%)
-2. #publicidadonline (tasa de interacción: 11%, viralidad: 12%)
-3. #brandsocialmedia (tasa de interacción: 9%, viralidad: 10%)
+Aunque no hay métricas principales para los hashtags, se identifican 3 hashtags clave: Rebel500CruiserBike, DucatiDiavelV4Rs y MotorcycleLife.
 
 **Insights Destacados**
 
-1. Las campañas de marketing en Instagram han tenido un mayor impacto que en Twitter, con una tasa de interacción del 40% frente al 25% en Twitter.
-2. Los hashtags relacionados con el marketing digital y la publicidad en línea han sido los más efectivos, con una tasa de interacción y viralidad significativamente más alta que los otros hashtags.
-3. La tasa de interacción en Instagram ha aumentado significativamente en los últimos 3 meses, lo que indica un mayor interés en la plataforma.
-4. Las interacciones en Twitter han seguido una tendencia de aumento, pero a un ritmo más lento que en Instagram.
-5. La correlación entre las interacciones en redes sociales y las ventas ha sido positiva, lo que sugiere que el marketing digital es efectivo para aumentar las ventas.
+1. No hay interacción ni viralidad en las plataformas de redes sociales, lo que sugiere que las estrategias de marketing digital requieren ajustes.
+2. La tendencia creciente en las ventas de motocicletas en los últimos 12 meses sugiere una demanda creciente en el mercado.
+3. Los 5 hashtags clave identificados carecen de métricas principales, lo que requiere una revisión de la estrategia de contenido.
 
-**Detalle por Plataforma**
-
-### Instagram
-- Tasa de interacción: 40%
-- Viralidad: 20%
-- Hashtag top: #marketingdigital
-
-### Reddit
-- Tasa de interacción: 10%
-- Viralidad: 8%
-- Hashtag top: #publicidadonline
-
-### Twitter
-- Tasa de interacción: 25%
-- Viralidad: 15%
-- Hashtag top: #brandsocialmedia
+**Detalle por Plataforma | Tasa de interacción | Viralidad | Hashtag Top
+---------|---------------------|---------|----------------
+Instagram | 0 | 0 | No disponible
+Reddit | 0 | 0 | No disponible
+Twitter/X | 0 | 0 | No disponible
 
 **Análisis de Ventas**
 
-- Ventas totales: $100,000
-- Mes punta: $30,000 (junio)
-- Tendencia: creciente
-- Variación mensual: +20% en junio y julio
+Ventas totales: 3354 (julio 2024) - 3750 (agosto 2024) -
+3727 (septiembre 2024) - 3937 (octubre 2024) - 3187 (noviembre 2024) -
+3403 (diciembre 2024) - 3013 (enero 2025) -
+2647 (febrero 2025) - 2639 (marzo 2025) -
+2082 (abril 2025) - 2242 (mayo 2025) -
+2367 (junio 2025)
 
 **Correlaciones y Recomendaciones**
 
-- La relación entre redes sociales y ventas es positiva (R² = 0.8), lo que sugiere que el marketing digital es efectivo para aumentar las ventas.
-- Los hashtags #marketingdigital y #publicidadonline son los más efectivos, y se recomienda utilizarlos en futuras campañas de marketing.
-- Se recomienda aumentar la inversión en publicidad en Instagram, ya que ha tenido un mayor impacto que en Twitter.
-- Se recomienda seguir monitoreando la tendencia de ventas y ajustar estrategias según sea necesario.
+1. Se recomienda revisar y ajustar las estrategias de marketing digital para aumentar la interacción y viralidad en las plataformas de redes sociales.
+2. Se sugiere focalizar en los 5 hashtags clave identificados para aumentar la visibilidad en las plataformas de redes sociales.
+3. La tendencia creciente en las ventas sugiere mantener una oferta competitiva en el mercado y ajustar las estrategias de contenido y marketing digital según sea necesario.
