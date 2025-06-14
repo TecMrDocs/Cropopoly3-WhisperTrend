@@ -28,7 +28,7 @@ export default function EmailConfirmation() {
 
   /**
    * Maneja el envío del formulario.
-   * Verifica que el código no esté vacío y lo transforma en JSON (por ahora solo lo imprime).
+   * Verifica que el código no esté vacío y lo transforma en JSON
    *
    * @param e Evento del formulario
    */
@@ -43,10 +43,6 @@ export default function EmailConfirmation() {
     const jsonData = JSON.stringify({ verificationCode: code });
     console.log('JSON generado:', jsonData);
     navigate('/LaunchProcess');
-  };
-
-  const handleResendCode = () => {
-    alert('Código nuevo enviado');
   };
 
   return (

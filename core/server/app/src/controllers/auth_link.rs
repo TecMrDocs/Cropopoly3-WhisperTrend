@@ -1,13 +1,12 @@
 /**
  * Módulo que genera links mágicos y los envía por correo para verificar el email del usuario
- * Este archivo implementa la lógica necesaria para verificar la dirección de correo electrónico
- * de los usuarios usando enlaces mágicos (magic links). Incluye funcionalidades para:
- * Generar y enviar correos de verificación, procesar tokens de verificación desde enlaces y para 
- * reenviar enlaces mágicos a usuarios no verificados. Además usa el servicio externo Resend para 
- * el envío de correos electrónicos.
  *
- * @author Mariana Balderrábano Aguilar
- * version 1.0.0
+ * Implementa la lógica necesaria para verificar la dirección de correo electrónico
+ * de los usuarios usando enlaces mágicos (magic links). Incluye funcionalidades para:
+ * generar y enviar correos de verificación, procesar tokens de verificación desde enlaces y para 
+ * reenviar enlaces mágicos a usuarios no verificados. Además usa Resend para el envío de correos electrónicos.
+ *
+ * Autor: Mariana Balderrábano Aguilar
 */
 
 use crate::models::{Credentials, User};
@@ -23,58 +22,6 @@ use tracing::error;
 #[derive(serde::Deserialize)]
 struct VerifyEmailQuery {
     token: String,
-}
-
-/**
- * Endpoint para reenviar emails de verificación a usuarios no verificados
- * Permite a los usuarios solicitar un nuevo magic link si el anterior expiró
- * o no fue recibido correctamente en su bandeja de entrada
- * 
- * @param data Credenciales que incluyen el email para reenvío
- * @return Respuesta HTTP confirmando el reenvío o estado de verificación
- */
-#[post("/resend-verification")]
-pub async fn resend_verification_email(data: web::Json<Credentials>) -> impl Responder {
-    if let Ok(Some(user)) = User::get_by_email(data.email.clone()).await {
-        if let Some(user_id) = user.id {
-            // Verificamos si ya está verificado
-            if User::is_email_verified(user_id).await.unwrap_or(false) {
-                return HttpResponse::Ok().json(json!({
-                    "message": "Email already verified"
-                }));
-            }
-
-            let secret_key = std::env::var("JWT_SECRET")
-                .unwrap_or_else(|_| "default-super-secret-key-for-development".to_string());
-
-            if let Ok(token) = MagicLinkService::create_email_verification_token(
-                &secret_key,
-                user_id,
-                user.email.clone(),
-            ) {
-                let frontend_base_url = std::env::var("FRONTEND_URL")
-                    .unwrap_or_else(|_| "http://localhost:8080".to_string());
-
-                let magic_link = format!("{}/launchprocess?token={}", frontend_base_url, token);
-                let user_name = format!("{} {}", user.name, user.last_name);
-
-                if let Err(e) = send_verification_email_with_resend(&user.email, &user_name, &magic_link).await {
-                    error!("Failed to resend verification email: {}", e);
-                    return HttpResponse::InternalServerError().body("Failed to send email");
-                }
-
-                println!("🔗 Resent verification magic link: {}", magic_link);
-
-                return HttpResponse::Ok().json(json!({
-                    "message": "Verification email resent"
-                }));
-            }
-        }
-    }
-
-    HttpResponse::Ok().json(json!({
-        "message": "If this email exists, a verification email was resent"
-    }))
 }
 
 /**

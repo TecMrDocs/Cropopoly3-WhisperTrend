@@ -67,4 +67,3 @@ pub mod analysis;
 * Link mágico para verificación de email
 */
 pub mod auth_link;
-

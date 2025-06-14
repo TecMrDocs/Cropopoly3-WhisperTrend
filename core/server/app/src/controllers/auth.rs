@@ -204,8 +204,8 @@ pub fn routes() -> actix_web::Scope {
         .service(signin)       
         .service(verify_mfa)   
         .service(super::auth_link::verify_email_endpoint) 
-        .service(super::auth_link::resend_verification_email) 
         .service(delete_user)
+        
 
         .service(
             web::scope("")  

@@ -151,7 +151,7 @@ impl PasswordHasher {
         use rand::RngCore;  // Import local
         
         let mut salt = [0u8; 32];
-        rand::thread_rng().fill_bytes(&mut salt);  // 👈 ESTO FUNCIONA SIEMPRE
+        rand::thread_rng().fill_bytes(&mut salt);  
         
         let config = Config::default();
         argon2::hash_encoded(password.as_bytes(), &salt, &config)

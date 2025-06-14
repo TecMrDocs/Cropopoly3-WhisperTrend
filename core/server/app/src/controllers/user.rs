@@ -1,3 +1,13 @@
+/**
+* Controlador de Usuarios del Sistema
+* 
+* Gestiona las operaciones de creación y consulta individual o general de usuario,
+* así como la actualización de datos empresariales y de perfil.
+* 
+* Autor: Mariana Balderrábano Aguilar
+* Contribuyentes: Arturo Barrios Mendoza y Carlos Alberto Zamudio Velázquez
+*/
+
 use crate::{
     database::DbResponder,
     //middlewares,
@@ -13,6 +23,12 @@ use auth::PasswordHasher;
 use tracing::error;
 use validator::Validate;
 
+/**
+* Endpoint para crear un nuevo usuario en el sistema. 
+*
+* @param user Datos del usuario a registrar
+* @return HTTP 200 si se crea correctamente, 401 si ya existe o es inválido
+*/
 #[post("")]
 pub async fn create_user(mut user: web::Json<User>) -> Result<impl Responder> {
     if let Err(_) = user.validate() {
@@ -35,7 +51,12 @@ pub async fn create_user(mut user: web::Json<User>) -> Result<impl Responder> {
     Err(error::ErrorBadRequest("Failed"))
 }
 
-// Obtener usuario por id
+/**
+* Endpoint que obtiene un usuario específico por ID.
+* 
+* @param id que es el identificador del usuario. 
+* @return JSON del usuario o error 404 si no existe.
+*/
 #[get("/{id}")]
 pub async fn get_user(req: HttpRequest) -> Result<impl Responder> {
     if let Some(id) = req.match_info().get("id") {
@@ -52,6 +73,11 @@ pub async fn get_user(req: HttpRequest) -> Result<impl Responder> {
     Ok(HttpResponse::Unauthorized().finish())
 }
 
+/**
+* Endpoint que obtiene todos los usuarios del sistema.
+*
+* @return Lista de usuarios en formato JSON.
+*/
 #[get("")]
 pub async fn get_all_users() -> Result<impl Responder> {
     let users = User::get_all().await.to_web()?;
@@ -59,6 +85,13 @@ pub async fn get_all_users() -> Result<impl Responder> {
     return Ok(HttpResponse::Ok().json(users));
 }
 
+/**
+* Endpoint para actualizar los datos empresariales de un usuario.
+*
+* @param id que es el identificador del usuario a actualizar.
+* @param data que son los datos empresariales a actualizar en formato JSON.
+* @return HTTP 200 si se actualiza correctamente, error 400 si falta el ID o es inválido.
+*/
 #[post("/update/{id}")]
 pub async fn update_user_business_data(
     req: HttpRequest,
@@ -88,6 +121,13 @@ pub async fn update_user_business_data(
     Err(error::ErrorInternalServerError("Failed to update user business data"))
 }
 
+/**
+* Endpoint para actualizar los datos de perfil de un usuario.
+*
+* @param id que es el identificador del usuario a actualizar.
+* @param data que son los datos de perfil a actualizar en formato JSON.
+* @return HTTP 200 si se actualiza correctamente, error 400 si falta el ID o es inválido.
+*/
 #[post("/update/profile/{id}")]
 pub async fn update_user_profile_data(
     req: HttpRequest,
@@ -119,6 +159,13 @@ pub async fn update_user_profile_data(
     }
 }
 
+/**
+* Configuración de rutas para el módulo de usuario
+* Define todos los endpoints disponibles bajo el prefijo /user
+*
+* @return Define el scope /user y registra los servicios create_user, get_user, get_all_users,
+* update_user_business_data y update_user_profile_data.
+*/
 pub fn routes() -> actix_web::Scope {
     web::scope("/user")
         .service(create_user)
