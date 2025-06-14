@@ -1,3 +1,18 @@
+/**
+ * VentasCalc Component - Sistema de Análisis y Visualización de Ventas
+ * 
+ * Este componente proporciona una interfaz completa para el análisis de datos
+ * de ventas con múltiples tipos de visualización interactiva. Incluye cálculo
+ * automático de estadísticas, tendencias, métricas de rendimiento y gráficos
+ * dinámicos que se adaptan según el tipo seleccionado. Maneja tanto datos
+ * reales como datos de demostración, proporcionando insights valiosos sobre
+ * el comportamiento de ventas a lo largo del tiempo con diferentes perspectivas
+ * visuales como área, barras, líneas, gráficos combinados, circulares, radiales
+ * y de dispersión.
+ * 
+ * Autor: Lucio Arturo Reyes Castillo
+ */
+
 import React, { useMemo, useState } from 'react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
@@ -5,7 +20,9 @@ import {
   RadialBarChart, RadialBar, ScatterChart, Scatter
 } from 'recharts';
 
-// 🆕 TIPO PARA LOS DATOS DE VENTAS
+/**
+ * Estructura de datos para ventas individuales
+ */
 interface DatoVenta {
   id: number;
   month: number;
@@ -14,6 +31,9 @@ interface DatoVenta {
   resource_id: number;
 }
 
+/**
+ * Propiedades del componente VentasCalc
+ */
 interface VentasCalcProps {
   datosVentas?: DatoVenta[];
   resourceName?: string;
@@ -22,11 +42,15 @@ interface VentasCalcProps {
 const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName = 'Producto' }) => {
   const [tipoGrafico, setTipoGrafico] = useState<'area' | 'bar' | 'line' | 'composed' | 'pie' | 'radial' | 'scatter'>('area');
 
-  // 🆕 PROCESAR DATOS DINÁMICOS
+  /**
+   * Procesamiento de datos de ventas para visualización
+   * Convierte datos brutos en formato optimizado para gráficas
+   */
   const datosGrafica = useMemo(() => {
     if (!datosVentas || datosVentas.length === 0) {
-      
-      // Datos de fallback más interesantes
+      /**
+       * Datos de fallback para demostración
+       */
       return [
         { periodo: 'Jul 2024', ventas: 10, mes: 7, año: 2024, crecimiento: 0, acumulado: 10 },
         { periodo: 'Ago 2024', ventas: 12, mes: 8, año: 2024, crecimiento: 20, acumulado: 22 },
@@ -43,7 +67,9 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
       ];
     }
 
-    // 🚀 PROCESAR DATOS REALES
+    /**
+     * Procesamiento de datos reales con ordenamiento y cálculos
+     */
     const datosOrdenados = [...datosVentas].sort((a, b) => {
       if (a.year !== b.year) return a.year - b.year;
       return a.month - b.month;
@@ -59,7 +85,9 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
       const nombreMes = nombresMeses[venta.month - 1] || `Mes ${venta.month}`;
       const periodo = `${nombreMes} ${venta.year}`;
       
-      // Calcular crecimiento
+      /**
+       * Cálculo de crecimiento mes a mes
+       */
       let crecimiento = 0;
       if (index > 0) {
         const ventaAnterior = datosOrdenados[index - 1];
@@ -82,7 +110,9 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
     });
   }, [datosVentas]);
 
-  // 🆕 CALCULAR ESTADÍSTICAS
+  /**
+   * Cálculo de estadísticas y métricas de rendimiento
+   */
   const estadisticas = useMemo(() => {
     if (datosGrafica.length === 0 || datosGrafica.every(item => item.ventas === 0)) {
       return {
@@ -112,6 +142,9 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
     const primeraVentaValida = ventasValidas[0]?.ventas || 0;
     const ultimaVentaValida = ventasValidas[ventasValidas.length - 1]?.ventas || 0;
     
+    /**
+     * Determinación de tendencia general
+     */
     let tendenciaGeneral = 'Estable';
     let crecimientoTotal = 0;
     
@@ -137,14 +170,18 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
     };
   }, [datosGrafica]);
 
-  // 🎨 COLORES Y EMOJIS DINÁMICOS
+  /**
+   * Configuración visual basada en tendencias
+   */
   const colorTendencia = estadisticas.tendenciaGeneral === 'Creciendo' ? '#22c55e' : 
                         estadisticas.tendenciaGeneral === 'Decreciendo' ? '#ef4444' : '#6b7280';
 
   const iconoTendencia = estadisticas.tendenciaGeneral === 'Creciendo' ? '📈' : 
                         estadisticas.tendenciaGeneral === 'Decreciendo' ? '📉' : '📊';
 
-  // 🎨 FUNCIÓN PARA RENDERIZAR GRÁFICO SELECCIONADO
+  /**
+   * Renderizador de gráficos según tipo seleccionado
+   */
   const renderGrafico = () => {
     const colores = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
     
@@ -203,7 +240,9 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
         );
 
       case 'pie':
-        // Agrupar datos para pie chart
+        /**
+         * Configuración para gráfico circular con últimos 6 períodos
+         */
         const datosPie = datosGrafica.slice(-6).map((item, index) => ({
           name: item.periodo,
           value: item.ventas,
@@ -273,7 +312,9 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
 
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-white via-blue-50/40 to-indigo-100/60 rounded-2xl p-6">
-      {/* Header con información dinámica */}
+      {/**
+       * Header con información del producto y estadísticas básicas
+       */}
       <div className="text-center mb-6">
         <div className="text-6xl mb-4">💰</div>
         <h2 className="text-2xl font-bold text-gray-800 mb-2">
@@ -288,7 +329,9 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
         </div>
       </div>
 
-      {/* 🆕 SELECTOR DE TIPO DE GRÁFICO */}
+      {/**
+       * Selector de tipo de gráfico con 7 opciones disponibles
+       */}
       <div className="mb-6 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-white/40">
         <h3 className="text-lg font-bold text-gray-800 mb-3">🎨 Estilo de Gráfico</h3>
         <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
@@ -317,7 +360,9 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
         </div>
       </div>
 
-      {/* Estadísticas */}
+      {/**
+       * Panel de estadísticas principales con 4 métricas clave
+       */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl p-4 shadow-lg border border-blue-100 text-center hover:shadow-xl transition-shadow">
           <div className="text-3xl mb-2">📦</div>
@@ -364,7 +409,9 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
         </div>
       </div>
 
-      {/* Gráfica Principal con tipo seleccionado */}
+      {/**
+       * Área principal del gráfico con renderizado dinámico
+       */}
       <div className="flex-1 bg-white rounded-xl p-6 shadow-lg border border-blue-100 min-h-[400px]">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-gray-800">
@@ -383,7 +430,9 @@ const VentasCalc: React.FC<VentasCalcProps> = ({ datosVentas = [], resourceName 
         </div>
       </div>
 
-      {/* Footer con información detallada */}
+      {/**
+       * Footer informativo con estado de datos y timestamp
+       */}
       <div className="mt-4 text-center">
         <div className="text-sm text-gray-500">
           {datosVentas.length > 0 ? (

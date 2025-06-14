@@ -1,4 +1,17 @@
-// components/dashboard/EstadoConexion.tsx
+/**
+ * EstadoConexion Component - Indicador Visual de Estado del Sistema
+ * 
+ * Este componente proporciona un indicador visual intuitivo que muestra el estado
+ * actual del sistema de datos, diferenciando entre datos reales calculados en
+ * el backend y datos de demostración. Utiliza señales visuales como colores
+ * y animaciones para comunicar de manera efectiva la naturaleza de los datos
+ * mostrados al usuario, mejorando la transparencia y confiabilidad de la interfaz.
+ * 
+ * Autor: Lucio Arturo Reyes Castillo
+ */
+
+
+
 interface EstadoConexionProps {
   tieneCalculosBackend: boolean;
   descripcionActivo?: string;

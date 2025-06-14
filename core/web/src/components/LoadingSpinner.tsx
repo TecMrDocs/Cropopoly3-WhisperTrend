@@ -1,3 +1,15 @@
+/**
+ * LoadingSpinner Component - Componente de Estado de Carga
+ * 
+ * Este componente proporciona una interfaz de carga elegante y informativa
+ * que se muestra durante procesos asincrónicos como carga de datos de API,
+ * cálculos de backend o cualquier operación que requiera tiempo de espera.
+ * Utiliza un diseño centrado con iconografía clara y mensajes personalizables
+ * para mantener al usuario informado sobre el progreso del sistema.
+ * 
+ * Autor: Lucio Arturo Reyes Castillo
+ */
+
 interface LoadingSpinnerProps {
   titulo?: string;
   descripcion?: string;

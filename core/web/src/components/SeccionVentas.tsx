@@ -6,7 +6,6 @@
  * aplicar estilos dinámicos, y manejar clics con distintos modos de visualización.
  *
  * Autor: Lucio Arturo Reyes Castillo  
- * Contribuyentes: —
  */
 
 import React from 'react';

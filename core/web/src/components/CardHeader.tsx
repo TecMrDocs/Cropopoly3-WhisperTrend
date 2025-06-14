@@ -1,4 +1,15 @@
-// components/dashboard/CardHeader.tsx
+
+/**
+ * CardHeader Component - Componente de Encabezado para Tarjetas del Dashboard
+ * 
+ * Este componente proporciona un encabezado estandarizado y visualmente atractivo
+ * para las diferentes secciones del dashboard. Incluye iconografía personalizable,
+ * títulos con gradientes, indicadores de estado de conexión y efectos visuales
+ * avanzados como blur y sombras. Diseñado para mantener consistencia visual
+ * en toda la aplicación mientras permite personalización específica por sección.
+ * 
+ * Autor: Lucio Arturo Reyes Castillo
+ */
 import { EstadoConexion } from './EstadoConexion';
 
 interface CardHeaderProps {

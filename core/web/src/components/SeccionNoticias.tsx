@@ -1,3 +1,16 @@
+/**
+ * SeccionNoticias Component - Sección de Visualización y Gestión de Noticias
+ * 
+ * Este componente especializado renderiza la sección de noticias dinámicas dentro
+ * del sistema de control del dashboard. Proporciona una interfaz interactiva
+ * para visualizar y seleccionar noticias basadas en su correlación con tendencias
+ * de mercado. Incluye indicadores visuales de color, métricas de correlación
+ * y controles de navegación que facilitan el análisis del impacto de noticias
+ * en las redes sociales y su relación con las métricas de engagement.
+ * 
+ * Autor: Lucio Arturo Reyes Castillo
+ */
+
 import React from 'react';
 
 interface SeccionNoticiasProps {

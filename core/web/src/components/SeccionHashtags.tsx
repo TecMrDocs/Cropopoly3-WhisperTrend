@@ -1,3 +1,17 @@
+/**
+ * SeccionHashtags Component - Sección de Visualización y Gestión de Hashtags
+ * 
+ * Este componente especializado renderiza la sección de hashtags dinámicos dentro
+ * del sistema de control del dashboard. Proporciona una interfaz interactiva
+ * para visualizar, ordenar y seleccionar hashtags basado en su correlación
+ * con criterios de búsqueda. Incluye indicadores visuales de color, métricas
+ * de correlación y controles de navegación que facilitan la exploración
+ * de tendencias y patrones en los datos de redes sociales.
+ * 
+ * Autor: Lucio Arturo Reyes Castillo
+ */
+
+
 import React from 'react';
 
 interface SeccionHashtagsProps {

@@ -1,4 +1,15 @@
-// components/dashboard/BotonVolver.tsx
+/**
+ * BotonVolver Component - Componente de Navegación de Retorno
+ * 
+ * Este componente proporciona un botón de navegación reutilizable que permite
+ * a los usuarios regresar a vistas anteriores o resetear el estado de visualización
+ * en el dashboard. Implementa un diseño consistente con transiciones suaves y
+ * texto configurable para adaptarse a diferentes contextos de uso.
+ * 
+ * Autor: Lucio Arturo Reyes Castillo
+ */
+
+
 interface BotonVolverProps {
   onClick: () => void;
   texto?: string;

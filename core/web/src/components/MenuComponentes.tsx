@@ -1,3 +1,17 @@
+/**
+ * MenuComponentes - Sistema de Control y Navegación del Dashboard
+ * 
+ * Este componente centraliza la funcionalidad de navegación y control del dashboard
+ * de análisis de tendencias. Proporciona una interfaz completa para la gestión de
+ * hashtags dinámicos, tasas de interacción y viralidad, análisis de noticias,
+ * y visualizaciones consolidadas. Integra múltiples secciones especializadas
+ * y maneja la comunicación entre diferentes componentes del sistema para crear
+ * una experiencia de usuario fluida y cohesiva.
+ * 
+ * Autor: Lucio Arturo Reyes Castillo y Julio Cesar Vivas Medina
+ */
+
+
 import React, { useState, useMemo } from 'react';
 import {LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid,} from 'recharts';
 import SeccionVentas from './SeccionVentas';
