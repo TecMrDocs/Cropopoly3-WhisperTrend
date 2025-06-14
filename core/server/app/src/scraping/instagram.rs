@@ -1,3 +1,14 @@
+/**
+ * Scraper de Instagram con login automatizado y extracción de datos de publicaciones.
+ *
+ * Este módulo permite automatizar la autenticación en Instagram y realizar scraping de publicaciones
+ * relacionadas con un hashtag específico. Extrae información como likes, comentarios, timestamp,
+ * enlace de la publicación y número de seguidores del autor. Utiliza cookies persistentes para evitar
+ * múltiples inicios de sesión y ejecutar código JavaScript en el navegador controlado.
+ *
+ * Autor: Santiago Villazón Ponce de León
+ */
+
 use crate::{
     config::Config,
     scraping::{SCRAPER, Utils},
@@ -7,28 +18,34 @@ use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
-// User agent string to mimic a real browser
+// Variables globales y constantes
+
+/// User Agent usado para simular un navegador real y evitar bloqueos por parte de Instagram.
 static USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-// JavaScript code for hover effects on Instagram posts
+
+/// Código JavaScript externo para forzar efectos de hover sobre publicaciones.
 static JS_HOVER: &str = include_str!("hover.js");
-// Global storage for Instagram session cookies
+
+/// Almacenamiento global de cookies de sesión para evitar múltiples logins.
 static COOKIES: OnceCell<String> = OnceCell::new();
 
-// Instagram URLs
+/// URL de login de Instagram.
 const INSTAGRAM_LOGIN_URL: &str = "https://www.instagram.com/accounts/login/";
+
+/// URL base para explorar hashtags.
 const INSTAGRAM_POST_URL: &str = "https://www.instagram.com/explore/tags";
 
-// CSS selectors for login form elements
+/// Selectores CSS necesarios para interactuar con el formulario de login.
 const USERNAME_SELECTOR: &str = "input[name='username']";
 const PASSWORD_SELECTOR: &str = "input[name='password']";
 const LOGIN_BUTTON_SELECTOR: &str = "button[type='submit']";
 
-// CSS selectors for post data extraction
+/// Selectores CSS para extraer información de las publicaciones y perfiles.
 const POST_SELECTOR: &str = "main > div > div:nth-of-type(2) > div > div > div";
 const TIME_SELECTOR: &str = "a span time";
 const FOLLOWERS_SELECTOR: &str = "section a span span";
 
-// Primary post data structure (likes, comments, link)
+/// Estructura que contiene likes, comentarios y el enlace de un post
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InstagramPostPrimary {
     pub likes: u32,
@@ -36,14 +53,14 @@ pub struct InstagramPostPrimary {
     pub link: String,
 }
 
-// Secondary post data structure (time and link)
+/// Estructura que contiene solo el timestamp y el link
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct InstagramPostSecondary {
     pub time: String,
     pub link: String,
 }
 
-// Complete post data structure combining all information
+/// Estructura final que agrupa todos los datos relevantes de un post
 #[derive(Debug, Serialize, Deserialize)]
 pub struct InstagramPost {
     pub likes: u32,
@@ -53,10 +70,18 @@ pub struct InstagramPost {
     pub followers: u32,
 }
 
+/// Scraper principal de Instagram que implementa todas las funciones de login y scraping.
 pub struct InstagramScraper;
 
 impl InstagramScraper {
-    /// Performs Instagram login and returns session cookies
+    /**
+     * Realiza el login en Instagram utilizando credenciales configuradas.
+     *
+     * Se navega al formulario de login, se rellenan los campos y se guarda la cookie resultante.
+     * Este método no debe ser llamado directamente, a menos que se requiera regenerar cookies.
+     *
+     * @return Cookie de sesión en formato string.
+     */
     pub async fn login() -> anyhow::Result<String> {
         SCRAPER
             .execute(move |context| {
@@ -71,7 +96,12 @@ impl InstagramScraper {
             .await
     }
 
-    /// Applies stored cookies or performs login if needed
+    /**
+     * Aplica las cookies almacenadas o realiza login si no se encuentran cookies previas.
+     *
+     * Se verifica la existencia de un archivo `cookies.json`, en cuyo caso se cargan. 
+     * De lo contrario, se realiza login y se genera el archivo con las cookies.
+     */
     pub async fn apply_login() -> anyhow::Result<()> {
         if COOKIES.get().is_some() {
             return Ok(());
@@ -91,7 +121,14 @@ impl InstagramScraper {
         Ok(())
     }
 
-    /// Extracts timestamp and link from an Instagram post
+    /**
+     * Extrae el timestamp (`datetime`) y link de una publicación individual de Instagram.
+     *
+     * Se accede al DOM con cookies activadas y se ejecuta un script que busca los datos requeridos.
+     *
+     * @param link Enlace a la publicación específica de Instagram.
+     * @return Estructura con el tiempo y enlace de la publicación.
+     */
     pub async fn get_time_and_link(link: String) -> anyhow::Result<InstagramPostSecondary> {
         InstagramScraper::apply_login().await?;
         if let Some(cookies) = COOKIES.get() {
@@ -101,7 +138,6 @@ impl InstagramScraper {
                     context.set_string_cookies(cookies.clone());
                     context.navigate(link.clone());
                     std::thread::sleep(std::time::Duration::from_secs(5));
-                    // JavaScript to extract post timestamp and link
                     context.evaluate(format!(
                     "(() => {{
                         let t = document.querySelector('{TIME_SELECTOR}');
@@ -135,7 +171,15 @@ impl InstagramScraper {
         Err(anyhow::anyhow!("No cookies found"))
     }
 
-    /// Extracts follower count from an Instagram profile
+    /**
+     * Extrae el número de seguidores del autor de una publicación.
+     *
+     * Se navega al perfil del usuario (tomado desde el post) y se ejecuta JavaScript
+     * para obtener el valor visible en el DOM.
+     *
+     * @param link Enlace al perfil o post que redirige al autor.
+     * @return Cantidad de seguidores como string.
+     */
     pub async fn get_followers(link: String) -> anyhow::Result<String> {
         InstagramScraper::apply_login().await?;
         if let Some(cookies) = COOKIES.get() {
@@ -145,7 +189,6 @@ impl InstagramScraper {
                     context.set_string_cookies(cookies.clone());
                     context.navigate(link.clone());
                     std::thread::sleep(std::time::Duration::from_secs(5));
-                    // JavaScript to extract follower count
                     let result = context.evaluate(format!(
                         "(() => {{
                         let followers = document.querySelector('{FOLLOWERS_SELECTOR}').textContent;
@@ -160,18 +203,28 @@ impl InstagramScraper {
         Err(anyhow::anyhow!("No cookies found"))
     }
 
-    /// Scrapes Instagram posts for a given hashtag and returns complete post data
+    /**
+     * Realiza scraping de publicaciones asociadas a un hashtag.
+     *
+     * Esta función tiene 3 fases:
+     * 1. Extraer likes, comentarios y enlaces de los posts.
+     * 2. Obtener la fecha y link real de cada post.
+     * 3. Acceder al perfil del autor y obtener su número de seguidores.
+     *
+     * @param hashtag Hashtag sin el símbolo `#` (ej. sustainability).
+     * @return Vector con estructuras completas de cada post.
+     */
     pub async fn get_posts(hashtag: String) -> anyhow::Result<Vec<InstagramPost>> {
         InstagramScraper::apply_login().await?;
         if let Some(cookies) = COOKIES.get() {
-            // First phase: Get basic post data (likes, comments, links)
+            // Fase 1: Obtener likes, comments y link de cada publicación
             let posts = SCRAPER
                 .execute(move |context| {
                     context.set_user_agent(USER_AGENT);
                     context.set_string_cookies(cookies.clone());
                     context.navigate(format!("{}/{}", INSTAGRAM_POST_URL, hashtag));
                     std::thread::sleep(std::time::Duration::from_secs(5));
-                    // Apply hover effects to reveal post metrics
+
                     context.evaluate(format!(
                         "(() => {{
                         {JS_HOVER};
@@ -181,7 +234,7 @@ impl InstagramScraper {
                     }})()"
                     ));
                     std::thread::sleep(std::time::Duration::from_secs(5));
-                    // Extract post data using JavaScript
+
                     let result = context.async_evaluate(format!(
                         "(() => {{
                         let posts = Array.from(document.querySelectorAll('{POST_SELECTOR}'));
@@ -221,7 +274,7 @@ impl InstagramScraper {
             let posts: Vec<InstagramPostPrimary> = serde_json::from_str(&posts)?;
             let mut futures = Vec::new();
 
-            // Second phase: Get timestamps and links for each post concurrently
+            // Fase 2: Obtener fecha y link real de cada post en paralelo
             for post in posts.clone() {
                 futures.push(async move {
                     match InstagramScraper::get_time_and_link(post.link).await {
@@ -239,7 +292,7 @@ impl InstagramScraper {
                 results.into_iter().filter_map(|result| result).collect();
             let mut futures = Vec::new();
 
-            // Third phase: Get follower counts for each post concurrently
+            // Fase 3: Obtener seguidores del autor de cada post en paralelo
             for post in times_and_links.clone() {
                 futures.push(async move {
                     match InstagramScraper::get_followers(post.link).await {
@@ -251,8 +304,8 @@ impl InstagramScraper {
 
             let results = join_all(futures).await;
             let followers: Vec<String> = results.into_iter().filter_map(|result| result).collect();
-            
-            // Combine all data into final post structures
+
+            // Ensamblar todos los datos en la estructura final
             let posts: Vec<InstagramPost> = posts
                 .into_iter()
                 .zip(followers)
