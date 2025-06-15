@@ -184,14 +184,6 @@ export default function Login() {
               </p>
               <p>
                 <span
-                  onClick={() => navigate("/ChangePassword")}
-                  className="text-[#0e7490] underline cursor-pointer font-medium hover:text-blue-600 transition-colors"
-                >
-                  Olvidé mi contraseña
-                </span>
-              </p>
-              <p>
-                <span
                   onClick={() => navigate("/avisoPrivacidad")}
                   className="text-[#0e7490] underline cursor-pointer font-medium hover:text-blue-600 transition-colors"
                 >
