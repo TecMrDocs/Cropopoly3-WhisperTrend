@@ -173,4 +173,5 @@ pub fn routes() -> actix_web::Scope {
         .service(get_all_users)
         .service(update_user_business_data)
         .service(update_user_profile_data)
+        // .service(update_password)
 }

@@ -19,7 +19,7 @@ use crate::middlewares;
 
 use actix_web::{
     error, get, middleware::from_fn, post, web, HttpMessage, HttpRequest, HttpResponse, Responder,
-    Result, delete,
+    Result
 };
 use auth::{PasswordHasher, TokenService};
 use chrono::{Duration, Utc};
@@ -169,27 +169,6 @@ pub async fn check(req: HttpRequest) -> Result<impl Responder, actix_web::Error>
     Err(error::ErrorUnauthorized("No id found in request"))
 }
 
-
-#[delete("/delete/{user_id}")]
-pub async fn delete_user(path: web::Path<i32>) -> Result<impl Responder, actix_web::Error> {
-    let user_id_to_delete = path.into_inner();
-
-    // Verificar si el usuario existe
-    if User::get_by_id(user_id_to_delete).await.to_web()?.is_none() {
-        return Ok(HttpResponse::NotFound().json(json!({
-            "error": "User not found"
-        })));
-    }
-
-    // Intentar eliminar el usuario
-    User::delete_by_id(user_id_to_delete).await.to_web()?;
-
-    Ok(HttpResponse::Ok().json(json!({
-        "message": "User deleted successfully",
-        "deleted_user_id": user_id_to_delete
-    })))
-}
-
 /**
  * Configuración de rutas para el módulo de autenticación
  * Define todos los endpoints disponibles bajo el prefijo /auth
@@ -204,8 +183,6 @@ pub fn routes() -> actix_web::Scope {
         .service(signin)       
         .service(verify_mfa)   
         .service(super::auth_link::verify_email_endpoint) 
-        .service(delete_user)
-        
 
         .service(
             web::scope("")  
